@@ -13,6 +13,6 @@ jobs:
     update-docker-image-scan-doc:
         uses: entur/gha-meta/.github/workflows/auto-doc.yml@v1.0.0
         with: 
-            workflow_file: .github/workflows/docker_image_scan.yml
+            workflow_file: .github/workflows/image_scanning.yml
             readme_file: README-docker_image_scan.md
 

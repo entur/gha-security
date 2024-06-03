@@ -8,7 +8,7 @@ Add the following step to your workflow configuration:
 jobs:
   docker-image-scan:
     name: Docker Image Scan
-    uses: entur/gha-security/.github/workflows/docker_image_scan.yml@main
+    uses: entur/gha-security/.github/workflows/image_scanning.yml@main
     with:
         image_artifact: # The name of the image artifact to scan
     
@@ -59,7 +59,7 @@ jobs:
 
   docker-image-scan:
     needs: docker-build
-    uses: entur/gha-security/.github/workflows/docker-image-scan.yml@main
+    uses: entur/gha-security/.github/workflows/image-scanning.yml@main
     with:
         image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
 
