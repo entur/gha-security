@@ -15,9 +15,9 @@ jobs:
 
 <!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
 
-|                                   INPUT                                    |  TYPE  | REQUIRED |          DEFAULT           |                                                  DESCRIPTION                                                  |
-|----------------------------------------------------------------------------|--------|----------|----------------------------|---------------------------------------------------------------------------------------------------------------|
-| <a name="input_code_whitelist_file"></a>[code_whitelist_file](#input_code_whitelist_file) | string |  false   | `"code_whitelisting.yaml"` | The path to the file <br>containing the whitelisting rules, starting <br>from the root of the <br>repository  |
+|                                           INPUT                                           |  TYPE  | REQUIRED | DEFAULT |                   DESCRIPTION                   |
+|-------------------------------------------------------------------------------------------|--------|----------|---------|-------------------------------------------------|
+| <a name="input_code_whitelist_file"></a>[code_whitelist_file](#input_code_whitelist_file) | string |  false   |         | Whitelisting file for code scanning <br>alerts  |
 
 <!-- AUTO-DOC-INPUT:END -->
 
