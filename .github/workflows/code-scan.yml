@@ -73,7 +73,7 @@ jobs:
             uses: github/codeql-action/init@v3
             with:
               languages: ${{ matrix.language }}
-              build-mode: none
+              build-mode: autobuild
           - name: "Initialize CodeQL"
             if: matrix.language != 'java' && matrix.language != 'kotlin'
             uses: github/codeql-action/init@v3
