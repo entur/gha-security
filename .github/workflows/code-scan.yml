@@ -9,6 +9,8 @@ on:
 
 env:
   GITHUB_REPOSITORY: ${{ github.repository }}
+  ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+  ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
 
 jobs:
   get-repository-languages:
