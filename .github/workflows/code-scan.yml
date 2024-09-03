@@ -73,36 +73,40 @@ jobs:
           skip_job_and_continue_scan = True
         else: 
           five_recently_updated_closed_prs = five_recently_updated_closed_prs.json()
-          pr_branch = None
+          pr_head = None
           for closed_pr in five_recently_updated_closed_prs:
             merge_commit_sha = closed_pr.get('merge_commit_sha')
             if merge_commit_sha == github_sha:
-              pr_branch = closed_pr.get('head').get('ref')
+              pr_head = closed_pr.get('head').get('sha')
               break
             
-          if pr_branch != None:
-            workflow_run = requests.get(
+          if pr_head != None:
+            workflow_runs = requests.get(
               f'https://api.github.com/repos/{github_repository}/actions/runs',
               headers=headers,
               params={
-                'branch': pr_branch,
+                'head_sha': pr_head,
                 'event': 'pull_request',
                 'status': 'completed',
                 'per_page': '1'
               }
             )
 
-            if workflow_run.status_code != 200:
+            if workflow_runs.status_code != 200:
               print('::error ::Error fetching workflow run')
               skip_job_and_continue_scan = True
             else:
-              workflow_run = workflow_run.json()
-              if workflow_run.get('workflow_runs'):
-                run_id = workflow_run.get('workflow_runs')[0].get('id')
-
-                with open(env_file, 'a') as f:
-                  f.write(f'GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID={run_id}\n')
-              else:
+              workflow_runs = workflow_runs.json().get('workflow_runs', [])
+              run_id = None
+              for workflow_run in workflow_runs:
+                if workflow_run.get('path') == '.github/workflows/codeql.yml':
+                  run_id = workflow_run.get('id')
+                  
+                  with open(env_file, 'a') as f:
+                    f.write(f'GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID={run_id}\n')
+                  
+                  break
+              if run_id is not None:
                 print('::notice ::No matching workflow run found')
                 skip_job_and_continue_scan = True
               
