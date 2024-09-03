@@ -106,7 +106,7 @@ jobs:
                     f.write(f'GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID={run_id}\n')
                   
                   break
-              if run_id is not None:
+              if run_id is None:
                 print('::notice ::No matching workflow run found')
                 skip_job_and_continue_scan = True
               
