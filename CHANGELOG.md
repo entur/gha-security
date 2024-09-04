@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/entur/gha-security/compare/v1.1.0...v1.1.1) (2024-09-04)
+
+
+### Bug Fixes
+
+* Fixed issue with downloading artifacts from the wrong workflow run ([#36](https://github.com/entur/gha-security/issues/36)) ([12959e7](https://github.com/entur/gha-security/commit/12959e701123b510ebd455115c13d0d3a8f144a9))
+
 ## [1.1.0](https://github.com/entur/gha-security/compare/v1.0.2...v1.1.0) (2024-08-19)
 
 
