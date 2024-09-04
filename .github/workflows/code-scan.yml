@@ -87,8 +87,7 @@ jobs:
               params={
                 'head_sha': pr_head,
                 'event': 'pull_request',
-                'status': 'completed',
-                'per_page': '1'
+                'status': 'completed'
               }
             )
 
