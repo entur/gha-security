@@ -237,6 +237,11 @@ jobs:
       steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
+      - name: "Set up Gradle for Java/Kotlin"
+        if: matrix.language == 'kotlin' || matrix.language == 'java'
+        uses: gradle/actions/setup-gradle
+        with: 
+          cache-read-only: true                                             # Force read only,
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
         uses: github/codeql-action/init@v3
