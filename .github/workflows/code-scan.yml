@@ -103,7 +103,7 @@ jobs:
               workflow_runs = workflow_runs.json().get('workflow_runs', [])
               run_id = None
               for workflow_run in workflow_runs:
-                if workflow_run.get('path') == '.github/workflows/codeql.yml':
+                if workflow_run.get('path','').starts_with('.github/workflows/codeql.yml'):
                   run_id = workflow_run.get('id')
                   
                   with open(env_file, 'a') as f:
