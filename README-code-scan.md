@@ -17,7 +17,11 @@ or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your 
 ## Inputs
 
 <!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
-No inputs.
+
+|                                      INPUT                                       |  TYPE   | REQUIRED | DEFAULT |                                   DESCRIPTION                                    |
+|----------------------------------------------------------------------------------|---------|----------|---------|----------------------------------------------------------------------------------|
+| <a name="input_use-gradle-setup"></a>[use-gradle-setup](#input_use-gradle-setup) | boolean |  false   | `false` | Use gradle/action/setup-gradle before running autobuild <br>(Java/Koitlin only)  |
+
 <!-- AUTO-DOC-INPUT:END -->
 
 ## Golden Path
