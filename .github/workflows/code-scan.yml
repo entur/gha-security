@@ -4,7 +4,7 @@ on:
     workflow_call:
       inputs:
         use-gradle-setup:
-          description: 'Use gradle/action/setup-gradle before running autobuild (Java/Koitlin only)'
+          description: 'Use "gradle/action/setup-gradle" before running autobuild (Java/Kotlin only)'
           default: false
           required: false
           type: boolean
