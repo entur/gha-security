@@ -239,7 +239,7 @@ jobs:
         uses: actions/checkout@v4
       - name: "Set up Gradle for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
-        uses: gradle/actions/setup-gradle
+        uses: gradle/actions/setup-gradle@v4.1.0
         with: 
           cache-read-only: true                                             # Force read only,
       - name: "Initialize CodeQL for Java/Kotlin"
