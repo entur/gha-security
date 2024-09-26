@@ -2,7 +2,12 @@ name: 'Entur/Security/Code Scan'
 
 on:
     workflow_call:
-
+      inputs:
+        use-gradle-setup:
+          description: 'Use gradle/action/setup-gradle before running autobuild (Java/Koitlin only)'
+          default: false
+          required: false
+          type: boolean
 env:
   GITHUB_REPOSITORY: ${{ github.repository }}
 
@@ -238,10 +243,10 @@ jobs:
       - name: "Checkout repository"
         uses: actions/checkout@v4
       - name: "Set up Gradle for Java/Kotlin"
-        if: matrix.language == 'kotlin' || matrix.language == 'java'
+        if: ${{ inputs.use-gradle-setup}} && matrix.language == 'kotlin' || matrix.language == 'java'
         uses: gradle/actions/setup-gradle@v4.1.0
         with: 
-          cache-read-only: true                                             # Force read only,
+          cache-read-only: true  # Force read only, even in main
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
         uses: github/codeql-action/init@v3
