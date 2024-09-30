@@ -3,8 +3,8 @@ name: 'Entur/Security/Code Scan'
 on:
     workflow_call:
       inputs:
-        use-gradle-setup:
-          description: 'Use "gradle/action/setup-gradle" before running autobuild (Java/Kotlin only)'
+        use_setup_gradle:
+          description: 'Use "gradle/action/setup-gradle" before running autobuild (Java/Kotlin only). Potentially speeds up build times if cache from main branch is utilized'
           default: false
           required: false
           type: boolean
@@ -103,7 +103,7 @@ jobs:
               workflow_runs = workflow_runs.json().get('workflow_runs', [])
               run_id = None
               for workflow_run in workflow_runs:
-                if workflow_run.get('path','').starts_with('.github/workflows/codeql.yml'):
+                if workflow_run.get('path','').startswith('.github/workflows/codeql.yml'):
                   run_id = workflow_run.get('id')
                   
                   with open(env_file, 'a') as f:
@@ -243,7 +243,7 @@ jobs:
       - name: "Checkout repository"
         uses: actions/checkout@v4
       - name: "Set up Gradle for Java/Kotlin"
-        if: ${{ inputs.use-gradle-setup}} && matrix.language == 'kotlin' || matrix.language == 'java'
+        if: ${{ inputs.use-gradle-setup}} && (matrix.language == 'kotlin' || matrix.language == 'java')
         uses: gradle/actions/setup-gradle@v4.1.0
         with: 
           cache-read-only: true  # Force read only, even in main
