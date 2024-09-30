@@ -51,6 +51,36 @@ jobs:
         secrets: inherit
 ```
 
+## Optional Dependency caching for Java/Kotlin
+
+Code vulnerability scans of Java and Kotlin are done by running autobuild, which runs any identified build systems, like Gradle.
+
+If the project is using the [gradle/actions/setup-gradle](https://github.com/gradle/actions/?tab=readme-ov-file#the-setup-gradle-action) action, you can set code scanning to utlize any available cache from the 'main' branch. This potentially speeds up build by acoiding to build or retrieve any dependencies.
+
+
+**Caching is deactivated by default.**
+
+To activate caching, set input `use-setup-gradle` to `true`.
+
+Example:
+
+```yaml
+# codeql.yml
+name: "CodeQL"
+
+...
+
+jobs:
+    code-scan:
+        name: Code Scan
+        uses: entur/gha-security/.github/workflows/code-scan.yml@v1
+        secrets: inherit
+        with:
+          use_setup_gradle: true
+```     
+
+To activate optional 
+
 ## Allowlisting vulnerabilities
 The reusable workflow uses [CodeQL](https://codeql.github.com/) to scan the codebase for vulnerabilities. Any discovered vulnerabilities will be published to the _Security_ tab of the repository, under the _Code Scanning_ section. If you believe that a found vulnerability is a false positive or otherwise not relevant, you can either manually dimiss the alert, or create a allowlist file (YAML-file) that dismisses all alerts that matches a vulnerability ID. 
 
