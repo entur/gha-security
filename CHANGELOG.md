@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/entur/gha-security/compare/v1.1.1...v1.1.2) (2024-09-30)
+
+
+### Bug Fixes
+
+* Path checking in matching-PR ([23f663a](https://github.com/entur/gha-security/commit/23f663ae28a5389648f84f68ac25546127fb4537))
+
 ## [1.1.1](https://github.com/entur/gha-security/compare/v1.1.0...v1.1.1) (2024-09-04)
 
 
