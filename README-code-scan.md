@@ -18,9 +18,9 @@ or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your 
 
 <!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
 
-|                                      INPUT                                       |  TYPE   | REQUIRED | DEFAULT |                                    DESCRIPTION                                    |
-|----------------------------------------------------------------------------------|---------|----------|---------|-----------------------------------------------------------------------------------|
-| <a name="input_use-gradle-setup"></a>[use-gradle-setup](#input_use-gradle-setup) | boolean |  false   | `false` | Use "gradle/action/setup-gradle" before running autobuild <br>(Java/Kotlin only)  |
+|                                      INPUT                                       |  TYPE   | REQUIRED | DEFAULT |                                                                            DESCRIPTION                                                                             |
+|----------------------------------------------------------------------------------|---------|----------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <a name="input_use_setup_gradle"></a>[use_setup_gradle](#input_use_setup_gradle) | boolean |  false   | `false` | Use "gradle/action/setup-gradle" before running autobuild <br>(Java/Kotlin only). Potentially speeds up build <br>times if cache from main <br>branch is utilized  |
 
 <!-- AUTO-DOC-INPUT:END -->
 
