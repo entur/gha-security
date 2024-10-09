@@ -106,10 +106,12 @@ Requirements:
 
 ### Schema for allowlist file
 ```yaml
-apiVersion: entur.io/v1alpha1 
+apiVersion: entur.io/securitytools/v1
 kind: CodeScanConfig
 metadata:
-  name: {project-name-config}
+  id: {unique identifier}
+  name: {human readable name}
+  owner: {responsible team or developer}
 spec:
   inherit: {repository where the external allowlist file is placed}
   allowlist:
@@ -117,10 +119,33 @@ spec:
     comment: {comment explaining why the vulnerability is dismissed}
     reason: {reason for dismissing the vulnerability}
 ```
-The `name` field under the metadata section should be the name of the project. The `inherit` field under the spec section should be the repository where the external allowlist file is placed (optinal field, only used when using an external allowlist file). The `allowlist` field should be a list of vulnerabilities that you want to dismiss. For each vulnerability you want to dismiss, you should add a new item to the list. For each item in the list, you should add the following fields: `cwe`, `comment`, and `reason`. The `cwe` field should be the CWE-ID of the vulnerability you want to dismiss, the `comment` field should be a comment explaining why the vulnerability is dismissed, and the `reason` field should be one of the following:
+
+**Metadata:**
+
+All fields in `metadata` are REQUIRED.
+
+The `id` field MUST be a unique alphanumeric (no special characters) string identifing the allowlist. This can be anything, but when in doubt use your app ID.
+
+The `name` field under the metadata section SHOULD be the name of the project.
+
+The `owner` field MUST be whomever's responsible for the list, like team or a single developer.
+
+**Spec:**
+
+The OPTIONAL `inherit` field is a repository where the external allowlist file is placed. Only used when using an external allowlist file.
+
+The OPTIONAL `allowlist` field MUST be a list of vulnerabilities that you want to dismiss/allow. For each vulnerability you want to dismiss, you MUST add a new item to the list. Each item is an object and MUST contain the following fields: `cwe`, `comment`, and `reason`.
+
+The `cwe` field corresponds to the CWE-ID of the vulnerability you want to dismiss, 
+
+The `comment` field is a comment explaining why the vulnerability is dismissed, 
+
+The `reason` field MUST be one of the following types:
 - `false_positive`
 - `wont_fix`
 - `test`
+
+*Note:* `inherit` and `allowlist` are NOT mutually exclusive. 
 
 #### Example
 
@@ -128,7 +153,9 @@ The `name` field under the metadata section should be the name of the project. T
 apiVersion: entur.io/v1alpha1
 kind: CodeScanConfig
 metadata:
+  id: myprojectconfig
   name: my-project-config
+  owner: team-supreme
 spec:
   allowlist:
   - cwe: "cwe-080"
