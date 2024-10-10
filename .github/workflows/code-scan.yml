@@ -581,7 +581,7 @@ jobs:
           --field "body=:no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: 
             Code scan detected critical vulnerabilities in the code. Please address these vulnerabilities as soon as possible. 
             The scan results can be found [here](https://github.com/${{ env.GITHUB_REPOSITORY }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }}). 
-            If you believe one or more of the reported vulnerabilities are false positives/cannot be fixed/can be ignored, please see the [Code Scan documentation](https://github.com/entur/gha-security/blob/main/README-code_scan.md#white-listing-vulnerabilities) on how to allowlist. 
+            If you believe one or more of the reported vulnerabilities are false positives/cannot be fixed/can be ignored, please see the [Code Scan documentation](https://github.com/entur/gha-security/blob/main/README-code_scan.md#allow-lists) on how to use allowlist. 
             :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry:"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
