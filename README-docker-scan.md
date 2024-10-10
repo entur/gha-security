@@ -81,17 +81,24 @@ jobs:
 
 
 ## Allowlisting vulnerabilities
-The reusable workflow uses the [Grype scanner](https://github.com/marketplace/actions/anchore-container-scan) to scan the Docker image for vulnerabilities. Any discovered vulnerabilities will be published to the _Security_ tab of the repository, under the _Code Scanning_ section. If you believe that a found vulnerability is a false positive or otherwise not relevant, you can either manually dimiss the alert, or create a allowlist file (YAML-file) that dismisses all alerts that matches a vulnerability ID. 
+The reusable workflow uses the [Grype scanner](https://github.com/marketplace/actions/anchore-container-scan) to scan the Docker image for vulnerabilities. Any findings will be published to the _Security_ tab of the repository, under the _Code Scanning_ section. If you believe that a finding is a false positive or otherwise not relevant, you can either manually dimiss the alert, or create a allowlist file (YAML-file) that dismisses all alerts that matches a vulnerability ID (CVE). This list is then used in the current repo, but can also be shared and used with other repos. 
 
-_NB! If the scan is performed on a pull request, remember to filter the Code Scanning results by pull request number and not the branch name._
+This list is also used by the Artifact Registry Scanner.
 
-There are two types of allowlist files that can be used; a local allowlist (placed in the repository) and an external allowlist (placed in a different repository). The local allowlist is prioritized over the external allowlist.
+Requirements:
+- The allowlist file MUST adhere to the [format specified later in this document](#schema-for-allowlist-file).
+- The allowlist file MUST be named either `dockerscan.yml` or `dockerscan.yaml`.
+- The file MUST be placed in `.entur/security`, relative to the root of the repository.
 
-### Local allowlisting
-To use a local allowlist, create a YAML file in the repository named, either `docker_scan_config.yml` or `docker_scan_config.yaml`, and place it in the root of the repository. If you create both files, the `docker_scan_config.yaml` file will be ignored. The file must follow the format [mentioned below](#schema-for-allowlist-file).
+*NOTE*: If the scan is performed on a pull request, remember to filter the Code Scanning results by pull request number and not the branch name.
 
-### External allowlisting
-To use an external allowlist create a YAML file in a different repository and place it in the root of the repository. The file must be named either `docker_scan_config.yml` or `docker_scan_config.yaml`, and follow the format [mentioned below](#schema-for-allowlist-file). If you create both files, the `docker_scan_config.yaml` file will be ignored. To be able to use the external allowlist, you must have a local allowlist file in the repository as well. The repository where the external allowlist file is placed must be referenced in the local allowlist file, under the 'inherit' field. It is important to note that you will also have to use a fine-grained access token to access the external allowlist file. The token must be added as a secret to the repository where the workflow is run, and permissions must include "contents" read access to the repository where the external allowlist file is placed. You can find documentation on how to create a fine-grained access token [here](https://docs.github.com/en/enterprise-cloud@latest/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token), and how to add it as a secret to your repository [here](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository). See the example below on how to use a repository secret, named `EXTERNAL_REPOSITORY_TOKEN`, in the workflow.
+Shared allowlists works by referencing it in when you define an allowlist for your project. The contents of that list is then combined with the one in your repo. The contents of the "local" allowlist takes presedence of the "external" list. 
+
+To use an external allowlist create a YAML file in a different repository, reference the *name* of the repository in the `.spec.inherit` field of your allowlist.
+
+Read Permissions of the repo containing any external allowslists are REQUIRED. It is important to note that a fine-grained access token must be created, with READ CONTENT permissions to the repository. The token then MUST be added as a secret to the repository where the workflow is executed, and MUST be named `EXTERNAL_REPOSITORY_TOKEN`. 
+
+You can find documentation on how to create a fine-grained access token [here](https://docs.github.com/en/enterprise-cloud@latest/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token), and how to add it as a secret to your repository [here](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository). See the example below on how to use a repository secret, named `EXTERNAL_REPOSITORY_TOKEN`, in the workflow.
 
 ```yaml
 jobs:
@@ -106,10 +113,12 @@ jobs:
 
 ### Schema for allowlist file
 ```yaml
-apiVersion: entur.io/v1alpha1
+apiVersion: entur.io/securitytools/v1
 kind: DockerScanConfig
 metadata:
-  name: {project-name-config}
+  id: {unique identifier}
+  name: {human readable name}
+  owner: {responsible team or developer}
 spec:
   inherit: {repository where the external allowlist file is placed}
   allowlist:
@@ -117,7 +126,30 @@ spec:
     comment: {comment explaining why the vulnerability is dismissed}
     reason: {reason for dismissing the vulnerability}
 ```
-The `name` field under the metadata section should be the name of the project. The `inherit` field under the spec section should be the repository where the external allowlist file is placed (optinal field, only used when using an external allowlist file). The `allowlist` field should be a list of vulnerabilities that you want to dismiss. For each vulnerability you want to dismiss, you should add a new item to the list. For each item in the list, you should add the following fields: `cve`, `comment`, and `reason`. The `cve` field should be the CVE-ID of the vulnerability you want to dismiss, the `comment` field should be a comment explaining why the vulnerability is dismissed, and the `reason` field should be a short description on why the vulnerability is dismissed.
+
+**Metadata:**
+
+All fields in `metadata` are REQUIRED.
+
+The `id` field MUST be a unique alphanumeric (no special characters) string identifing the allowlist. This can be anything, but when in doubt use your app ID.
+
+The `name` field under the metadata section SHOULD be the name of the project.
+
+The `owner` field MUST be whomever's responsible for the list, like team or a single developer.
+
+**Spec:**
+
+The OPTIONAL `inherit` field MUST be the name of containing repository where containing a valid allow list you wish to inherit from. Only used when using an external allowlist.
+
+The OPTIONAL `allowlist` field MUST be a list of vulnerabilities that you want to dismiss/allow. For each vulnerability you want to dismiss, you MUST add a new item to the list. Each item is an object and MUST contain the following fields: `cwe`, `comment`, and `reason`.
+ - The `cve` field corresponds to the CWE-ID of the vulnerability you want to dismiss, 
+ - The `comment` field is a comment explaining why the vulnerability is dismissed.
+ - The `reason` field MUST be one of the following types:
+  - `false_positive`
+  - `wont_fix`
+  - `test`
+
+*Note:* `inherit` and `allowlist` are NOT mutually exclusive. Any items in `allowlist` takes presedence over allowlist.
 
 #### Example
 
@@ -125,7 +157,9 @@ The `name` field under the metadata section should be the name of the project. T
 apiVersion: entur.io/v1alpha1
 kind: DockerScanConfig
 metadata:
+  id: myprojectconfig
   name: my-project-config
+  owner: team-supreme
 spec:
   allowlist:
   - cve: "CVE-2021-1234-abc"
