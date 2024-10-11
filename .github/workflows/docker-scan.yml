@@ -102,6 +102,8 @@ jobs:
         - name: "Validate allowlist file(s)"
           id: validate_allowlists
           if: ${{ env.GHA_SECURITY_DOCKER_SCAN_ALLOWLIST == 'True' }}
+          env:
+            GHA_SECURITY_DOCKER_SCAN_EXTERNAL_REPOSITORY_TOKEN: ${{ secrets.external_repository_token }}
           run: |
             python -c "
             import yaml
