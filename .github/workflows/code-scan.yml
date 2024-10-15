@@ -143,7 +143,7 @@ jobs:
         category: 'scan-results'
 
   get-repository-languages:
-      if: github.event_name == 'pull_request' || (github.event_name == 'push' && needs.upload-scan-reports-from-matching-pr.outputs.skip_job_and_continue_scan == 'True')
+      if: needs.upload-scan-reports-from-matching-pr.outputs.skip_job_and_continue_scan == 'True'
       runs-on: ubuntu-latest
       needs: upload-scan-reports-from-matching-pr
       outputs: 

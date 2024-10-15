@@ -8,7 +8,7 @@ Add the following step to your workflow configuration:
 jobs:
   docker-scan:
     name: Docker Scan
-    uses: entur/gha-security/.github/workflows/docker-scan.yml@v1
+    uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
     with:
         image_artifact: # The name of the image artifact to scan
     
@@ -29,7 +29,7 @@ Go to the _Actions_ tab in your repository, click on _New workflow_ and select t
 
 ## Golden Path
 
-- Docker image must be built before being scanned, preferably using reusable workflow `entur/gha-docker/.github/workflows/build.yml@v1`.
+- Docker image must be built before being scanned, preferably using reusable workflow `entur/gha-docker/.github/workflows/build.yml@v2`.
 
 ### Example
 
@@ -53,6 +53,8 @@ on:
   pull_request:
     branches:
       - "main"
+    ignore-paths:
+      - '**\README.md'
 
 jobs:
   docker-lint:
@@ -104,7 +106,7 @@ You can find documentation on how to create a fine-grained access token [here](h
 jobs:
   docker-scan:
     needs: docker-build
-    uses: entur/gha-security/.github/workflows/docker-scan.yml@v1
+    uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
     with:
         image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
     secrets:
@@ -154,7 +156,7 @@ The OPTIONAL `allowlist` field MUST be a list of vulnerabilities that you want t
 #### Example
 
 ```yaml
-apiVersion: entur.io/v1alpha1
+apiVersion: entur.io/securitytools/v1
 kind: DockerScanConfig
 metadata:
   id: myprojectconfig
