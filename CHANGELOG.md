@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/entur/gha-security/compare/v1.1.2...v1.1.3) (2024-10-15)
+
+
+### Bug Fixes
+
+* properly access token in docker scan ([948927a](https://github.com/entur/gha-security/commit/948927a27fd693c639a2a2a8283851fd82cfad10))
+
 ## [1.1.2](https://github.com/entur/gha-security/compare/v1.1.1...v1.1.2) (2024-09-30)
 
 
