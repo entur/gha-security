@@ -41,13 +41,15 @@ on:
     push:
         branches:
             - main
+        paths-ignore:
+            - '**/README.md'
     schedule:
         - cron: "0 3 * * MON"
   
 jobs:
     code-scan:
         name: Code Scan
-        uses: entur/gha-security/.github/workflows/code-scan.yml@v1
+        uses: entur/gha-security/.github/workflows/code-scan.yml@v2
         secrets: inherit
 ```
 
@@ -73,7 +75,7 @@ name: "CodeQL"
 jobs:
     code-scan:
         name: Code Scan
-        uses: entur/gha-security/.github/workflows/code-scan.yml@v1
+        uses: entur/gha-security/.github/workflows/code-scan.yml@v2
         secrets: inherit
         with:
           use_setup_gradle: true
@@ -145,7 +147,7 @@ The OPTIONAL `allowlist` field MUST be a list of vulnerabilities that you want t
 #### Example
 
 ```yaml
-apiVersion: entur.io/v1alpha1
+apiVersion: entur.io/securitytools/v1
 kind: CodeScanConfig
 metadata:
   id: myprojectconfig
