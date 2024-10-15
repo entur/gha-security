@@ -5,15 +5,19 @@
 
 ### ⚠ BREAKING CHANGES
 
-* Allowlists adhere to spec
+* Allowlists for [codescan](https://github.com/entur/gha-security/blob/main/README-code-scan.md#schema-for-allowlist-file) and [dockerscan](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#schema-for-allowlist-file) adhere to new schema requirements.
+* Allowlists MUST be located in `.entur/security`
+* Allowlists have new naming requirements:
+ * `codescan_config.yml`
+ * `dockerscan_config.yml`
 
 ### Bug Fixes
 
-* access token missing in docker scan ([2e9730b](https://github.com/entur/gha-security/commit/2e9730b5e382c60db6c4a06e5bbb002c5af3d2f9))
+* Access token missing in docker scan ([2e9730b](https://github.com/entur/gha-security/commit/2e9730b5e382c60db6c4a06e5bbb002c5af3d2f9))
 * Added ARTIFACTORY_AUTH_USER as env variable for autobuild. ([0067c73](https://github.com/entur/gha-security/commit/0067c7351e3384fe6152658e8a34a0784c8e1e80))
 * Allowlists adhere to spec ([bee629a](https://github.com/entur/gha-security/commit/bee629a8c070671ff4dbb07b724c51480b97bb87))
-* support artifactory_url from org variables ([8ad8833](https://github.com/entur/gha-security/commit/8ad883339130796c688db382861c476d16d61d9c))
-* support new artifactory token ([ae787c4](https://github.com/entur/gha-security/commit/ae787c4765deb5e1561a2b9bbae31592ae5e4197))
+* Support artifactory_url from org variables ([8ad8833](https://github.com/entur/gha-security/commit/8ad883339130796c688db382861c476d16d61d9c))
+* Support new artifactory token ([ae787c4](https://github.com/entur/gha-security/commit/ae787c4765deb5e1561a2b9bbae31592ae5e4197))
 
 ## [1.1.3](https://github.com/entur/gha-security/compare/v1.1.2...v1.1.3) (2024-10-15)
 
