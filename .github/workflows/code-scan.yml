@@ -8,6 +8,10 @@ on:
           default: false
           required: false
           type: boolean
+      secrets:
+        external_repository_token:
+          description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
+          required: false
 env:
   GITHUB_REPOSITORY: ${{ github.repository }}
 
@@ -339,7 +343,7 @@ jobs:
               'Authorization': f'token {external_token}'
             }
 
-            for file_name in 'code_scan_config.yml', 'code_scan_config.yaml':
+            for file_name in _config_file_names:
               response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{_file_location}/{file_name}', headers=headers)
               if response.status_code != 404 and response.status_code != 200:
                 print(f'::error ::Could not get external allowlist file ({response.status_code} - {response.reason})')
@@ -351,7 +355,7 @@ jobs:
               print(f'::notice ::External allowlist file not found')
 
           if external_allowlist:
-            with open(os.path.join(_file_location, 'external_code_scan_config.yml'), 'w') as f:
+            with open(os.path.join(_file_location, 'external_codescan.yml'), 'w') as f:
               f.write(base64.b64decode(response.json().get('content','')).decode('utf-8'))
                 
           with open(env_file, 'a') as f:
@@ -374,7 +378,7 @@ jobs:
           _file_location = '.entur/security'
 
           schema = {
-              'apiVersion': {'type': 'string', 'required': True},
+              'apiVersion': {'type': 'string', 'required': True, 'allowed': 'entur.io/securitytools/v1'},
               'kind': {'type': 'string', 'required': True, 'allowed': ['CodeScanConfig']},
               'metadata': {
                   'type': 'dict', 
@@ -393,7 +397,6 @@ jobs:
                       'allowlist': {
                           'required' : False,
                           'type': 'list',
-                          'minlength': 1,
                           'schema': {
                               'type': 'dict',
                               'schema': {
@@ -430,7 +433,7 @@ jobs:
           if os.getenv('GHA_SECURITY_CODE_SCAN_EXTERNAL_ALLOWLIST') == 'True':  
             data = ''
             try:
-              with open(os.path.join(_file_location, 'external_code_scan_config.yml'), 'r') as f:
+              with open(os.path.join(_file_location, 'external_codescan.yml'), 'r') as f:
                 data = yaml.safe_load(f)
             except IOError:
               print('::error ::External allowlist file not found')
@@ -472,7 +475,7 @@ jobs:
           }
             
           try:
-            with open(os.path.join(_file_location, 'external_code_scan_config.yml'), 'r') as f: 
+            with open(os.path.join(_file_location, 'external_codescan.yml'), 'r') as f: 
               remote_config = yaml.safe_load(f)
               
               for element in remote_config.get('spec', {}).get('allowlist', []):

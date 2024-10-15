@@ -169,7 +169,7 @@ spec:
 
 Some potential pitfalls and solutions with CodeQL
 
-### Autobuild fails for Gradle projects because of JVM versions
+### Autobuild fails for Gradle projects because of JVM version mismatch
 
 This can happen if Autobuild detects the wrong version of the JVM to run Gradle with. This can be solved by statically setting the JVM version in the Gradle toolchain:
 
