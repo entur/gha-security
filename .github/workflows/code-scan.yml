@@ -8,6 +8,10 @@ on:
           default: false
           required: false
           type: boolean
+      secrets:
+        external_repository_token:
+          description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
+          required: false
 env:
   GITHUB_REPOSITORY: ${{ github.repository }}
 
@@ -243,10 +247,11 @@ jobs:
       - name: "Checkout repository"
         uses: actions/checkout@v4
       - name: "Set up Gradle for Java/Kotlin"
-        if: ${{ inputs.use_setup_gradle}} && (matrix.language == 'kotlin' || matrix.language == 'java')
+        if: inputs.use_setup_gradle && (matrix.language == 'kotlin' || matrix.language == 'java')
         uses: gradle/actions/setup-gradle@v4.1.0
         with: 
           cache-read-only: true  # Force read only, even in main
+          add-job-summary: 'on-failure'
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
         uses: github/codeql-action/init@v3
@@ -264,7 +269,10 @@ jobs:
         with:
           category: "/language:${{ matrix.language }}"
         env:
-          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+          ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
+          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }} # Kept for backwards compatability
+          ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
+          ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
           ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
           GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx2g
       - name: "Get repository name"
@@ -313,9 +321,12 @@ jobs:
           allowlist = False
           external_allowlist = False
 
-          for file_name in ('code_scan_config.yml', 'code_scan_config.yaml'):
+          _config_file_names = ('codescan.yml', 'codescan.yaml')
+          _file_location = '.entur/security'
+
+          for file_name in _config_file_names:
             try: 
-              with open(file_name, 'r') as f:
+              with open(os.path.join(_file_location, file_name), 'r') as f:
                 external_repository = yaml.safe_load(f).get('spec', {}).get('inherit', '')
                 allowlist = True
                 
@@ -332,8 +343,8 @@ jobs:
               'Authorization': f'token {external_token}'
             }
 
-            for file_name in ('code_scan_config.yml', 'code_scan_config.yaml'):
-              response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{file_name}', headers=headers)
+            for file_name in _config_file_names:
+              response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{_file_location}/{file_name}', headers=headers)
               if response.status_code != 404 and response.status_code != 200:
                 print(f'::error ::Could not get external allowlist file ({response.status_code} - {response.reason})')
                 break
@@ -344,7 +355,7 @@ jobs:
               print(f'::notice ::External allowlist file not found')
 
           if external_allowlist:
-            with open('external_code_scan_config.yml', 'w') as f:
+            with open(os.path.join(_file_location, 'external_codescan.yml'), 'w') as f:
               f.write(base64.b64decode(response.json().get('content','')).decode('utf-8'))
                 
           with open(env_file, 'a') as f:
@@ -363,24 +374,29 @@ jobs:
           import sys
           import os
 
+          _config_file_names = ('codescan.yml', 'codescan.yaml')
+          _file_location = '.entur/security'
+
           schema = {
-              'apiVersion': {'type': 'string', 'required': True},
+              'apiVersion': {'type': 'string', 'required': True, 'allowed': 'entur.io/securitytools/v1'},
               'kind': {'type': 'string', 'required': True, 'allowed': ['CodeScanConfig']},
               'metadata': {
                   'type': 'dict', 
                   'required': True,
                   'schema': {
+                      'id' : {'type': 'string', 'required': True}
                       'name': {'type': 'string', 'required': True}
+                      'owner': {'type': 'string', 'required': True}
                   }
               },
               'spec': {
                   'type': 'dict',
                   'required': True,
                   'schema': {
-                      'inherit': {'type': 'string' },
+                      'inherit': {'type': 'string', 'required' : False},
                       'allowlist': {
+                          'required' : False,
                           'type': 'list',
-                          'minlength': 1,
                           'schema': {
                               'type': 'dict',
                               'schema': {
@@ -396,13 +412,14 @@ jobs:
           v = Validator(schema)
           
           data = ''
-          for file_name in ('code_scan_config.yml', 'code_scan_config.yaml'):
+          for file_name in _config_file_names:
             try:
-              with open(file_name, 'r') as f:
+              with open(os.path.join(_file_location, file_name), 'r') as f:
                 data = yaml.safe_load(f)
               break
             except IOError:
               pass
+            
           if data == '':
               print('::error ::Allowlist file not found')
               sys.exit(1)
@@ -416,7 +433,7 @@ jobs:
           if os.getenv('GHA_SECURITY_CODE_SCAN_EXTERNAL_ALLOWLIST') == 'True':  
             data = ''
             try:
-              with open('external_code_scan_config.yml', 'r') as f:
+              with open(os.path.join(_file_location, 'external_codescan.yml'), 'r') as f:
                 data = yaml.safe_load(f)
             except IOError:
               print('::error ::External allowlist file not found')
@@ -440,6 +457,9 @@ jobs:
 
           repository = os.getenv('GITHUB_REPOSITORY')
           token = os.getenv('GITHUB_TOKEN')
+
+          _config_file_names = ('codescan.yml', 'codescan.yaml')
+          _file_location = '.entur/security'
     
           headers = {
           'Accept': 'application/vnd.github+json',
@@ -455,7 +475,7 @@ jobs:
           }
             
           try:
-            with open('external_code_scan_config.yml', 'r') as f: 
+            with open(os.path.join(_file_location, 'external_codescan.yml'), 'r') as f: 
               remote_config = yaml.safe_load(f)
               
               for element in remote_config.get('spec', {}).get('allowlist', []):
@@ -468,9 +488,9 @@ jobs:
           except IOError:
             pass
             
-          for file_name in ('code_scan_config.yml', 'code_scan_config.yaml'):
+          for file_name in _config_file_names:
             try: 
-              with open(file_name, 'r') as f:
+              with open(os.path.join(_file_location, file_name), 'r') as f:
                 local_config = yaml.safe_load(f)
                 
                 for element in local_config.get('spec', {}).get('allowlist', []):
@@ -565,7 +585,7 @@ jobs:
           --field "body=:no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: 
             Code scan detected critical vulnerabilities in the code. Please address these vulnerabilities as soon as possible. 
             The scan results can be found [here](https://github.com/${{ env.GITHUB_REPOSITORY }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }}). 
-            If you believe one or more of the reported vulnerabilities are false positives/cannot be fixed/can be ignored, please see the [Code Scan documentation](https://github.com/entur/gha-security/blob/main/README-code_scan.md#white-listing-vulnerabilities) on how to allowlist. 
+            If you believe one or more of the reported vulnerabilities are false positives/cannot be fixed/can be ignored, please see the [Code Scan documentation](https://github.com/entur/gha-security/blob/main/README-code_scan.md#allow-lists) on how to use allowlist. 
             :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry:"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

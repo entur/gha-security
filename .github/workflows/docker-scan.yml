@@ -9,7 +9,7 @@ on:
                 required: true
         secrets:
             external_repository_token:
-                description: 'Token to access the external repository mentioned in the docker_scan_config.yml file. Must have read access to the repository.'
+                description: 'Token to access the external repository mentioned in the dockerscan.yml file. Must have read access to the repository.'
                 required: false
 
 env:
@@ -59,15 +59,19 @@ jobs:
             allowlist = False
             external_allowlist = False
 
-            for file_name in ('docker_scan_config.yml', 'docker_scan_config.yaml'):
+            _config_file_names = ('dockerscan.yml', 'dockerscan.yaml')
+            _file_location = '.entur/security'
+
+            for file_name in _config_file_names:
                 try:
-                  with open(file_name, 'r') as f:
+                  with open(os.path.join(_file_location, file_name), 'r') as f:
                     external_repository = yaml.safe_load(f).get('spec', {}).get('inherit','')
                     allowlist = True
 
                   break
                 except IOError:
                   pass
+          
             if allowlist == False:
               print(f'::notice ::Allowlist file not found')
 
@@ -78,8 +82,8 @@ jobs:
                 'Authorization': f'token {external_token}'
               }
 
-              for file_name in ('docker_scan_config.yml', 'docker_scan_config.yaml'):
-                response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{file_name}', headers=headers)
+              for file_name in _config_file_names:
+                response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{_file_location}/{file_name}', headers=headers)
                 if response.status_code != 404 and response.status_code != 200:
                   print(f'::error ::Could not get external allowlist file ({response.status_code} - {response.reason})')
                   break
@@ -90,7 +94,7 @@ jobs:
                 print(f'::notice ::External allowlist file not found')
 
             if external_allowlist:
-              with open('external_docker_scan_config.yml', 'w') as f:
+              with open(os.path.join(_file_location, 'external_dockerscan.yml'), 'w') as f:
                 f.write(base64.b64decode(response.json().get('content','')).decode())
 
             with open(env_file, 'a') as f:
@@ -100,6 +104,8 @@ jobs:
         - name: "Validate allowlist file(s)"
           id: validate_allowlists
           if: ${{ env.GHA_SECURITY_DOCKER_SCAN_ALLOWLIST == 'True' }}
+          env:
+            GHA_SECURITY_DOCKER_SCAN_EXTERNAL_REPOSITORY_TOKEN: ${{ secrets.external_repository_token }}
           run: |
             python -c "
             import yaml
@@ -107,24 +113,29 @@ jobs:
             import sys
             import os
 
+            _config_file_names = ('dockerscan.yml', 'dockerscan.yaml')
+            _file_location = '.entur/security'
+
             schema = {
-              'apiVersion': {'type': 'string', 'required': True},
+              'apiVersion': {'type': 'string', 'required': True, 'allowed': 'entur.io/securitytools/v1'},
               'kind': {'type': 'string', 'required': True, 'allowed': ['DockerScanConfig']},
               'metadata': {
                   'type': 'dict', 
                   'required': True,
                   'schema': {
+                      'id' : {'type': 'string', 'required': True}
                       'name': {'type': 'string', 'required': True}
+                      'owner': {'type': 'string', 'required': True}
                   }
               },
               'spec': {
                   'type': 'dict',
                   'required': True,
                   'schema': {
-                      'inherit': {'type': 'string' },
+                      'inherit': {'type': 'string', 'required': False},
                       'allowlist': {
+                          'required': False,
                           'type': 'list',
-                          'minlength': 1,
                           'schema': {
                               'type': 'dict',
                               'schema': {
@@ -140,9 +151,9 @@ jobs:
             v = Validator(schema)
 
             data = ''
-            for file_name in ('docker_scan_config.yml', 'docker_scan_config.yaml'):
+            for file_name in _config_file_names:
               try:
-                with open(file_name, 'r') as f:
+                with open(os.path.join(_file_location, file_name), 'r') as f:
                   data = yaml.safe_load(f)
                 break
               except IOError:
@@ -160,7 +171,7 @@ jobs:
             if os.getenv('GHA_SECURITY_DOCKER_SCAN_EXTERNAL_ALLOWLIST') == 'True':  
               data = ''
               try:
-                with open('external_docker_scan_config.yml', 'r') as f:
+                with open(os.path.join(_file_location, 'external_dockerscan.yml'), 'r') as f:
                   data = yaml.safe_load(f)
               except IOError:
                 print('::error ::External allowlist file not found')
@@ -180,10 +191,13 @@ jobs:
             import base64
             import os 
 
+            _config_file_names = ('dockerscan.yml', 'dockerscan.yaml')
+            _file_location = '.entur/security'
+
             allowlist = {}
 
             try:
-              with open('external_docker_scan_config', 'r') as f:
+              with open(os.path.join(_file_location, 'external_dockerscan.yml'), 'r') as f:
                 remote_config = yaml.safe_load(f)
 
                 for element in remote_config.get('spec', {}).get('allowlist', []):
@@ -194,9 +208,9 @@ jobs:
             except IOError:
               pass
 
-            for file_name in ('docker_scan_config.yml', 'docker_scan_config.yaml'):
+            for file_name in _config_file_names:
               try:
-                with open(file_name, 'r') as f:
+                with open(os.path.join(_file_location, file_name), 'r') as f:
                   local_config = yaml.safe_load(f)
 
                   for element in local_config.get('spec', {}).get('allowlist', []):
