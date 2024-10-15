@@ -43,6 +43,8 @@ jobs:
           with:
             name: ${{ env.GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT }}
         - name: "Check if allowlist file exists"
+          env:
+            GHA_SECURITY_DOCKER_SCAN_EXTERNAL_REPOSITORY_TOKEN: ${{ secrets.external_repository_token }}
           run: |
             python -c "
             import os
