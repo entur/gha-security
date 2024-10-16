@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/entur/gha-security/compare/v2.0.0...v2.0.1) (2024-10-16)
+
+
+### Bug Fixes
+
+* Fixed spec parser and improved debug, warning and error messages ([#47](https://github.com/entur/gha-security/issues/47)) ([a4e8eb8](https://github.com/entur/gha-security/commit/a4e8eb8f73ddd4090da85e2450c566631575e557))
+
 ## [2.0.0](https://github.com/entur/gha-security/compare/v1.1.3...v2.0.0) (2024-10-15)
 
 
