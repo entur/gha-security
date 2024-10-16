@@ -159,7 +159,7 @@ jobs:
               except IOError:
                 pass
             if data == '':
-                print('::error ::Allowlist file not found')
+                print('::error ::Allowlist file not found in current repository')
                 sys.exit(1)
   
             if not v.validate(data):
