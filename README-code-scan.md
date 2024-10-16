@@ -8,7 +8,7 @@ Add the following step to your workflow configuration:
 jobs:
   code-scan:
     name: Code Scan
-    uses: entur/gha-security/.github/workflows/code-scan.yml@v1
+    uses: entur/gha-security/.github/workflows/code-scan.yml@v2
     secrets: inherit
 ```
 or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your repository, click on _New workflow_ and select the button _Configure_ on the _CodeQL Scan_ workflow.
