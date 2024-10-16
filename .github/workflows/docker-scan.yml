@@ -91,7 +91,7 @@ jobs:
                   external_allowlist = True
                   break
               if external_allowlist == False:
-                print(f'::warning ::Failed to find allowlist in external repository')
+                print(f'::warning ::Failed to find an allowlist in external repository')
 
             if external_allowlist:
               with open(os.path.join(_file_location, 'external_dockerscan.yml'), 'w') as f:
@@ -172,7 +172,7 @@ jobs:
                 with open(os.path.join(_file_location, 'external_dockerscan.yml'), 'r') as f:
                   data = yaml.safe_load(f)
               except IOError:
-                print('::error ::External allowlist file not found, this shouldn't ever happen')
+                print('::error ::External allowlist file not found, this should not ever happen')
                 sys.exit(1)
               if not v.validate(data):
                   print(f'::error ::External allowlist file is invalid. Here are the errors: {v.errors}')

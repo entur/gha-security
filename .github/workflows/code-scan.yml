@@ -434,7 +434,7 @@ jobs:
               with open(os.path.join(_file_location, 'external_codescan.yml'), 'r') as f:
                 data = yaml.safe_load(f)
             except IOError:
-              print('::error ::External allowlist file not found, this shouldn't ever happen')
+              print('::error ::External allowlist file not found, this should not ever happen')
               sys.exit(1)
             if not v.validate(data):
                 print(f'::error ::External allowlist file is invalid. Here are the errors: {v.errors}')
