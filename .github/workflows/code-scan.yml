@@ -78,7 +78,7 @@ jobs:
         )
         
         if five_recently_updated_closed_prs.status_code != 200:
-          print('::error ::Error fetching closed PRs')
+          print('::warning ::Failed to fetch closed PRs, defaulting to running a new scan')
           skip_job_and_continue_scan = True
         else: 
           five_recently_updated_closed_prs = five_recently_updated_closed_prs.json()
@@ -101,7 +101,7 @@ jobs:
             )
 
             if workflow_runs.status_code != 200:
-              print('::error ::Error fetching workflow run')
+              print('::warning ::Failed to fetch PR workflow runs, defaulting to running a new scan')
               skip_job_and_continue_scan = True
             else:
               workflow_runs = workflow_runs.json().get('workflow_runs', [])
@@ -115,11 +115,11 @@ jobs:
                   
                   break
               if run_id is None:
-                print('::notice ::No matching workflow run found')
+                print('::warning ::Failed to find a matching workflow run on the PR, defaulting to running a new scan')
                 skip_job_and_continue_scan = True
               
           else:
-            print('::notice ::No matching PR found')
+            print('::warning ::Failed to fetch a matching PR, defaulting to running a new scan')
             skip_job_and_continue_scan = True
 
         with open(env_file, 'a') as f:
@@ -334,7 +334,7 @@ jobs:
             except IOError:
               pass
           if allowlist == False:
-            print(f'::notice ::Allowlist file not found')
+            print(f'::notice ::Local allowlist file not found, skipping remaining steps')
         
           if external_repository != '':
             headers = {
@@ -346,13 +346,13 @@ jobs:
             for file_name in _config_file_names:
               response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{_file_location}/{file_name}', headers=headers)
               if response.status_code != 404 and response.status_code != 200:
-                print(f'::error ::Could not get external allowlist file ({response.status_code} - {response.reason})')
+                print(f'::warning ::Failed to fetch allowlist file from external repository ({response.status_code} - {response.reason})')
                 break
               if response.status_code == 200:
                 external_allowlist = True
                 break
             if external_allowlist == False:
-              print(f'::notice ::External allowlist file not found')
+              print(f'::warning ::Failed to find allowlist in external repository')
 
           if external_allowlist:
             with open(os.path.join(_file_location, 'external_codescan.yml'), 'w') as f:
@@ -421,13 +421,11 @@ jobs:
               pass
             
           if data == '':
-              print('::error ::Allowlist file not found')
+              print('::error ::Local allowlist file not found')
               sys.exit(1)
 
-          if v.validate(data):
-              print('The allowlist file is valid.')
-          else:
-              print(f'::error ::The allowlist file is invalid. Here are the errors: {v.errors}')
+          if not v.validate(data):
+              print(f'::error ::Local allowlist file is invalid. Here are the errors: {v.errors}')
               sys.exit(1)
               
           if os.getenv('GHA_SECURITY_CODE_SCAN_EXTERNAL_ALLOWLIST') == 'True':  
@@ -436,12 +434,10 @@ jobs:
               with open(os.path.join(_file_location, 'external_codescan.yml'), 'r') as f:
                 data = yaml.safe_load(f)
             except IOError:
-              print('::error ::External allowlist file not found')
+              print('::error ::External allowlist file not found, this shouldn't ever happen')
               sys.exit(1)
-            if v.validate(data):
-                print('The external allowlist file is valid.')
-            else:
-                print(f'::error ::The external allowlist file is invalid. Here are the errors: {v.errors}')
+            if not v.validate(data):
+                print(f'::error ::External allowlist file is invalid. Here are the errors: {v.errors}')
                 sys.exit(1)
           "
       - name: "Allowlist code scan alerts"
