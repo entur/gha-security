@@ -378,16 +378,16 @@ jobs:
           _file_location = '.entur/security'
 
           schema = {
-              'apiVersion': {'type': 'string', 'required': True, 'allowed': 'entur.io/securitytools/v1'},
+              'apiVersion': {'type': 'string', 'required': True, 'allowed': ['entur.io/securitytools/v1']},
               'kind': {'type': 'string', 'required': True, 'allowed': ['CodeScanConfig']},
               'metadata': {
                   'type': 'dict', 
                   'required': True,
                   'schema': {
-                      'id' : {'type': 'string', 'required': True}
-                      'name': {'type': 'string', 'required': True}
-                      'owner': {'type': 'string', 'required': True}
-                  }
+                      'id' : {'type': 'string', 'required': True},
+                      'name': {'type': 'string', 'required': True},
+                      'owner': {'type': 'string', 'required': True},
+                  },
               },
               'spec': {
                   'type': 'dict',
@@ -402,12 +402,12 @@ jobs:
                               'schema': {
                                   'cwe': {'type': 'string', 'required': True},
                                   'comment': {'type': 'string', 'required': True},
-                                  'reason': {'type': 'string', 'required': True}
-                              }
-                          }
-                      }
-                  }
-              }
+                                  'reason': {'type': 'string', 'required': True},
+                              },
+                          },
+                      },
+                  },
+              },
           }
           v = Validator(schema)
           
