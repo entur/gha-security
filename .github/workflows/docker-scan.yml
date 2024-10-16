@@ -73,7 +73,7 @@ jobs:
                   pass
           
             if allowlist == False:
-              print(f'::notice ::Local allowlist file not found, skipping remaining steps')
+              print(f'::notice ::Allowlist file not found in current repository, skipping remaining steps')
 
             if external_repository != '':
               headers = {
@@ -159,11 +159,11 @@ jobs:
               except IOError:
                 pass
             if data == '':
-                print('::error ::Local allowlist file not found')
+                print('::error ::Allowlist file not found')
                 sys.exit(1)
   
             if not v.validate(data):
-                print(f'::error ::Local allowlist file is invalid. Here are the errors: {v.errors}')
+                print(f'::error ::Allowlist file is invalid. Here are the errors: {v.errors}')
                 sys.exit(1)
                 
             if os.getenv('GHA_SECURITY_DOCKER_SCAN_EXTERNAL_ALLOWLIST') == 'True':  
@@ -172,7 +172,7 @@ jobs:
                 with open(os.path.join(_file_location, 'external_dockerscan.yml'), 'r') as f:
                   data = yaml.safe_load(f)
               except IOError:
-                print('::error ::External allowlist file not found, this should not ever happen')
+                print('::error ::Cached copy of external allowlist file not found')
                 sys.exit(1)
               if not v.validate(data):
                   print(f'::error ::External allowlist file is invalid. Here are the errors: {v.errors}')
