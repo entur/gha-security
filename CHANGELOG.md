@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2](https://github.com/entur/gha-security/compare/v2.0.1...v2.0.2) (2024-11-01)
+
+
+### Bug Fixes
+
+* Made it possible to have nullable spec and allowlists. Also enforced allowed reason types ([#49](https://github.com/entur/gha-security/issues/49)) ([7d0a912](https://github.com/entur/gha-security/commit/7d0a91289b9c7231af3bbd681dac2d5c4c4212d9))
+
 ## [2.0.1](https://github.com/entur/gha-security/compare/v2.0.0...v2.0.1) (2024-10-16)
 
 
