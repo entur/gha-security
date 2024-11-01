@@ -392,17 +392,19 @@ jobs:
               'spec': {
                   'type': 'dict',
                   'required': True,
+                  'nullable': True,
                   'schema': {
                       'inherit': {'type': 'string', 'required' : False},
                       'allowlist': {
                           'required' : False,
+                          'nullable': True,
                           'type': 'list',
                           'schema': {
                               'type': 'dict',
                               'schema': {
                                   'cwe': {'type': 'string', 'required': True},
                                   'comment': {'type': 'string', 'required': True},
-                                  'reason': {'type': 'string', 'required': True},
+                                  'reason': {'type': 'string', 'required': True, 'allowed': ['false_positive', 'wont_fix', 'test']},
                               },
                           },
                       },

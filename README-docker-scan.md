@@ -147,9 +147,9 @@ The OPTIONAL `allowlist` field MUST be a list of vulnerabilities that you want t
  - The `cve` field corresponds to the CWE-ID of the vulnerability you want to dismiss, 
  - The `comment` field is a comment explaining why the vulnerability is dismissed.
  - The `reason` field MUST be one of the following types:
-  - `false_positive`
-  - `wont_fix`
-  - `test`
+  - `false_positive` This alert is not valid
+  - `wont_fix` This alert is not relevant
+  - `test` This alert is not in production code
 
 *Note:* `inherit` and `allowlist` are NOT mutually exclusive. Any items in `allowlist` takes presedence over allowlist.
 
