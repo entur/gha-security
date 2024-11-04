@@ -70,14 +70,16 @@ jobs:
                   config_path = tmp_config_path
                   config = yaml.safe_load(f)
   
-                  try:
-                      tmp_external_repository = str(config['spec']['inherit'])
-                      if not re.match('^[\w\.-]+$', tmp_external_repository):
-                        print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({tmp_external_repository})')
-                      else:
-                        external_repository = tmp_external_repository
-                  except:
-                      pass
+                  spec = config.get('spec', None)
+                  spec = {} if spec is None else spec
+                  inherit = spec.get('inherit', None)
+                  inherit = '' if inherit is None else inherit
+
+                  tmp_external_repository = str(inherit)
+                  if not re.match('^[\w\.-]+$', tmp_external_repository):
+                    print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({tmp_external_repository})')
+                  else:
+                    external_repository = tmp_external_repository
                   
                 break
               except IOError:
@@ -187,20 +189,20 @@ jobs:
             config_path = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH')
             config_path_external = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH_EXTERNAL')
 
-            allowlist = {}
+            merged_allowlist = {}
 
             for file_path in (config_path_external, config_path):
               try:
                 with open(file_path, 'r') as f:
                   config = yaml.safe_load(f)
 
-                  try:
-                      parsed_allowlist = config['spec']['allowlist']
-                  except:
-                      parsed_allowlist = []
+                  spec = config.get('spec', None)
+                  spec = {} if spec is None else spec
+                  allowlist = spec.get('allowlist', None)
+                  allowlist = [] if allowlist is None else allowlist
 
-                  for element in parsed_allowlist:
-                    allowlist[element.get('cve','')] = {
+                  for element in allowlist:
+                    merged_allowlist[element.get('cve','')] = {
                       'comment': element.get('comment', ''),
                       'reason': element.get('reason', '')
                     }
@@ -208,8 +210,8 @@ jobs:
               except IOError:
                 pass
 
-            if len(allowlist) > 0:
-              grype_allowlist = {'ignore': [{'vulnerability': vulnerability} for vulnerability in allowlist]}
+            if len(merged_allowlist) > 0:
+              grype_allowlist = {'ignore': [{'vulnerability': vulnerability} for vulnerability in merged_allowlist]}
               with open('.grype.yaml', 'w') as f:
                 yaml.dump(grype_allowlist, f)
             "
@@ -248,7 +250,7 @@ jobs:
               --method GET \
               -H 'Accept: application/vnd.github+json' \
               -H 'X-GitHub-Api-Version: 2022-11-28' \
-              /repos/${{ env.GITHUB_REPOSITORY }}/code-scanning/alerts \
+              /repos/${GITHUB_REPOSITORY}/code-scanning/alerts \
               -F severity='critical' -F state='open' -F ref='${{ github.ref }}' -F per_page='100' -F tool_name='Grype' --paginate)"
               if [ "$alerts" == "[]" ]; then
                 echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT='False >> $GITHUB_ENV
@@ -260,9 +262,9 @@ jobs:
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
-            gh api /repos/${{ env.GITHUB_REPOSITORY }}/issues/${{ github.event.pull_request.number }}/comments \
+            gh api /repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments \
                 -H "Accept: application/vnd.github.v3+json" \
                 --field "body=:no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: 
                 Anchore Grype scan found critical vulnerabilities in the image artifact. Please address these vulnerabilities.
-                The scan results can be found [here](https://github.com/${{ env.GITHUB_REPOSITORY }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }})
+                The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }})
                 :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry:"

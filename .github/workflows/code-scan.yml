@@ -277,7 +277,7 @@ jobs:
           GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx2g
       - name: "Get repository name"
         run: |
-          REPOSITORY_NAME=$(echo "${{ env.GITHUB_REPOSITORY }}" | cut -d'/' -f2)
+          REPOSITORY_NAME=$(echo "${GITHUB_REPOSITORY}" | cut -d'/' -f2)
           echo "REPOSITORY_NAME=$REPOSITORY_NAME" >> $GITHUB_ENV
       - name: "Upload CodeQL report as artifact"
         uses: actions/upload-artifact@v4
@@ -334,14 +334,16 @@ jobs:
                 config_path = tmp_config_path
                 config = yaml.safe_load(f)
 
-                try:
-                  tmp_external_repository = str(config['spec']['inherit'])
-                  if not re.match('^[\w\.-]+$', tmp_external_repository):
-                    print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({tmp_external_repository})')
-                  else:
-                    external_repository = tmp_external_repository
-                except:
-                    pass
+                spec = config.get('spec', None)
+                spec = {} if spec is None else spec
+                inherit = spec.get('inherit', None)
+                inherit = '' if inherit is None else inherit
+
+                tmp_external_repository = str(inherit)
+                if not re.match('^[\w\.-]+$', tmp_external_repository):
+                  print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({tmp_external_repository})')
+                else:
+                  external_repository = tmp_external_repository
                 
               break
             except IOError:
@@ -463,7 +465,7 @@ jobs:
             'Authorization': f'token {token}',
           }
 
-          allowlist = {}
+          merged_allowlist = {}
           reason_mapping = {
             'false_positive': 'false positive',
             'wont_fix': 'won\'t fix',
@@ -475,15 +477,15 @@ jobs:
               with open(file_path, 'r') as f: 
                 config = yaml.safe_load(f)
 
-                try:
-                    parsed_allowlist = config['spec']['allowlist']
-                except:
-                    parsed_allowlist = []
+                spec = config.get('spec', None)
+                spec = {} if spec is None else spec
+                allowlist = spec.get('allowlist', None)
+                allowlist = [] if allowlist is None else allowlist
                 
-                for element in parsed_allowlist:
+                for element in allowlist:
                   cwe = element.get('cwe', '')
                   cwe_tag = f'external/cwe/{cwe}'
-                  allowlist[cwe_tag] = {
+                  merged_allowlist[cwe_tag] = {
                     'comment': element.get('comment', ''),
                     'reason': reason_mapping[element.get('reason', '')]
                   }
@@ -492,7 +494,7 @@ jobs:
             except IOError:
               pass
           
-          if len(allowlist) > 0:
+          if len(merged_allowlist) > 0:
             url = f'https://api.github.com/repos/{repository}/code-scanning/alerts?ref=${{ github.ref }}&per_page=100&state=open'
             while True:
               response = requests.get(url, headers=headers)
@@ -503,7 +505,7 @@ jobs:
 
               alerts = response.json()
               for alert in alerts:
-                for cwe_tag, data in allowlist.items():
+                for cwe_tag, data in merged_allowlist.items():
                   if cwe_tag in alert.get('rule', {}).get('tags', []):
                     alert_number = alert.get('number', '')
                     patch_url = f'https://api.github.com/repos/{repository}/code-scanning/alerts/{alert_number}'
@@ -560,7 +562,7 @@ jobs:
           --method GET \
           -H 'Accept: application/vnd.github+json' \
           -H 'X-GitHub-Api-Version: 2022-11-28' \
-          /repos/${{ env.GITHUB_REPOSITORY }}/code-scanning/alerts \
+          /repos/${GITHUB_REPOSITORY}/code-scanning/alerts \
           -F severity='critical' -F state='open' -F ref='${{ github.ref }}' -F per_page='100' -F tool_name='CodeQL' --paginate)"
           if [ "$alerts" == "[]" ]; then
             echo 'GHA_SECURITY_CODE_SCAN_CREATE_PR_COMMENT='False >> $GITHUB_ENV
@@ -572,10 +574,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh api /repos/${{ env.GITHUB_REPOSITORY }}/issues/${{ github.event.pull_request.number }}/comments \
+        gh api /repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments \
           -H "Accept: application/vnd.github.v3+json" \
           --field "body=:no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: 
             Code scan detected critical vulnerabilities in the code. Please address these vulnerabilities as soon as possible. 
-            The scan results can be found [here](https://github.com/${{ env.GITHUB_REPOSITORY }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }}). 
+            The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }}). 
             If you believe one or more of the reported vulnerabilities are false positives/cannot be fixed/can be ignored, please see the [Code Scan documentation](https://github.com/entur/gha-security/blob/main/README-code_scan.md#allow-lists) on how to use allowlist. 
             :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry:"
