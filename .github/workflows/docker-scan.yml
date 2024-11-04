@@ -48,6 +48,7 @@ jobs:
           run: |
             python -c "
             import os
+            import re
             import requests
             import base64
             import yaml
@@ -55,55 +56,60 @@ jobs:
             external_token = os.getenv('GHA_SECURITY_DOCKER_SCAN_EXTERNAL_REPOSITORY_TOKEN')
             env_file = os.getenv('GITHUB_ENV')
 
-            external_repository = ''
-            allowlist = False
-            external_allowlist = False
-
             _config_file_names = ('dockerscan.yml', 'dockerscan.yaml')
             _file_location = '.entur/security'
 
+            external_repository = ''
+            external_file_name = ''
+            
+            config_path = ''
+            config_path_external = ''
+
             for file_name in _config_file_names:
-                try:
-                  with open(os.path.join(_file_location, file_name), 'r') as f:
-                    external_repository = yaml.safe_load(f).get('spec', {}).get('inherit','')
-                    allowlist = True
-
-                  break
-                except IOError:
-                  pass
+              try:
+                tmp_config_path = os.path.join(_file_location, file_name)
+                with open(tmp_config_path, 'r') as f:
+                  config_path = tmp_config_path
+                  config = yaml.safe_load(f)
+  
+                  try:
+                      external_repository = str(config['spec']['inherit'])
+                      if not re.match('^[\w\.-]+$', external_repository):
+                        print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({external_repository})')
+  
+                      external_file_name = file_name
+                  except:
+                      pass
+                  
+                break
+              except IOError:
+                pass
           
-            if allowlist == False:
+            if config_path == '':
               print(f'::notice ::Allowlist file not found in current repository, skipping remaining steps')
-
-            if external_repository != '':
+          
+            if external_repository != '' and external_file_name != '':
               headers = {
                 'Accept': 'application/vnd.github+json',
                 'X-GitHub-Api-Version': '2022-11-28',
                 'Authorization': f'token {external_token}'
               }
 
-              for file_name in _config_file_names:
-                response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{_file_location}/{file_name}', headers=headers)
-                if response.status_code != 404 and response.status_code != 200:
-                  print(f'::warning ::Failed to fetch allowlist file from external repository ({response.status_code} - {response.reason})')
-                  break
-                if response.status_code == 200:
-                  external_allowlist = True
-                  break
-              if external_allowlist == False:
-                print(f'::warning ::Failed to find an allowlist in external repository')
-
-            if external_allowlist:
-              with open(os.path.join(_file_location, 'external_dockerscan.yml'), 'w') as f:
-                f.write(base64.b64decode(response.json().get('content','')).decode())
+              response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{_file_location}/{external_file_name}', headers=headers)
+              if response.status_code != 200:
+                print(f'::warning ::Failed to fetch allowlist file from external repository ({response.status_code} - {response.reason})')
+              else:
+                config_path_external = os.path.join(_file_location, 'external_dockerscan.yml')
+                with open(config_path_external, 'w') as f:
+                  f.write(base64.b64decode(response.json().get('content','')).decode('utf-8'))
 
             with open(env_file, 'a') as f:
-              f.write(f'GHA_SECURITY_DOCKER_SCAN_ALLOWLIST={allowlist}\n')
-              f.write(f'GHA_SECURITY_DOCKER_SCAN_EXTERNAL_ALLOWLIST={external_allowlist}\n')
+              f.write(f'GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH={config_path}\n')
+              f.write(f'GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH_EXTERNAL={config_path_external}\n')
             "
         - name: "Validate allowlist file(s)"
           id: validate_allowlists
-          if: ${{ env.GHA_SECURITY_DOCKER_SCAN_ALLOWLIST == 'True' }}
+          if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH != '' }}
           env:
             GHA_SECURITY_DOCKER_SCAN_EXTERNAL_REPOSITORY_TOKEN: ${{ secrets.external_repository_token }}
           run: |
@@ -113,10 +119,10 @@ jobs:
             import sys
             import os
 
-            _config_file_names = ('dockerscan.yml', 'dockerscan.yaml')
-            _file_location = '.entur/security'
-
-            schema = {
+            config_path = os.getenv('GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH')
+            config_path_external = os.getenv('GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH_EXTERNAL')
+  
+            _schema = {
               'apiVersion': {'type': 'string', 'required': True, 'allowed': ['entur.io/securitytools/v1']},
               'kind': {'type': 'string', 'required': True, 'allowed': ['DockerScanConfig']},
               'metadata': {
@@ -150,79 +156,57 @@ jobs:
                   },
               },
             }
-            v = Validator(schema)
+            v = Validator(_schema)
 
-            data = ''
-            for file_name in _config_file_names:
-              try:
-                with open(os.path.join(_file_location, file_name), 'r') as f:
-                  data = yaml.safe_load(f)
-                break
-              except IOError:
-                pass
-            if data == '':
-                print('::error ::Allowlist file not found in current repository')
-                sys.exit(1)
-  
-            if not v.validate(data):
-                print(f'::error ::Allowlist file is invalid. Here are the errors: {v.errors}')
-                sys.exit(1)
-                
-            if os.getenv('GHA_SECURITY_DOCKER_SCAN_EXTERNAL_ALLOWLIST') == 'True':  
-              data = ''
-              try:
-                with open(os.path.join(_file_location, 'external_dockerscan.yml'), 'r') as f:
-                  data = yaml.safe_load(f)
-              except IOError:
-                print('::error ::Cached copy of external allowlist file not found')
-                sys.exit(1)
+            with open(config_path, 'r') as f:
+              data = yaml.safe_load(f)
               if not v.validate(data):
-                  print(f'::error ::External allowlist file is invalid. Here are the errors: {v.errors}')
+                  print(f'::error ::Allowlist file is invalid. Here are the errors: {v.errors}')
                   sys.exit(1)
+  
+            if config_path_external != '':
+              with open(config_path_external, 'r') as f:
+                data = yaml.safe_load(f)
+                if not v.validate(data):
+                    print(f'::error ::External allowlist file is invalid. Here are the errors: {v.errors}')
+                    sys.exit(1)
             "
-        - name: Convert allowlist content to base64
-          id: convert-allowlist-to-base64
+        - name: "Allowlist docker scan alerts"
           if: steps.validate_allowlists.outcome == 'success'
           run: |
             python -c "
             import yaml
             import base64
-            import os 
+            import os
 
-            _config_file_names = ('dockerscan.yml', 'dockerscan.yaml')
-            _file_location = '.entur/security'
+            config_path = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH')
+            config_path_external = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH_EXTERNAL')
 
             allowlist = {}
 
-            try:
-              with open(os.path.join(_file_location, 'external_dockerscan.yml'), 'r') as f:
-                remote_config = yaml.safe_load(f)
-
-                for element in remote_config.get('spec', {}).get('allowlist', []):
-                  allowlist[element.get('cve','')] = {
-                    'comment': element.get('comment',''),
-                    'reason': element.get('reason','')
-                  }
-            except IOError:
-              pass
-
-            for file_name in _config_file_names:
+            for file_path in (config_path_external, config_path):
               try:
-                with open(os.path.join(_file_location, file_name), 'r') as f:
-                  local_config = yaml.safe_load(f)
+                with open(file_path, 'r') as f:
+                  config = yaml.safe_load(f)
 
-                  for element in local_config.get('spec', {}).get('allowlist', []):
+                  try:
+                      parsed_allowlist = config['spec']['allowlist']
+                  except:
+                      parsed_allowlist = []
+
+                  for element in parsed_allowlist:
                     allowlist[element.get('cve','')] = {
-                      'comment': element.get('comment',''),
-                      'reason': element.get('reason','')
+                      'comment': element.get('comment', ''),
+                      'reason': element.get('reason', '')
                     }
-                break
+                    
               except IOError:
                 pass
 
-            grype_allowlist = {'ignore': [{'vulnerability': vulnerability} for vulnerability in allowlist]}
-            with open('.grype.yaml', 'w') as f:
-              yaml.dump(grype_allowlist, f)
+            if len(allowlist) > 0:
+              grype_allowlist = {'ignore': [{'vulnerability': vulnerability} for vulnerability in allowlist]}
+              with open('.grype.yaml', 'w') as f:
+                yaml.dump(grype_allowlist, f)
             "
         - name: "Anchore Grype Scan"
           id: anchore-scan
@@ -239,6 +223,9 @@ jobs:
             sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
             category: 'anchore-grype-scan'
 
+    # NOTE:
+    # This should also post findings to the action summary.
+    # Currently it only posts findings to pull_requests -> Scheduled scans go unnoticed!
     check-for-critical-alerts:
       runs-on: ubuntu-latest
       if: always() && github.event_name == 'pull_request' 
@@ -249,6 +236,8 @@ jobs:
           pull-requests: write # required for creating comments on pull requests
       steps: 
         - name: "Get critical docker scan alerts"
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
             alerts="$(gh api \
               --method GET \
@@ -261,10 +250,10 @@ jobs:
               else
                 echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT='True >> $GITHUB_ENV
               fi
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         - name: "Create comment on pull request if critical alerts are found"
           if: env.GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT == 'True'
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
             gh api /repos/${{ env.GITHUB_REPOSITORY }}/issues/${{ github.event.pull_request.number }}/comments \
                 -H "Accept: application/vnd.github.v3+json" \
@@ -272,5 +261,3 @@ jobs:
                 Anchore Grype scan found critical vulnerabilities in the image artifact. Please address these vulnerabilities.
                 The scan results can be found [here](https://github.com/${{ env.GITHUB_REPOSITORY }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }})
                 :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry:"
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
