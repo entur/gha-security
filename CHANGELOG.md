@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.3](https://github.com/entur/gha-security/compare/v2.0.2...v2.0.3) (2024-11-04)
+
+
+### Bug Fixes
+
+* Lots of minor bugs in gha-security ([#51](https://github.com/entur/gha-security/issues/51)) ([8d7508d](https://github.com/entur/gha-security/commit/8d7508d41e60225d541bb51585b3e4a798a407dc))
+
 ## [2.0.2](https://github.com/entur/gha-security/compare/v2.0.1...v2.0.2) (2024-11-01)
 
 
