@@ -322,12 +322,10 @@ jobs:
 
           _config_file_names = ('codescan.yml', 'codescan.yaml')
           _file_location = '.entur/security'
-
-          external_repository = ''
-          external_file_name = ''
           
           config_path = ''
           config_path_external = ''
+          external_repository = ''
 
           for file_name in _config_file_names:
             try:
@@ -340,8 +338,6 @@ jobs:
                     external_repository = str(config['spec']['inherit'])
                     if not re.match('^[\w\.-]+$', external_repository):
                       print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({external_repository})')
-
-                    external_file_name = file_name
                 except:
                     pass
                 
@@ -352,20 +348,27 @@ jobs:
           if config_path == '':
             print(f'::notice ::Allowlist file not found in current repository, skipping remaining steps')
         
-          if external_repository != '' and external_file_name != '':
+          if external_repository:
             headers = {
               'Accept': 'application/vnd.github+json',
               'X-GitHub-Api-Version': '2022-11-28',
-              'Authorization': f'token {external_token}'
+              'Authorization': f'token {external_token}',
             }
 
-            response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{_file_location}/{external_file_name}', headers=headers)
-            if response.status_code != 200:
-              print(f'::warning ::Failed to fetch allowlist file from external repository ({response.status_code} - {response.reason})')
-            else:
-              config_path_external = os.path.join(_file_location, 'external_codescan.yml')
-              with open(config_path_external, 'w') as f:
-                f.write(base64.b64decode(response.json().get('content', '')).decode('utf-8'))
+            for file_name in _config_file_names:
+              response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{_file_location}/{file_name}', headers=headers)
+
+              if response.status_code != 404 and response.status_code != 200:
+                print(f'::warning ::Failed to fetch allowlist file from external repository ({response.status_code} - {response.reason})')
+                break
+              if response.status_code == 200:
+                config_path_external = os.path.join(_file_location, 'external_codescan.yml')
+                with open(config_path_external, 'w') as f:
+                  f.write(base64.b64decode(response.json().get('content', '')).decode('utf-8'))
+                break
+            
+            if config_path_external == '':
+              print(f'::warning ::Failed to find an allowlist in external repository')
                 
           with open(env_file, 'a') as f:
             f.write(f'GHA_SECURITY_CODE_SCAN_CONFIG_PATH={config_path}\n')
