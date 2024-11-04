@@ -335,9 +335,11 @@ jobs:
                 config = yaml.safe_load(f)
 
                 try:
-                    external_repository = str(config['spec']['inherit'])
-                    if not re.match('^[\w\.-]+$', external_repository):
-                      print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({external_repository})')
+                  tmp_external_repository = str(config['spec']['inherit'])
+                  if not re.match('^[\w\.-]+$', tmp_external_repository):
+                    print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({external_repository})')
+                  else:
+                    external_repository = tmp_external_repository
                 except:
                     pass
                 

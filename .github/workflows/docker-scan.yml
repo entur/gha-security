@@ -59,11 +59,9 @@ jobs:
             _config_file_names = ('dockerscan.yml', 'dockerscan.yaml')
             _file_location = '.entur/security'
 
-            external_repository = ''
-            external_file_name = ''
-            
             config_path = ''
             config_path_external = ''
+            external_repository = ''
 
             for file_name in _config_file_names:
               try:
@@ -73,11 +71,11 @@ jobs:
                   config = yaml.safe_load(f)
   
                   try:
-                      external_repository = str(config['spec']['inherit'])
-                      if not re.match('^[\w\.-]+$', external_repository):
+                      tmp_external_repository = str(config['spec']['inherit'])
+                      if not re.match('^[\w\.-]+$', tmp_external_repository):
                         print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({external_repository})')
-  
-                      external_file_name = file_name
+                      else:
+                        external_repository = tmp_external_repository
                   except:
                       pass
                   
@@ -88,7 +86,7 @@ jobs:
             if config_path == '':
               print(f'::notice ::Allowlist file not found in current repository, skipping remaining steps')
           
-            if external_repository != '' and external_file_name != '':
+            if external_repository != '':
               headers = {
                 'Accept': 'application/vnd.github+json',
                 'X-GitHub-Api-Version': '2022-11-28',
