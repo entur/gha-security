@@ -337,7 +337,7 @@ jobs:
                 try:
                   tmp_external_repository = str(config['spec']['inherit'])
                   if not re.match('^[\w\.-]+$', tmp_external_repository):
-                    print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({external_repository})')
+                    print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({tmp_external_repository})')
                   else:
                     external_repository = tmp_external_repository
                 except:
@@ -350,7 +350,7 @@ jobs:
           if config_path == '':
             print(f'::notice ::Allowlist file not found in current repository, skipping remaining steps')
         
-          if external_repository:
+          if external_repository != '':
             headers = {
               'Accept': 'application/vnd.github+json',
               'X-GitHub-Api-Version': '2022-11-28',
