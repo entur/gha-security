@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.4](https://github.com/entur/gha-security/compare/v2.0.3...v2.0.4) (2024-11-05)
+
+
+### Bug Fixes
+
+* os.geten error in docker-scan ([b0af179](https://github.com/entur/gha-security/commit/b0af1790b40e8ebf6e3784db1a260d378078b54c))
+
 ## [2.0.3](https://github.com/entur/gha-security/compare/v2.0.2...v2.0.3) (2024-11-04)
 
 
