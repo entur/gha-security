@@ -388,8 +388,8 @@ jobs:
           import sys
           import os
 
-          config_path = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH')
-          config_path_external = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH_EXTERNAL')
+          config_path = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH', '')
+          config_path_external = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH_EXTERNAL', '')
 
           _schema = {
               'apiVersion': {'type': 'string', 'required': True, 'allowed': ['entur.io/securitytools/v1']},
@@ -456,8 +456,8 @@ jobs:
           repository = os.getenv('GITHUB_REPOSITORY')
           token = os.getenv('GITHUB_TOKEN')
 
-          config_path = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH')
-          config_path_external = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH_EXTERNAL')
+          config_path = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH', '')
+          config_path_external = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH_EXTERNAL', '')
     
           headers = {
             'Accept': 'application/vnd.github+json',
