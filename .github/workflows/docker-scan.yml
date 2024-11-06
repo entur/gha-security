@@ -137,34 +137,34 @@ jobs:
               'apiVersion': {'type': 'string', 'required': True, 'allowed': ['entur.io/securitytools/v1']},
               'kind': {'type': 'string', 'required': True, 'allowed': ['DockerScanConfig']},
               'metadata': {
-                  'type': 'dict', 
-                  'required': True,
-                  'schema': {
-                      'id' : {'type': 'string', 'required': True},
-                      'name': {'type': 'string', 'required': True},
-                      'owner': {'type': 'string', 'required': True},
-                  },
+                'type': 'dict', 
+                'required': True,
+                'schema': {
+                  'id' : {'type': 'string', 'required': True},
+                  'name': {'type': 'string', 'required': True},
+                  'owner': {'type': 'string', 'required': True},
+                },
               },
               'spec': {
-                  'type': 'dict',
-                  'required': True,
-                  'nullable': True,
-                  'schema': {
-                      'inherit': {'type': 'string', 'required': False},
-                      'allowlist': {
-                          'required': False,
-                          'nullable': True,
-                          'type': 'list',
-                          'schema': {
-                              'type': 'dict',
-                              'schema': {
-                                  'cve': {'type': 'string', 'required': True},
-                                  'comment': {'type': 'string', 'required': True},
-                                  'reason': {'type': 'string', 'required': True, 'allowed': ['false_positive', 'wont_fix', 'test']},
-                              },
-                          },
+                'type': 'dict',
+                'required': True,
+                'nullable': True,
+                'schema': {
+                  'inherit': {'type': 'string', 'required': False},
+                  'allowlist': {
+                    'required': False,
+                    'nullable': True,
+                    'type': 'list',
+                    'schema': {
+                      'type': 'dict',
+                      'schema': {
+                        'cve': {'type': 'string', 'required': True},
+                        'comment': {'type': 'string', 'required': True},
+                        'reason': {'type': 'string', 'required': True, 'allowed': ['false_positive', 'wont_fix', 'test']},
                       },
+                    },
                   },
+                },
               },
             }
             v = Validator(_schema)
@@ -263,7 +263,7 @@ jobs:
               else
                 echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT='True >> $GITHUB_ENV
               fi
-              
+
         - name: "Create comment on pull request if critical alerts are found"
           if: env.GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT == 'True'
           env:

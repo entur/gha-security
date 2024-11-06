@@ -1,17 +1,17 @@
 name: 'Entur/Security/Code Scan'
 
 on:
-    workflow_call:
-      inputs:
-        use_setup_gradle:
-          description: 'Use "gradle/action/setup-gradle" before running autobuild (Java/Kotlin only). Potentially speeds up build times if cache from main branch is utilized'
-          default: false
-          required: false
-          type: boolean
-      secrets:
-        external_repository_token:
-          description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
-          required: false
+  workflow_call:
+    inputs:
+      use_setup_gradle:
+        description: 'Use "gradle/action/setup-gradle" before running autobuild (Java/Kotlin only). Potentially speeds up build times if cache from main branch is utilized'
+        default: false
+        required: false
+        type: boolean
+    secrets:
+      external_repository_token:
+        description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
+        required: false
 env:
   GITHUB_REPOSITORY: ${{ github.repository }}
 
@@ -149,8 +149,8 @@ jobs:
       runs-on: ubuntu-latest
       needs: upload-scan-reports-from-matching-pr
       outputs: 
-          codeql_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_CQ }}
-          semgrep_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_SEM }} 
+        codeql_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_CQ }}
+        semgrep_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_SEM }} 
       steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
@@ -293,6 +293,8 @@ jobs:
         --exclude=*.kt \
         --exclude=*.py \
         --exclude=*.rb \
+        --exclude=*.tf \
+        --exclude=*.json \
         --exclude=*.swift
 
     - name: "Upload Semgrep report"
@@ -480,38 +482,38 @@ jobs:
           config_path_external = os.getenv('GHA_SECURITY_CODE_SCAN_CONFIG_PATH_EXTERNAL', '')
 
           _schema = {
-              'apiVersion': {'type': 'string', 'required': True, 'allowed': ['entur.io/securitytools/v1']},
-              'kind': {'type': 'string', 'required': True, 'allowed': ['CodeScanConfig']},
-              'metadata': {
-                  'type': 'dict', 
-                  'required': True,
-                  'schema': {
-                      'id' : {'type': 'string', 'required': True},
-                      'name': {'type': 'string', 'required': True},
-                      'owner': {'type': 'string', 'required': True},
-                  },
+            'apiVersion': {'type': 'string', 'required': True, 'allowed': ['entur.io/securitytools/v1']},
+            'kind': {'type': 'string', 'required': True, 'allowed': ['CodeScanConfig']},
+            'metadata': {
+              'type': 'dict', 
+              'required': True,
+              'schema': {
+                'id' : {'type': 'string', 'required': True},
+                'name': {'type': 'string', 'required': True},
+                'owner': {'type': 'string', 'required': True},
               },
-              'spec': {
-                  'type': 'dict',
-                  'required': True,
+            },
+            'spec': {
+              'type': 'dict',
+              'required': True,
+              'nullable': True,
+              'schema': {
+                'inherit': {'type': 'string', 'required' : False},
+                'allowlist': {
+                  'required' : False,
                   'nullable': True,
+                  'type': 'list',
                   'schema': {
-                      'inherit': {'type': 'string', 'required' : False},
-                      'allowlist': {
-                          'required' : False,
-                          'nullable': True,
-                          'type': 'list',
-                          'schema': {
-                              'type': 'dict',
-                              'schema': {
-                                  'cwe': {'type': 'string', 'required': True},
-                                  'comment': {'type': 'string', 'required': True},
-                                  'reason': {'type': 'string', 'required': True, 'allowed': ['false_positive', 'wont_fix', 'test']},
-                              },
-                          },
-                      },
+                    'type': 'dict',
+                    'schema': {
+                      'cwe': {'type': 'string', 'required': True},
+                      'comment': {'type': 'string', 'required': True},
+                      'reason': {'type': 'string', 'required': True, 'allowed': ['false_positive', 'wont_fix', 'test']},
+                    },
                   },
+                },
               },
+            },
           }
           v = Validator(_schema)
           
