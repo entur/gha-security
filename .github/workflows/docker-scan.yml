@@ -1,277 +1,280 @@
 name: 'Entur/Security/Docker Scan'
 
 on:
-    workflow_call:
-        inputs:
-            image_artifact:
-                description: 'Image artifact to scan'
-                type: string
-                required: true
-        secrets:
-            external_repository_token:
-                description: 'Token to access the external repository mentioned in the dockerscan.yml file. Must have read access to the repository.'
-                required: false
+  workflow_call:
+    inputs:
+      image_artifact:
+        description: 'Image artifact to scan'
+        type: string
+        required: true
+    secrets:
+      external_repository_token:
+        description: 'Token to access the external repository mentioned in the dockerscan.yml file. Must have read access to the repository.'
+        required: false
 
 env:
   GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT: ${{ inputs.image_artifact }}
   GITHUB_REPOSITORY: ${{ github.repository }}
 
 jobs:
-    docker-scan:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write # required for checking out the repository and creating files
-            issues: write # required for creating issues, and/or adding issue comments
-            pull-requests: write # required for creating comments on pull requests
-            security-events: write # required for uploading SARIF file to GitHub 
-            actions: read #required for uploading SARIF file to GitHub (workflows in private repositories)
-        steps:
-        - name: Install dependencies
-          shell: bash
-          run: |
-            cat > requirements.txt << EOF
-            Cerberus == 1.3.5 \
-              --hash=sha256:7649a5815024d18eb7c6aa5e7a95355c649a53aacfc9b050e9d0bf6bfa2af372
-              --hash=sha256:81011e10266ef71b6ec6d50e60171258a5b134d69f8fb387d16e4936d0d47642
-            EOF
-            pip install --only-binary=:all: --require-hashes -r requirements.txt
-            rm requirements.txt
+  docker-scan:
+    # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
+    # If we found a language, and the event is not a push made by dependabot on a PR
+    if: ${{ github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # required for checking out the repository and creating files
+      issues: write # required for creating issues, and/or adding issue comments
+      pull-requests: write # required for creating comments on pull requests
+      security-events: write # required for uploading SARIF file to GitHub 
+      actions: read #required for uploading SARIF file to GitHub (workflows in private repositories)
+    steps:
+      - name: Install dependencies
+        shell: bash
+        run: |
+          cat > requirements.txt << EOF
+          Cerberus == 1.3.5 \
+            --hash=sha256:7649a5815024d18eb7c6aa5e7a95355c649a53aacfc9b050e9d0bf6bfa2af372
+            --hash=sha256:81011e10266ef71b6ec6d50e60171258a5b134d69f8fb387d16e4936d0d47642
+          EOF
+          pip install --only-binary=:all: --require-hashes -r requirements.txt
+          rm requirements.txt
 
-        - name: "Checkout repository"
-          uses: actions/checkout@v4
+      - name: "Checkout repository"
+        uses: actions/checkout@v4
 
-        - name: "Download the image artifact"
-          uses: actions/download-artifact@v4
-          with:
-            name: ${{ env.GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT }}
-            
-        - name: "Check if allowlist file exists"
-          env:
-            GHA_SECURITY_DOCKER_SCAN_EXTERNAL_REPOSITORY_TOKEN: ${{ secrets.external_repository_token }}
-          run: |
-            python -c "
-            import os
-            import re
-            import requests
-            import base64
-            import yaml
+      - name: "Download the image artifact"
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT }}
+          
+      - name: "Check if allowlist file exists"
+        env:
+          GHA_SECURITY_DOCKER_SCAN_EXTERNAL_REPOSITORY_TOKEN: ${{ secrets.external_repository_token }}
+        run: |
+          python -c "
+          import os
+          import re
+          import requests
+          import base64
+          import yaml
 
-            external_token = os.getenv('GHA_SECURITY_DOCKER_SCAN_EXTERNAL_REPOSITORY_TOKEN')
-            env_file = os.getenv('GITHUB_ENV')
+          external_token = os.getenv('GHA_SECURITY_DOCKER_SCAN_EXTERNAL_REPOSITORY_TOKEN')
+          env_file = os.getenv('GITHUB_ENV')
 
-            _config_file_names = ('dockerscan.yml', 'dockerscan.yaml')
-            _file_location = '.entur/security'
+          _config_file_names = ('dockerscan.yml', 'dockerscan.yaml')
+          _file_location = '.entur/security'
 
-            config_path = ''
-            config_path_external = ''
-            external_repository = ''
+          config_path = ''
+          config_path_external = ''
+          external_repository = ''
+
+          for file_name in _config_file_names:
+            try:
+              tmp_config_path = os.path.join(_file_location, file_name)
+              with open(tmp_config_path, 'r') as f:
+                config_path = tmp_config_path
+                config = yaml.safe_load(f)
+
+                spec = config.get('spec', None)
+                spec = {} if spec is None else spec
+                inherit = spec.get('inherit', None)
+                inherit = '' if inherit is None else inherit
+
+                tmp_external_repository = str(inherit)
+                if not re.match('^[\w\.-]+$', tmp_external_repository):
+                  print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({tmp_external_repository})')
+                else:
+                  external_repository = tmp_external_repository
+                
+              break
+            except IOError:
+              pass
+        
+          if config_path == '':
+            print(f'::notice ::Allowlist file not found in current repository, skipping remaining steps')
+        
+          if external_repository != '':
+            headers = {
+              'Accept': 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'Authorization': f'token {external_token}',
+            }
 
             for file_name in _config_file_names:
-              try:
-                tmp_config_path = os.path.join(_file_location, file_name)
-                with open(tmp_config_path, 'r') as f:
-                  config_path = tmp_config_path
-                  config = yaml.safe_load(f)
-  
-                  spec = config.get('spec', None)
-                  spec = {} if spec is None else spec
-                  inherit = spec.get('inherit', None)
-                  inherit = '' if inherit is None else inherit
-
-                  tmp_external_repository = str(inherit)
-                  if not re.match('^[\w\.-]+$', tmp_external_repository):
-                    print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({tmp_external_repository})')
-                  else:
-                    external_repository = tmp_external_repository
-                  
-                break
-              except IOError:
-                pass
-          
-            if config_path == '':
-              print(f'::notice ::Allowlist file not found in current repository, skipping remaining steps')
-          
-            if external_repository != '':
-              headers = {
-                'Accept': 'application/vnd.github+json',
-                'X-GitHub-Api-Version': '2022-11-28',
-                'Authorization': f'token {external_token}',
-              }
-
-              for file_name in _config_file_names:
-                response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{_file_location}/{file_name}', headers=headers)
-                
-                if response.status_code != 404 and response.status_code != 200:
-                  print(f'::warning ::Failed to fetch allowlist file from external repository ({response.status_code} - {response.reason})')
-                  break
-                if response.status_code == 200:
-                  config_path_external = os.path.join(_file_location, 'external_dockerscan.yml')
-                  with open(config_path_external, 'w') as f:
-                    f.write(base64.b64decode(response.json().get('content', '')).decode('utf-8'))
-                  break
+              response = requests.get(f'https://api.github.com/repos/entur/{external_repository}/contents/{_file_location}/{file_name}', headers=headers)
               
-              if config_path_external == '':
-                print(f'::warning ::Failed to find an allowlist in external repository')
+              if response.status_code != 404 and response.status_code != 200:
+                print(f'::warning ::Failed to fetch allowlist file from external repository ({response.status_code} - {response.reason})')
+                break
+              if response.status_code == 200:
+                config_path_external = os.path.join(_file_location, 'external_dockerscan.yml')
+                with open(config_path_external, 'w') as f:
+                  f.write(base64.b64decode(response.json().get('content', '')).decode('utf-8'))
+                break
+            
+            if config_path_external == '':
+              print(f'::warning ::Failed to find an allowlist in external repository')
 
-            with open(env_file, 'a') as f:
-              f.write(f'GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH={config_path}\n')
-              f.write(f'GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH_EXTERNAL={config_path_external}\n')
-            "
+          with open(env_file, 'a') as f:
+            f.write(f'GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH={config_path}\n')
+            f.write(f'GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH_EXTERNAL={config_path_external}\n')
+          "
 
-        - name: "Validate allowlist file(s)"
-          id: validate_allowlists
-          if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH != '' }}
-          env:
-            GHA_SECURITY_DOCKER_SCAN_EXTERNAL_REPOSITORY_TOKEN: ${{ secrets.external_repository_token }}
-          run: |
-            python -c "
-            import yaml
-            from cerberus import Validator
-            import sys
-            import os
+      - name: "Validate allowlist file(s)"
+        id: validate_allowlists
+        if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH != '' }}
+        env:
+          GHA_SECURITY_DOCKER_SCAN_EXTERNAL_REPOSITORY_TOKEN: ${{ secrets.external_repository_token }}
+        run: |
+          python -c "
+          import yaml
+          from cerberus import Validator
+          import sys
+          import os
 
-            config_path = os.getenv('GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH', '')
-            config_path_external = os.getenv('GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH_EXTERNAL', '')
-  
-            _schema = {
-              'apiVersion': {'type': 'string', 'required': True, 'allowed': ['entur.io/securitytools/v1']},
-              'kind': {'type': 'string', 'required': True, 'allowed': ['DockerScanConfig']},
-              'metadata': {
-                'type': 'dict', 
-                'required': True,
-                'schema': {
-                  'id' : {'type': 'string', 'required': True},
-                  'name': {'type': 'string', 'required': True},
-                  'owner': {'type': 'string', 'required': True},
-                },
+          config_path = os.getenv('GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH', '')
+          config_path_external = os.getenv('GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH_EXTERNAL', '')
+
+          _schema = {
+            'apiVersion': {'type': 'string', 'required': True, 'allowed': ['entur.io/securitytools/v1']},
+            'kind': {'type': 'string', 'required': True, 'allowed': ['DockerScanConfig']},
+            'metadata': {
+              'type': 'dict', 
+              'required': True,
+              'schema': {
+                'id' : {'type': 'string', 'required': True},
+                'name': {'type': 'string', 'required': True},
+                'owner': {'type': 'string', 'required': True},
               },
-              'spec': {
-                'type': 'dict',
-                'required': True,
-                'nullable': True,
-                'schema': {
-                  'inherit': {'type': 'string', 'required': False},
-                  'allowlist': {
-                    'required': False,
-                    'nullable': True,
-                    'type': 'list',
+            },
+            'spec': {
+              'type': 'dict',
+              'required': True,
+              'nullable': True,
+              'schema': {
+                'inherit': {'type': 'string', 'required': False},
+                'allowlist': {
+                  'required': False,
+                  'nullable': True,
+                  'type': 'list',
+                  'schema': {
+                    'type': 'dict',
                     'schema': {
-                      'type': 'dict',
-                      'schema': {
-                        'cve': {'type': 'string', 'required': True},
-                        'comment': {'type': 'string', 'required': True},
-                        'reason': {'type': 'string', 'required': True, 'allowed': ['false_positive', 'wont_fix', 'test']},
-                      },
+                      'cve': {'type': 'string', 'required': True},
+                      'comment': {'type': 'string', 'required': True},
+                      'reason': {'type': 'string', 'required': True, 'allowed': ['false_positive', 'wont_fix', 'test']},
                     },
                   },
                 },
               },
-            }
-            v = Validator(_schema)
+            },
+          }
+          v = Validator(_schema)
 
-            with open(config_path, 'r') as f:
+          with open(config_path, 'r') as f:
+            data = yaml.safe_load(f)
+            if not v.validate(data):
+                print(f'::error ::Allowlist file is invalid. Here are the errors: {v.errors}')
+                sys.exit(1)
+
+          if config_path_external != '':
+            with open(config_path_external, 'r') as f:
               data = yaml.safe_load(f)
               if not v.validate(data):
-                  print(f'::error ::Allowlist file is invalid. Here are the errors: {v.errors}')
+                  print(f'::error ::External allowlist file is invalid. Here are the errors: {v.errors}')
                   sys.exit(1)
-  
-            if config_path_external != '':
-              with open(config_path_external, 'r') as f:
-                data = yaml.safe_load(f)
-                if not v.validate(data):
-                    print(f'::error ::External allowlist file is invalid. Here are the errors: {v.errors}')
-                    sys.exit(1)
-            "
+          "
 
-        - name: "Allowlist docker scan alerts"
-          if: steps.validate_allowlists.outcome == 'success'
-          run: |
-            python -c "
-            import yaml
-            import os
+      - name: "Allowlist docker scan alerts"
+        if: ${{ steps.validate_allowlists.outcome == 'success' }}
+        run: |
+          python -c "
+          import yaml
+          import os
 
-            config_path = os.getenv('GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH', '')
-            config_path_external = os.getenv('GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH_EXTERNAL', '')
+          config_path = os.getenv('GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH', '')
+          config_path_external = os.getenv('GHA_SECURITY_DOCKER_SCAN_CONFIG_PATH_EXTERNAL', '')
 
-            merged_allowlist = {}
+          merged_allowlist = {}
 
-            for file_path in (config_path_external, config_path):
-              try:
-                with open(file_path, 'r') as f:
-                  config = yaml.safe_load(f)
+          for file_path in (config_path_external, config_path):
+            try:
+              with open(file_path, 'r') as f:
+                config = yaml.safe_load(f)
 
-                  spec = config.get('spec', None)
-                  spec = {} if spec is None else spec
-                  allowlist = spec.get('allowlist', None)
-                  allowlist = [] if allowlist is None else allowlist
+                spec = config.get('spec', None)
+                spec = {} if spec is None else spec
+                allowlist = spec.get('allowlist', None)
+                allowlist = [] if allowlist is None else allowlist
 
-                  for element in allowlist:
-                    merged_allowlist[element.get('cve','')] = {
-                      'comment': element.get('comment', ''),
-                      'reason': element.get('reason', '')
-                    }
-                    
-              except IOError:
-                pass
+                for element in allowlist:
+                  merged_allowlist[element.get('cve','')] = {
+                    'comment': element.get('comment', ''),
+                    'reason': element.get('reason', '')
+                  }
+                  
+            except IOError:
+              pass
 
-            if len(merged_allowlist) > 0:
-              grype_allowlist = {'ignore': [{'vulnerability': vulnerability} for vulnerability in merged_allowlist]}
-              with open('.grype.yaml', 'w') as f:
-                yaml.dump(grype_allowlist, f)
-            "
+          if len(merged_allowlist) > 0:
+            grype_allowlist = {'ignore': [{'vulnerability': vulnerability} for vulnerability in merged_allowlist]}
+            with open('.grype.yaml', 'w') as f:
+              yaml.dump(grype_allowlist, f)
+          "
 
-        - name: "Anchore Grype Scan"
-          id: anchore-scan
-          uses: anchore/scan-action@3343887d815d7b07465f6fdcd395bd66508d486a
-          with: 
-            image: ${{ inputs.image_artifact }}.tar
-            by-cve: true
-            fail-build: false
-            severity-cutoff: critical
+      - name: "Anchore Grype Scan"
+        id: anchore-scan
+        uses: anchore/scan-action@3343887d815d7b07465f6fdcd395bd66508d486a
+        with: 
+          image: ${{ inputs.image_artifact }}.tar
+          by-cve: true
+          fail-build: false
+          severity-cutoff: critical
 
-        - name: "Upload vulnerability report"
-          id: upload-vulnerability-report
-          uses: github/codeql-action/upload-sarif@v3
-          with: 
-            sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
-            category: 'anchore-grype-scan'
+      - name: "Upload vulnerability report"
+        id: upload-vulnerability-report
+        uses: github/codeql-action/upload-sarif@v3
+        with: 
+          sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
+          category: 'anchore-grype-scan'
 
-    # NOTE:
-    # This should also post findings to the action summary.
-    # Currently it only posts findings to pull_requests -> Scheduled scans go unnoticed!
-    check-for-critical-alerts:
-      runs-on: ubuntu-latest
-      if: always() && github.event_name == 'pull_request' 
-      needs: [docker-scan]
-      permissions: 
-          security-events: read # required to read code scan alerts
-          issues: write # required for creating issues, and/or adding issue comments
-          pull-requests: write # required for creating comments on pull requests
-      steps: 
-        - name: "Get critical docker scan alerts"
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-            alerts="$(gh api \
-              --method GET \
-              -H 'Accept: application/vnd.github+json' \
-              -H 'X-GitHub-Api-Version: 2022-11-28' \
-              /repos/${GITHUB_REPOSITORY}/code-scanning/alerts \
-              -F severity='critical' -F state='open' -F ref='${{ github.ref }}' -F per_page='100' -F tool_name='Grype' --paginate)"
-              if [ "$alerts" == "[]" ]; then
-                echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT='False >> $GITHUB_ENV
-              else
-                echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT='True >> $GITHUB_ENV
-              fi
+  # NOTE:
+  # This should also post findings to the action summary.
+  # Currently it only posts findings to pull_requests -> Scheduled scans go unnoticed!
+  check-for-critical-alerts:
+    runs-on: ubuntu-latest
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    needs: [docker-scan]
+    permissions: 
+      security-events: read # required to read code scan alerts
+      issues: write # required for creating issues, and/or adding issue comments
+      pull-requests: write # required for creating comments on pull requests
+    steps: 
+      - name: "Get critical docker scan alerts"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          alerts="$(gh api \
+            --method GET \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            /repos/${GITHUB_REPOSITORY}/code-scanning/alerts \
+            -F severity='critical' -F state='open' -F ref='${{ github.ref }}' -F per_page='100' -F tool_name='Grype' --paginate)"
+            if [ "$alerts" == "[]" ]; then
+              echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT='False >> $GITHUB_ENV
+            else
+              echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT='True >> $GITHUB_ENV
+            fi
 
-        - name: "Create comment on pull request if critical alerts are found"
-          if: env.GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT == 'True'
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-            gh api /repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments \
-                -H "Accept: application/vnd.github.v3+json" \
-                --field "body=:no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: 
-                Anchore Grype scan found critical vulnerabilities in the image artifact. Please address these vulnerabilities.
-                The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }})
-                :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry:"
+      - name: "Create comment on pull request if critical alerts are found"
+        if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT == 'True' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api /repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments \
+              -H "Accept: application/vnd.github.v3+json" \
+              --field "body=:no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: 
+              Anchore Grype scan found critical vulnerabilities in the image artifact. Please address these vulnerabilities.
+              The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }})
+              :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry:"
