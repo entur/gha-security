@@ -159,7 +159,7 @@ jobs:
         id: get-repository-languages
         run: |
           REPO_FILE_TYPES=$(find . -path "./.git" -prune -o -type f -name "*.*" | sed "s|.*\.||" | tr "[:upper:]" "[:lower:]" | sort -u)
-          REPO_FILE_TYPES=$(echo "$REPO_FILE_TYPES" | jq -R -s -c 'split("\n")[:-1]')
+          export REPO_FILE_TYPES=$(echo "$REPO_FILE_TYPES" | jq -R -s -c 'split("\n")[:-1]')
 
           python -c "
           import os
@@ -168,97 +168,97 @@ jobs:
           env_file = os.getenv('GITHUB_ENV', '')
           file_types = os.getenv('REPO_FILE_TYPES', '')
           try:
-              file_types = json.loads(file_types)
+            file_types = json.loads(file_types)
           except:
-              pass
+            pass
 
           if not isinstance(file_types, list):
-              file_types = []
+            file_types = []
 
           # See https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/
           codeql_languages = set()
           _codeql_mappings = {
-              # Python
-              'py': 'python',
-              # Ruby
-              'rb': 'ruby',
-              'erb': 'ruby',
-              'gemspec': 'ruby',
-              'gemfile': 'ruby',
-              # Swift
-              'swift': 'swift',
-              # Kotlin
-              'kt': 'kotlin',
-              # Java
-              'java': 'java',
-              # CSharp
-              'sln': 'csharp',
-              'csproj': 'csharp',
-              'cs': 'csharp',
-              'cshtml': 'csharp',
-              'xaml': 'csharp',
-              # Golang
-              'go': 'go',
-              # CPP
-              'cpp': 'cpp',
-              'c++': 'cpp',
-              'cxx': 'cpp',
-              'hpp': 'cpp',
-              'hh': 'cpp',
-              'h++': 'cpp',
-              'hxx': 'cpp',
-              'c': 'cpp',
-              'cc': 'cpp',
-              'h': 'cpp',
-              # Typescript
-              'ts': 'javascript-typescript',
-              'tsx': 'javascript-typescript',
-              'mts': 'javascript-typescript',
-              'cts': 'javascript-typescript',
-              # Javascript
-              'js': 'javascript-typescript',
-              'jsx': 'javascript-typescript',
-              'mjs': 'javascript-typescript',
-              'es': 'javascript-typescript',
-              'es6': 'javascript-typescript',
-              'vue': 'javascript-typescript',
-              'ejs': 'javascript-typescript',
-              'htm': 'javascript-typescript',
-              'html': 'javascript-typescript',
-              'xhtm': 'javascript-typescript',
-              'xhtml': 'javascript-typescript',
-              # Misc
-              'yml': 'javascript-typescript',
-              'yaml': 'javascript-typescript',
-              'raml': 'javascript-typescript',
-              'xml': 'javascript-typescript',
-              'json': 'javascript-typescript',
-              'njk': 'javascript-typescript',
-              'hbs': 'javascript-typescript',
+            # Python
+            'py': 'python',
+            # Ruby
+            'rb': 'ruby',
+            'erb': 'ruby',
+            'gemspec': 'ruby',
+            'gemfile': 'ruby',
+            # Swift
+            'swift': 'swift',
+            # Kotlin
+            'kt': 'kotlin',
+            # Java
+            'java': 'java',
+            # CSharp
+            'sln': 'csharp',
+            'csproj': 'csharp',
+            'cs': 'csharp',
+            'cshtml': 'csharp',
+            'xaml': 'csharp',
+            # Golang
+            'go': 'go',
+            # CPP
+            'cpp': 'cpp',
+            'c++': 'cpp',
+            'cxx': 'cpp',
+            'hpp': 'cpp',
+            'hh': 'cpp',
+            'h++': 'cpp',
+            'hxx': 'cpp',
+            'c': 'cpp',
+            'cc': 'cpp',
+            'h': 'cpp',
+            # Typescript
+            'ts': 'javascript-typescript',
+            'tsx': 'javascript-typescript',
+            'mts': 'javascript-typescript',
+            'cts': 'javascript-typescript',
+            # Javascript
+            'js': 'javascript-typescript',
+            'jsx': 'javascript-typescript',
+            'mjs': 'javascript-typescript',
+            'es': 'javascript-typescript',
+            'es6': 'javascript-typescript',
+            'vue': 'javascript-typescript',
+            'ejs': 'javascript-typescript',
+            'htm': 'javascript-typescript',
+            'html': 'javascript-typescript',
+            'xhtm': 'javascript-typescript',
+            'xhtml': 'javascript-typescript',
+            # Misc
+            'yml': 'javascript-typescript',
+            'yaml': 'javascript-typescript',
+            'raml': 'javascript-typescript',
+            'xml': 'javascript-typescript',
+            'json': 'javascript-typescript',
+            'njk': 'javascript-typescript',
+            'hbs': 'javascript-typescript',
           }
-
+          
           semgrep_languages = set()
           _semgrep_mappings = {
-              # Scala
-              'scala': 'scala',
-              'sc': 'scala',
+            # Scala
+            'scala': 'scala',
+            'sc': 'scala',
           }
 
           for file_type in file_types:
-              lang = _codeql_mappings.get(file_type, None)
-              if not lang is None:
-                  codeql_languages.add(lang) 
+            lang = _codeql_mappings.get(file_type, None)
+            if not lang is None:
+              codeql_languages.add(lang) 
 
-              lang = _semgrep_mappings.get(file_type, None)
-              if not lang is None:
-                  semgrep_languages.add(lang)
+            lang = _semgrep_mappings.get(file_type, None)
+            if not lang is None:
+              semgrep_languages.add(lang)
 
           codeql_languages = list(codeql_languages)
           semgrep_languages = list(semgrep_languages)
 
           with open(env_file, 'a') as f:
-              f.write(f'GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_CQ={str(codeql_languages)}\n')
-              f.write(f'GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_SEM={str(semgrep_languages)}\n')
+            f.write(f'GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_CQ={str(codeql_languages)}\n')
+            f.write(f'GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_SEM={str(semgrep_languages)}\n')
           "
 
   semgrep-analysis:
