@@ -247,7 +247,7 @@ jobs:
           for file_type in file_types:
             if (lang := _codeql_mappings.get(file_type, None)) is not None:
               codeql_languages.add(lang) 
-            if (lang := semgrep_languages.get(file_type, None)) is not None:
+            if (lang := _semgrep_mappings.get(file_type, None)) is not None:
               semgrep_languages.add(lang)
 
           codeql_languages = list(codeql_languages)
