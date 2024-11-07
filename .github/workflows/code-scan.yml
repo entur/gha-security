@@ -264,9 +264,20 @@ jobs:
     if: ${{ needs.get-repository-languages.outputs.semgrep_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
     runs-on: ubuntu-latest
     needs: get-repository-languages
+    permissions:
+      # Semgrep - required for all workflows
+      security-events: write
+      # Semgrep - only required for workflows in private repositories
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ${{ fromJson(needs.get-repository-languages.outputs.semgrep_languages) }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
+
       - name: "Set up Semgrep"
         run: |
           python3 -m pip install semgrep
@@ -306,7 +317,7 @@ jobs:
       - name: "Upload Semgrep report as artifact"
         uses: actions/upload-artifact@v4
         with:
-          name: semgrep-sarif
+          name: semgrep-${{ matrix.language }}-sarif
           path: semgrep.sarif
           overwrite: true
 
@@ -317,15 +328,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: get-repository-languages
     permissions:
-        # CodeQL - required for all workflows
-        security-events: write
-        # CodeQL - only required for workflows in private repositories
-        actions: read
-        contents: read
+      # CodeQL - required for all workflows
+      security-events: write
+      # CodeQL - only required for workflows in private repositories
+      actions: read
+      contents: read
     strategy:
-        fail-fast: false
-        matrix:
-            language: ${{ fromJson(needs.get-repository-languages.outputs.codeql_languages) }}
+      fail-fast: false
+      matrix:
+        language: ${{ fromJson(needs.get-repository-languages.outputs.codeql_languages) }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
@@ -371,7 +382,7 @@ jobs:
       - name: "Upload CodeQL report as artifact"
         uses: actions/upload-artifact@v4
         with:
-          name: codeql-${{ matrix.language }}
+          name: codeql-${{ matrix.language }}-sarif
           path: "/home/runner/work/${{ env.REPOSITORY_NAME }}/results"
           overwrite: true
 
