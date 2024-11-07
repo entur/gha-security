@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.5](https://github.com/entur/gha-security/compare/v2.0.4...v2.0.5) (2024-11-07)
+
+
+### Bug Fixes
+
+* Language detection & errors on dependabot pushes ([#54](https://github.com/entur/gha-security/issues/54)) ([1302531](https://github.com/entur/gha-security/commit/1302531ec06c935773157741b5e62a0a7840d182))
+
 ## [2.0.4](https://github.com/entur/gha-security/compare/v2.0.3...v2.0.4) (2024-11-05)
 
 
