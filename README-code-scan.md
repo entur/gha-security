@@ -184,3 +184,18 @@ java {
 }
 ...
 ```
+
+### Autobuild fails for Gradle projects with multiple gradle project files.
+
+Autobuild checks the root project file for which JVM version to set based on the version set on the JVM toolchain.
+Github also has a page that explains it in more detail: [Autodetection for java](https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/codeql-code-scanning-for-compiled-languages#autodetection-for-java)
+
+Autodetect will not find the correct version from child project files, if you have a root project file that does not compile JVM code. To fix this, you can trick autobuild with a comment.
+
+The comment needs to be set on first line of the root project file (build.gradle)
+```
+// Hint for the CodeQL autobuilder: sourceCompatibility = <JVM_VERSION>
+...
+```
+
+More detail about this fix in the [Github Issues thread](https://github.com/github/codeql-action/issues/1855#issuecomment-2161052577)
