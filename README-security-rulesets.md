@@ -1,8 +1,8 @@
-# `gha-security/security-ruleset`
+# `gha-security/security-rulesets`
 
 ## Code scanning merge protection
 
-With Github ruleset, it's possible to make sure code scanning is required, and that critical vulnerabilities gets fixed before merging a new branch into main.
+With Github rulesets, it's possible to make sure code scanning is required, and that critical vulnerabilities get fixed before merging a new branch into main.
 
 ### Setting up ruleset
 
@@ -54,7 +54,7 @@ Set "Security alerts" to Critical and Alerts to "Errors"
 
 #### 6. Test out rulesets with Enforcement status.
 
-Scroll back to top and test out the ruleset with Evaluate to see how it works.
+Scroll back to the top and test out the ruleset with evaluate to see how it works.
 
 <img src="images/enforcment-status.png" width="400">
 

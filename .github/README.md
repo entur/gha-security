@@ -11,6 +11,6 @@ GitHub Actions for working with security tools.
 - [Docker scan](../README-docker-scan.md)
 
 Github rulesets
-- [Security ruleset](../README-security-ruleset.md)
+- [Security rulesets](../README-security-rulesets.md)
 
 
