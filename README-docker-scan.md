@@ -168,3 +168,6 @@ spec:
     comment: "This alert is a false positive"
     reason: "false_positive"
 ```
+## Github Rulesets
+
+See [Security rulesets](README-security-rulesets.md) for how to setup code scanning merge protection ruleset.

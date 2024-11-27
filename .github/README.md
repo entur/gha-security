@@ -10,4 +10,7 @@ GitHub Actions for working with security tools.
 - [Code scan](../README-code-scan.md)
 - [Docker scan](../README-docker-scan.md)
 
+Github rulesets
+- [Security rulesets](../README-security-rulesets.md)
+
 

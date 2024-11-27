@@ -199,3 +199,7 @@ The comment needs to be set on first line of the root project file (build.gradle
 ```
 
 More detail about this fix in the [Github Issues thread](https://github.com/github/codeql-action/issues/1855#issuecomment-2161052577)
+
+## Github Rulesets
+
+See [Security rulesets](README-security-rulesets.md) for how to setup code scanning merge protection ruleset.
