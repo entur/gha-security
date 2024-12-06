@@ -21,7 +21,7 @@ jobs:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
     if: ${{ github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write # required for checking out the repository and creating files
       issues: write # required for creating issues, and/or adding issue comments
@@ -243,7 +243,7 @@ jobs:
   # This should also post findings to the action summary.
   # Currently it only posts findings to pull_requests -> Scheduled scans go unnoticed!
   check-for-critical-alerts:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ always() && github.event_name == 'pull_request' }}
     needs: [docker-scan]
     permissions: 
