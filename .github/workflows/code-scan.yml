@@ -372,7 +372,7 @@ jobs:
           ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
           ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
           ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
-          GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx2g
+          GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4g
 
       - name: "Get repository name"
         run: |
