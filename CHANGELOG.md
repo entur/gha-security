@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.6](https://github.com/entur/gha-security/compare/v2.0.5...v2.0.6) (2024-12-06)
+
+
+### Bug Fixes
+
+* upgrade gradle_opts to use 4gb ([#58](https://github.com/entur/gha-security/issues/58)) ([7f60710](https://github.com/entur/gha-security/commit/7f6071002236efd57dbcef2c3d92734db645906d))
+
 ## [2.0.5](https://github.com/entur/gha-security/compare/v2.0.4...v2.0.5) (2024-11-07)
 
 
