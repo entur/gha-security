@@ -17,7 +17,7 @@ env:
 
 jobs:
   upload-scan-reports-from-matching-pr:
-    runs-on: ubuntu-latest
+    runs-on:  ubuntu-24.04
     outputs:
       skip_job_and_continue_scan: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN }}
     permissions:
@@ -146,7 +146,7 @@ jobs:
 
   get-repository-languages:
     if: ${{ needs.upload-scan-reports-from-matching-pr.outputs.skip_job_and_continue_scan == 'True' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: upload-scan-reports-from-matching-pr
     outputs: 
       codeql_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_CQ }}
@@ -262,7 +262,7 @@ jobs:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
     if: ${{ needs.get-repository-languages.outputs.semgrep_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: get-repository-languages
     permissions:
       # Semgrep - required for all workflows
@@ -325,7 +325,7 @@ jobs:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
     if: ${{ needs.get-repository-languages.outputs.codeql_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: get-repository-languages
     permissions:
       # CodeQL - required for all workflows
@@ -388,7 +388,7 @@ jobs:
 
   allowlist-code-scan-alerts:
     needs: [codeql-analysis, semgrep-analysis]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       # required to read and update code scan alerts
       security-events: write
@@ -649,7 +649,7 @@ jobs:
   # This should also post findings to the action summary.
   # Currently it only posts findings to pull_requests -> Scheduled scans go unnoticed!
   check-for-critical-alerts:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ always() && github.event_name == 'pull_request' }}
     needs: [allowlist-code-scan-alerts]
     permissions: 
