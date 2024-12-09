@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.7](https://github.com/entur/gha-security/compare/v2.0.6...v2.0.7) (2024-12-09)
+
+
+### Bug Fixes
+
+* update to use ubuntu-24.04 runner ([#60](https://github.com/entur/gha-security/issues/60)) ([7706824](https://github.com/entur/gha-security/commit/770682408f36d8fa6b5fc08a1a6034439e28b137))
+
 ## [2.0.6](https://github.com/entur/gha-security/compare/v2.0.5...v2.0.6) (2024-12-06)
 
 
