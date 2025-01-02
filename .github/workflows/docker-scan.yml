@@ -272,9 +272,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh api /repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments \
-              -H "Accept: application/vnd.github.v3+json" \
-              --field "body=:no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: 
-              Anchore Grype scan found critical vulnerabilities in the image artifact. Please address these vulnerabilities.
-              The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }})
-              :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry: :no_entry:"
+          gh pr comment ${{ github.event.pull_request.number }} --repo $GITHUB_REPOSITORY -b "## ⛔ Anchore Grype Scan - Critical Vulnerabilities ⛔
+          **Anchore Grype scan found critical vulnerabilities in the image artifact that needs to be addressed.**
+          ### Results
+          The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }})"
