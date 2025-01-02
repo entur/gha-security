@@ -225,7 +225,7 @@ jobs:
 
       - name: "Anchore Grype Scan"
         id: anchore-scan
-        uses: anchore/scan-action@3343887d815d7b07465f6fdcd395bd66508d486a
+        uses: anchore/scan-action@v6
         with: 
           image: ${{ inputs.image_artifact }}.tar
           by-cve: true
