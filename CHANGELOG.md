@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.8](https://github.com/entur/gha-security/compare/v2.0.7...v2.0.8) (2025-01-02)
+
+
+### Bug Fixes
+
+* update grype from commit to v6 major release ([#62](https://github.com/entur/gha-security/issues/62)) ([aab0ea4](https://github.com/entur/gha-security/commit/aab0ea48528cb9359afcba074c222b7cab29d075))
+
 ## [2.0.7](https://github.com/entur/gha-security/compare/v2.0.6...v2.0.7) (2024-12-09)
 
 
