@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.9](https://github.com/entur/gha-security/compare/v2.0.8...v2.0.9) (2025-01-03)
+
+
+### Bug Fixes
+
+* update pr comment format and print to job summary on schedule event for code & docker scan. ([#64](https://github.com/entur/gha-security/issues/64)) ([5e26acc](https://github.com/entur/gha-security/commit/5e26acc0012dfa84f5a65ca48e3f6e06942e8186))
+
 ## [2.0.8](https://github.com/entur/gha-security/compare/v2.0.7...v2.0.8) (2025-01-02)
 
 
