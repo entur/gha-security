@@ -238,13 +238,9 @@ jobs:
         with: 
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
           category: 'anchore-grype-scan'
-
-  # NOTE:
-  # This should also post findings to the action summary.
-  # Currently it only posts findings to pull_requests -> Scheduled scans go unnoticed!
   check-for-critical-alerts:
     runs-on: ubuntu-24.04
-    if: ${{ always() && github.event_name == 'pull_request' }}
+    if: ${{ always() }}
     needs: [docker-scan]
     permissions: 
       security-events: read # required to read code scan alerts
@@ -262,17 +258,32 @@ jobs:
             /repos/${GITHUB_REPOSITORY}/code-scanning/alerts \
             -F severity='critical' -F state='open' -F ref='${{ github.ref }}' -F per_page='100' -F tool_name='Grype' --paginate)"
             if [ "$alerts" == "[]" ]; then
-              echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT='False >> $GITHUB_ENV
+              echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_ALERT_COMMENT='False >> $GITHUB_ENV
             else
-              echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT='True >> $GITHUB_ENV
+              echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_ALERT_COMMENT='True >> $GITHUB_ENV
             fi
-
+      - name: "Print to job summary if critical alerts are found"
+        if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CREATE_ALERT_COMMENT == 'True' }}
+        env:
+          REPOSITORY: ${{ github.repository }}
+          GIT_REF: ${{ github.ref }}
+        run: |
+          echo '## ⛔ Docker Image Scan - Critical Vulnerabilities ⛔
+          **Docker Image scan found critical vulnerabilities in the image artifact that needs to be addressed.**
+          ### Results
+          The scan results can be found [here](https://github.com/'"$REPOSITORY"'/security/code-scanning?query=is%3Aopen+ref%3A'"$GIT_REF"')
+          ### Allowlist
+          Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
+          See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities) on how to use allowlist.' >> $GITHUB_STEP_SUMMARY
       - name: "Create comment on pull request if critical alerts are found"
-        if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CREATE_PR_COMMENT == 'True' }}
+        if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CREATE_ALERT_COMMENT == 'True' && github.event.name == 'pull_request' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --repo $GITHUB_REPOSITORY -b "## ⛔ Anchore Grype Scan - Critical Vulnerabilities ⛔
-          **Anchore Grype scan found critical vulnerabilities in the image artifact that needs to be addressed.**
+          gh pr comment ${{ github.event.pull_request.number }} --repo $GITHUB_REPOSITORY -b "## ⛔ Docker Image Scan - Critical Vulnerabilities ⛔
+          **Docker Image scan found critical vulnerabilities in the image artifact that needs to be addressed.**
           ### Results
-          The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }})"
+          The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }})
+          ### Allowlist
+          Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
+          See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities) on how to use allowlist."
