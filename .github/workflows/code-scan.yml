@@ -658,17 +658,25 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        alerts="$(gh api \
+        get_alerts () {
+          alerts="$(gh api \
           --method GET \
           -H 'Accept: application/vnd.github+json' \
           -H 'X-GitHub-Api-Version: 2022-11-28' \
           /repos/${GITHUB_REPOSITORY}/code-scanning/alerts \
-          -F severity='critical' -F state='open' -F ref='${{ github.ref }}' -F per_page='100' -F tool_name='CodeQL' --paginate)"
-          if [ "$alerts" == "[]" ]; then
-            echo 'GHA_SECURITY_CODE_SCAN_CREATE_ALERT_COMMENT='False >> $GITHUB_ENV
-          else
-            echo 'GHA_SECURITY_CODE_SCAN_CREATE_ALERT_COMMENT='True >> $GITHUB_ENV
-          fi
+          -F severity="$1" -F state='open' -F ref='${{ github.ref }}' -F per_page='100' -F tool_name="$2" --paginate)"
+        }
+        get_alerts "error" "Semgrep OSS"
+        semgrep_alerts=$alerts
+        
+        get_alerts "critical" "CodeQL"
+        codeql_alerts=$alerts
+        
+        if [ "$semgrep_alerts" == "[]" ] && [ "$codeql_alerts" == "[]" ]; then
+          echo 'GHA_SECURITY_CODE_SCAN_CREATE_ALERT_COMMENT='False >> $GITHUB_ENV
+        else
+          echo 'GHA_SECURITY_CODE_SCAN_CREATE_ALERT_COMMENT='True >> $GITHUB_ENV
+        fi
 
     - name: "Print to job summary if critical alerts are found"
       if: ${{ env.GHA_SECURITY_CODE_SCAN_CREATE_ALERT_COMMENT == 'True' }}
