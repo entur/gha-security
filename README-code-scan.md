@@ -175,7 +175,7 @@ Some potential pitfalls and solutions with CodeQL
 This can happen if you previously had earlier commit(s) in main branch that had an analysis that included the configuration(s).  
 CodeQL tries looking for the analysis with the configuration it warns about in the PR, but does not find it.
 
-To fix this error it requires deleting the all previous analysis for the configuration.  
+To fix this error it requires deleting all previous analysis for the configuration.  
 They should be in their own set by the unique category set and ref set.
 
 Example of analysis with a kotlin configuration:
