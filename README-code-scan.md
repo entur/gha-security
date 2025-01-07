@@ -171,6 +171,42 @@ spec:
 
 Some potential pitfalls and solutions with CodeQL
 
+### Code scanning results: Configuration(s) not found
+This can happen if you previously had earlier commit(s) in main branch that had an analysis that included the configuration(s).  
+CodeQL tries looking for the analysis with the configuration it warns about in the PR, but does not find it.
+
+To fix this error it requires deleting all previous analysis for the configuration.  
+They should be in their own set by the unique category set and ref set.
+
+Example of analysis with a kotlin configuration:
+
+```json
+{
+    "ref": "refs/heads/main",
+    "commit_sha": "...",
+    "analysis_key": ".github/workflows/codeql.yml:codeql-analysis",
+    "environment": "{\"language\":\"kotlin\"}",
+    "category": "/language:kotlin",
+    "error": "",
+    "created_at": "2025-01-03T12:42:17Z",
+    "results_count": 0,
+    "rules_count": 74,
+    "id": 0,
+    "url": "https://api.github.com/repos/entur/repository_name/code-scanning/analyses/....",
+    "sarif_id": "...",
+    "tool": {
+      "name": "CodeQL",
+      "guid": null,
+      "version": "2.20.0"
+    },
+    "deletable": true,
+    "warning": ""
+  }
+```
+
+See [Github documentation](https://docs.github.com/en/rest/code-scanning/code-scanning?apiVersion=2022-11-28#delete-a-code-scanning-analysis-from-a-repository
+) for how to delete code scanning analysis for the configuration.
+
 ### Autobuild fails for Gradle projects because of JVM version mismatch
 
 This can happen if Autobuild detects the wrong version of the JVM to run Gradle with. This can be solved by statically setting the JVM version in the Gradle toolchain:
