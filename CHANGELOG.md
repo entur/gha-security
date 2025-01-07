@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.10](https://github.com/entur/gha-security/compare/v2.0.9...v2.0.10) (2025-01-07)
+
+
+### Bug Fixes
+
+* update code-scan workflow to also check for Semgrep OSS alerts ([#66](https://github.com/entur/gha-security/issues/66)) ([18d69fa](https://github.com/entur/gha-security/commit/18d69fa2ca6bfc8ee9ae25adc989415b8bc8fb7f))
+
 ## [2.0.9](https://github.com/entur/gha-security/compare/v2.0.8...v2.0.9) (2025-01-03)
 
 
