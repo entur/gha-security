@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.11](https://github.com/entur/gha-security/compare/v2.0.10...v2.0.11) (2025-01-13)
+
+
+### Bug Fixes
+
+* add better error message to docker-scan and code-scan workflows ([#69](https://github.com/entur/gha-security/issues/69)) ([f80e51b](https://github.com/entur/gha-security/commit/f80e51b3381b7d1c1d855445574dcb290854ac22))
+
 ## [2.0.10](https://github.com/entur/gha-security/compare/v2.0.9...v2.0.10) (2025-01-07)
 
 
