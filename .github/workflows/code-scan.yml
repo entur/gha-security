@@ -8,11 +8,11 @@ on:
         default: false
         required: false
         type: boolean
-      use_default_queries:
-        description: 'Enable "use_default_queries" to use default queries if you notice too many false positives from security-extended queries. Try using whitelist before enabling default queries to have less false positives.'
-        default: false
+      codeql_queries:
+        description: 'Comma-separated list of queries for CodeQL to run. By default is set to security-extended.'
+        default: "security-extended"
         required: false
-        type: boolean
+        type: string
     secrets:
       external_repository_token:
         description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
@@ -353,20 +353,33 @@ jobs:
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
 
+      - name: "Validate input CodeQL queries"
+        env:
+          CODEQL_QUERIES: inputs.codeql_queries
+        run: |
+          'if test -z "$CODEQL_QUERIES"
+          then
+            echo "Invalid configuration. codeql_queries is set to empty string. Use a comma-separated list: default, security-extended"
+            echo '## Code Scan - Invalid configuration
+            codeql_queries is set to empty string.
+            Use a comma-separated list as example: default, security-extended' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi'
+
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           build-mode: autobuild
-          queries: ${{ inputs.use_default_queries && 'default' || 'security-extended' }}
+          queries: ${{ inputs.codeql_queries }}
 
       - name: "Initialize CodeQL"
         if: matrix.language != 'java' && matrix.language != 'kotlin'
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          queries: ${{ inputs.use_default_queries && 'default' || 'security-extended' }}
+          queries: ${{ inputs.codeql_queries }}
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
