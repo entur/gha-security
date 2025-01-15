@@ -8,6 +8,11 @@ on:
         default: false
         required: false
         type: boolean
+      use_default_queries:
+        description: 'Enable "use_default_queries" use to default queries if you notice too many false positives from security-extended queries. Try using whitelist before enabling default queries to have less false positives.'
+        default: false
+        required: false
+        type: boolean
     secrets:
       external_repository_token:
         description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
@@ -354,12 +359,14 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: autobuild
+          queries: ${{ inputs.use_default_queries && 'default' || 'security-extended' }}
 
       - name: "Initialize CodeQL"
         if: matrix.language != 'java' && matrix.language != 'kotlin'
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
+          queries: ${{ inputs.use_default_queries && 'default' || 'security-extended' }}
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
