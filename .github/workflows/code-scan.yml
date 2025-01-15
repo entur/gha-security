@@ -9,7 +9,7 @@ on:
         required: false
         type: boolean
       use_default_queries:
-        description: 'Enable "use_default_queries" use to default queries if you notice too many false positives from security-extended queries. Try using whitelist before enabling default queries to have less false positives.'
+        description: 'Enable "use_default_queries" to use default queries if you notice too many false positives from security-extended queries. Try using whitelist before enabling default queries to have less false positives.'
         default: false
         required: false
         type: boolean
