@@ -355,7 +355,7 @@ jobs:
 
       - name: "Validate input CodeQL queries"
         env:
-          CODEQL_QUERIES: inputs.codeql_queries
+          CODEQL_QUERIES: ${{ inputs.codeql_queries }}
         run: |
           'if test -z "$CODEQL_QUERIES"
           then
