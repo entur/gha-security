@@ -38,6 +38,7 @@ jobs:
           fi'
   upload-scan-reports-from-matching-pr:
     runs-on:  ubuntu-24.04
+    needs: input_validation
     outputs:
       skip_job_and_continue_scan: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN }}
     permissions:
