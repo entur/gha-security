@@ -34,7 +34,7 @@ jobs:
           regex_matches = re.findall(r'[^,\s?]+', codeql_queries)
           
           if (len(regex_matches) <= 0):
-              os.system('echo Invalid input. codeql_queries is set to invalid list. Use a comma-separated list: default, security-extended')
+              print('Invalid input. codeql_queries is set to invalid list. Use a comma-separated list: default, security-extended')
               os.system('''echo '## Code Scan - Invalid input\n codeql_queries is set to invalid list.\n Use a comma-separated list as example: default, security-extended' >> $GITHUB_STEP_SUMMARY''')
               exit(1)
           
