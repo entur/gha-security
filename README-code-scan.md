@@ -18,9 +18,10 @@ or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your 
 
 <!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
 
-|                                      INPUT                                       |  TYPE   | REQUIRED | DEFAULT |                                                                            DESCRIPTION                                                                             |
-|----------------------------------------------------------------------------------|---------|----------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| <a name="input_use_setup_gradle"></a>[use_setup_gradle](#input_use_setup_gradle) | boolean |  false   | `false` | Use "gradle/action/setup-gradle" before running autobuild <br>(Java/Kotlin only). Potentially speeds up build <br>times if cache from main <br>branch is utilized  |
+|                                      INPUT                                       |  TYPE   | REQUIRED |        DEFAULT        |                                                                            DESCRIPTION                                                                             |
+|----------------------------------------------------------------------------------|---------|----------|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    <a name="input_codeql_queries"></a>[codeql_queries](#input_codeql_queries)    | string  |  false   | `"security-extended"` |                                Comma-separated list of queries for <br>CodeQL to run. By default <br>is set to security-extended.                                  |
+| <a name="input_use_setup_gradle"></a>[use_setup_gradle](#input_use_setup_gradle) | boolean |  false   |        `false`        | Use "gradle/action/setup-gradle" before running autobuild <br>(Java/Kotlin only). Potentially speeds up build <br>times if cache from main <br>branch is utilized  |
 
 <!-- AUTO-DOC-INPUT:END -->
 
