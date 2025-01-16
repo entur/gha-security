@@ -28,14 +28,17 @@ jobs:
         env:
           CODEQL_QUERIES: ${{ inputs.codeql_queries }}
         run: |
-          'if test -z "$CODEQL_QUERIES"
-          then
-            echo "Invalid configuration. codeql_queries is set to empty string. Use a comma-separated list: default, security-extended"
-            echo '## Code Scan - Invalid configuration
-            codeql_queries is set to empty string.
-            Use a comma-separated list as example: default, security-extended' >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi'
+          python -c "import re
+          import os
+          codeql_queries = os.environ['CODEQL_QUERIES']
+          regex_matches = re.findall(r'[^,\s?]+', codeql_queries)
+          
+          if (len(regex_matches) <= 0):
+              os.system('echo Invalid input. codeql_queries is set to invalid list. Use a comma-separated list: default, security-extended')
+              os.system('''echo '## Code Scan - Invalid input\n codeql_queries is set to invalid list.\n Use a comma-separated list as example: default, security-extended' >> $GITHUB_STEP_SUMMARY''')
+              exit(1)
+          
+          os.system('echo Validation passed')"
   upload-scan-reports-from-matching-pr:
     runs-on:  ubuntu-24.04
     needs: input_validation
