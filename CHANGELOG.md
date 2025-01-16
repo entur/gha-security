@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/entur/gha-security/compare/v2.0.11...v2.1.0) (2025-01-16)
+
+
+### Features
+
+* set security-extended as default for code-ql ([#71](https://github.com/entur/gha-security/issues/71)) ([8003834](https://github.com/entur/gha-security/commit/80038348b2377282698ff33d7764cb11a0ee590d))
+
 ## [2.0.11](https://github.com/entur/gha-security/compare/v2.0.10...v2.0.11) (2025-01-13)
 
 
