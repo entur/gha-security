@@ -21,6 +21,21 @@ env:
   GITHUB_REPOSITORY: ${{ github.repository }}
 
 jobs:
+  input_validation:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: "Validate input CodeQL queries"
+        env:
+          CODEQL_QUERIES: ${{ inputs.codeql_queries }}
+        run: |
+          'if test -z "$CODEQL_QUERIES"
+          then
+            echo "Invalid configuration. codeql_queries is set to empty string. Use a comma-separated list: default, security-extended"
+            echo '## Code Scan - Invalid configuration
+            codeql_queries is set to empty string.
+            Use a comma-separated list as example: default, security-extended' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi'
   upload-scan-reports-from-matching-pr:
     runs-on:  ubuntu-24.04
     outputs:
@@ -352,19 +367,6 @@ jobs:
         with: 
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
-
-      - name: "Validate input CodeQL queries"
-        env:
-          CODEQL_QUERIES: ${{ inputs.codeql_queries }}
-        run: |
-          'if test -z "$CODEQL_QUERIES"
-          then
-            echo "Invalid configuration. codeql_queries is set to empty string. Use a comma-separated list: default, security-extended"
-            echo '## Code Scan - Invalid configuration
-            codeql_queries is set to empty string.
-            Use a comma-separated list as example: default, security-extended' >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi'
 
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
