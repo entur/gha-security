@@ -13,6 +13,16 @@ on:
         default: "security-extended"
         required: false
         type: string
+      custom_runner:
+        description: 'Custom runner for CodeQL jobs that require a little extra performance/memory. Default is "ubuntu-24.04". List of runners is available in Confluence.'
+        default: "ubuntu-24.04"
+        required: false
+        type: string
+      gradle_opts:
+        description: 'Gradle options to pass on to the CodeQL scanner'
+        default: "-Dorg.gradle.jvmargs=-Xmx4g"
+        required: false
+        type: string
     secrets:
       external_repository_token:
         description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
@@ -39,6 +49,19 @@ jobs:
               exit(1)
           
           os.system('echo Validation passed')"
+      - name: "Validate input custom runner"
+        env:
+          CUSTOM_RUNNER: ${{ inputs.custom_runner }}
+        run: |
+          python -c "import os
+          custom_runner = os.environ['CUSTOM_RUNNER']
+          supported_runners = ['ubuntu-24.04', 'grp-ubuntu-24.04-2core-x64', 'grp-ubuntu-24.04-8core-x64', 'grp-ubuntu-24.04-16core-x64']
+          
+          if (not custom_runner in supported_runners):
+            print('::error ::Invalid input. Supported runners are: ', supported_runners)
+            exit(1)
+          
+          print('Validation passed. Using runner: ', custom_runner)"
   upload-scan-reports-from-matching-pr:
     runs-on:  ubuntu-24.04
     needs: input_validation
@@ -349,7 +372,7 @@ jobs:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
     if: ${{ needs.get-repository-languages.outputs.codeql_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.custom_runner }}
     needs: get-repository-languages
     permissions:
       # CodeQL - required for all workflows
@@ -398,7 +421,8 @@ jobs:
           ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
           ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
           ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
-          GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4g
+          GRADLE_OPTS: ${{ inputs.gradle_opts }}
+          IS_CODEQL_SCAN: true
 
       - name: "Get repository name"
         run: |
