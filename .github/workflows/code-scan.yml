@@ -45,7 +45,7 @@ jobs:
           regex_matches = re.findall(r'[^,\s?]+', codeql_queries)
           custom_runner = os.environ['CUSTOM_RUNNER']
           # Supported runners documented in confluence: https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners
-          supported_runners = ['organization/Default', 'grp-ubuntu-24.04-2core-x64', 'grp-ubuntu-24.04-8core-x64', 'grp-ubuntu-24.04-16core-x64']
+          supported_runners = ['organization/Default', 'grp-ubuntu-24.04-2core-x64', 'grp-ubuntu-24.04-4core-x64', 'grp-ubuntu-24.04-8core-x64', 'grp-ubuntu-24.04-16core-x64']
           
           if (len(regex_matches) <= 0):
               print('Invalid input. codeql_queries is set to invalid list. Use a comma-separated list: default, security-extended')
