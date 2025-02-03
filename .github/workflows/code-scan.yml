@@ -14,8 +14,8 @@ on:
         required: false
         type: string
       custom_runner:
-        description: 'Custom runner for CodeQL jobs that require a little extra performance/memory. Default is "ubuntu-24.04". List of runners is available in Confluence.'
-        default: "ubuntu-24.04"
+        description: 'Custom runner for CodeQL jobs that require a little extra performance/memory. List of runners is available in Confluence.'
+        default: "Default"
         required: false
         type: string
       gradle_opts:
@@ -34,34 +34,29 @@ jobs:
   input_validation:
     runs-on: ubuntu-24.04
     steps:
-      - name: "Validate input CodeQL queries"
+      - name: "Validate inputs"
         env:
           CODEQL_QUERIES: ${{ inputs.codeql_queries }}
+          CUSTOM_RUNNER: ${{ inputs.custom_runner }}
         run: |
           python -c "import re
           import os
           codeql_queries = os.environ['CODEQL_QUERIES']
           regex_matches = re.findall(r'[^,\s?]+', codeql_queries)
+          custom_runner = os.environ['CUSTOM_RUNNER']
+          # Supported runners documented in confluence: https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners
+          supported_runners = ['Default', 'grp-ubuntu-24.04-2core-x64', 'grp-ubuntu-24.04-8core-x64', 'grp-ubuntu-24.04-16core-x64']
           
           if (len(regex_matches) <= 0):
               print('Invalid input. codeql_queries is set to invalid list. Use a comma-separated list: default, security-extended')
               os.system('''echo '## Code Scan - Invalid input\n codeql_queries is set to invalid list.\n Use a comma-separated list as example: default, security-extended' >> $GITHUB_STEP_SUMMARY''')
               exit(1)
           
-          os.system('echo Validation passed')"
-      - name: "Validate input custom runner"
-        env:
-          CUSTOM_RUNNER: ${{ inputs.custom_runner }}
-        run: |
-          python -c "import os
-          custom_runner = os.environ['CUSTOM_RUNNER']
-          supported_runners = ['ubuntu-24.04', 'grp-ubuntu-24.04-2core-x64', 'grp-ubuntu-24.04-8core-x64', 'grp-ubuntu-24.04-16core-x64']
-          
           if (not custom_runner in supported_runners):
-            print('::error ::Invalid input. Supported runners are: ', supported_runners)
-            exit(1)
+              print('::error ::Invalid input. Supported runners are: ', supported_runners)
+              exit(1)
           
-          print('Validation passed. Using runner: ', custom_runner)"
+          os.system('echo Validation passed')"
   upload-scan-reports-from-matching-pr:
     runs-on:  ubuntu-24.04
     needs: input_validation
@@ -372,7 +367,8 @@ jobs:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
     if: ${{ needs.get-repository-languages.outputs.codeql_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
-    runs-on: ${{ inputs.custom_runner }}
+    runs-on:
+      group: ${{ inputs.custom_runner }}
     needs: get-repository-languages
     permissions:
       # CodeQL - required for all workflows
