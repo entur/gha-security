@@ -368,8 +368,8 @@ jobs:
     # If we found a language, and the event is not a push made by dependabot on a PR
     if: ${{ needs.get-repository-languages.outputs.codeql_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
     runs-on:
-      group: ${{ inputs.custom_runner != 'default' && inputs.custom_runner || nil  }}
-      labels: ${{ inputs.custom_runner == 'default' && 'ubuntu-24.04' || nil }}
+      group: ${{ inputs.custom_runner != 'default' && inputs.custom_runner || null  }}
+      labels: ${{ inputs.custom_runner == 'default' && 'ubuntu-24.04' || null }}
     needs: get-repository-languages
     permissions:
       # CodeQL - required for all workflows
