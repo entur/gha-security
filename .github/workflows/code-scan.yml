@@ -367,8 +367,7 @@ jobs:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
     if: ${{ needs.get-repository-languages.outputs.codeql_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
-    runs-on: 
-      group: ${{ inputs.custom_runner }}
+    runs-on:  ${{ startsWith(inputs.custom_runner, 'grp-') && fromJSON(format('{{"group":"{0}"}}', inputs.custom_runner)) || inputs.custom_runner }}
     needs: get-repository-languages
     permissions:
       # CodeQL - required for all workflows
