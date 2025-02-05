@@ -13,8 +13,8 @@ on:
         default: "security-extended"
         required: false
         type: string
-      custom_runner:
-        description: 'Custom runner for CodeQL jobs that require a little extra performance/memory. List of runners is available in Confluence.'
+      job_runner:
+        description: 'Customizable job runner for CodeQL jobs that require a little extra performance/memory. List of runners is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners).'
         default: "ubuntu-24.04"
         required: false
         type: string
@@ -37,13 +37,13 @@ jobs:
       - name: "Validate inputs"
         env:
           CODEQL_QUERIES: ${{ inputs.codeql_queries }}
-          CUSTOM_RUNNER: ${{ inputs.custom_runner }}
+          JOB_RUNNER: ${{ inputs.job_runner }}
         run: |
           python -c "import re
           import os
           codeql_queries = os.environ['CODEQL_QUERIES']
           regex_matches = re.findall(r'[^,\s?]+', codeql_queries)
-          custom_runner = os.environ['CUSTOM_RUNNER']
+          job_runner = os.environ['JOB_RUNNER']
           # Supported runners documented in confluence: https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners
           supported_runners = ['ubuntu-24.04', 'grp-ubuntu-24.04-2core-x64', 'grp-ubuntu-24.04-4core-x64', 'grp-ubuntu-24.04-8core-x64', 'grp-ubuntu-24.04-16core-x64']
           
@@ -52,7 +52,7 @@ jobs:
               os.system('''echo '## Code Scan - Invalid input\n codeql_queries is set to invalid list.\n Use a comma-separated list as example: default, security-extended' >> $GITHUB_STEP_SUMMARY''')
               exit(1)
           
-          if (not custom_runner in supported_runners):
+          if (not job_runner in supported_runners):
               print('::error ::Invalid input. Supported runners are: ', supported_runners)
               exit(1)
           
@@ -367,7 +367,7 @@ jobs:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
     if: ${{ needs.get-repository-languages.outputs.codeql_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
-    runs-on:  ${{ startsWith(inputs.custom_runner, 'grp-') && fromJSON(format('{{"group":"{0}"}}', inputs.custom_runner)) || inputs.custom_runner }}
+    runs-on:  ${{ startsWith(inputs.job_runner, 'grp-') && fromJSON(format('{{"group":"{0}"}}', inputs.job_runner)) || inputs.job_runner }}
     needs: get-repository-languages
     permissions:
       # CodeQL - required for all workflows
