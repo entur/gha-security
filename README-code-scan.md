@@ -241,8 +241,12 @@ More detail about this fix in the [Github Issues thread](https://github.com/gith
 
 ### Code scanning is very slow or fails after a long timeout.
 
-It is now possible to override the runner used by GitHub to one with more cpu/ram. Input `CUSTOM_RUNNER`. The list of options is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners)
+It is now possible to override the runner used by GitHub to one with more cpu/ram. Input `JOB_RUNNER`.
+
+The list of options is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners)
+
 Gradle build options can also be overridden to increase jvm memory. Input `GRADLE_OPTS`.
+
 When CodeQL is triggered, the environment variable `IS_CODEQL_SCAN` is set to `true` which could be used to skip certain tests during build.
 
 ## Github Rulesets

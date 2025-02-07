@@ -82,7 +82,7 @@ jobs:
                 inherit = '' if inherit is None else inherit
 
                 tmp_external_repository = str(inherit)
-                if tmp_external_repository != "" and not re.match(r'^[\w\.-]+$', tmp_external_repository):
+                if tmp_external_repository != '' and not re.match(r'^[\w\.-]+$', tmp_external_repository):
                   print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({tmp_external_repository})')
                 else:
                   external_repository = tmp_external_repository
