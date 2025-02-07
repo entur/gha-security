@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.1](https://github.com/entur/gha-security/compare/v2.2.0...v2.2.1) (2025-02-07)
+
+
+### Bug Fixes
+
+* wrong quotes used in inline script ([#79](https://github.com/entur/gha-security/issues/79)) ([a28f866](https://github.com/entur/gha-security/commit/a28f866229f55c62a9501c735a2b92ba7bb77fb5))
+
 ## [2.2.0](https://github.com/entur/gha-security/compare/v2.1.0...v2.2.0) (2025-02-07)
 
 
