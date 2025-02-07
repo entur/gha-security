@@ -18,10 +18,12 @@ or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your 
 
 <!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
 
-|                                      INPUT                                       |  TYPE   | REQUIRED |        DEFAULT        |                                                                            DESCRIPTION                                                                             |
-|----------------------------------------------------------------------------------|---------|----------|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|    <a name="input_codeql_queries"></a>[codeql_queries](#input_codeql_queries)    | string  |  false   | `"security-extended"` |                                Comma-separated list of queries for <br>CodeQL to run. By default <br>is set to security-extended.                                  |
-| <a name="input_use_setup_gradle"></a>[use_setup_gradle](#input_use_setup_gradle) | boolean |  false   |        `false`        | Use "gradle/action/setup-gradle" before running autobuild <br>(Java/Kotlin only). Potentially speeds up build <br>times if cache from main <br>branch is utilized  |
+|                                      INPUT                                       |  TYPE   | REQUIRED |             DEFAULT             |                                                                                                                DESCRIPTION                                                                                                                |
+|----------------------------------------------------------------------------------|---------|----------|---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    <a name="input_codeql_queries"></a>[codeql_queries](#input_codeql_queries)    | string  |  false   |      `"security-extended"`      |                                                                    Comma-separated list of queries for <br>CodeQL to run. By default <br>is set to security-extended.                                                                     |
+|        <a name="input_gradle_opts"></a>[gradle_opts](#input_gradle_opts)         | string  |  false   | `"-Dorg.gradle.jvmargs=-Xmx4g"` |                                      [Gradle build options](https://docs.gradle.org/current/userguide/build_environment.html#environment_variables_reference) to pass on to <br>the CodeQL scanner                                        |
+|          <a name="input_job_runner"></a>[job_runner](#input_job_runner)          | string  |  false   |        `"ubuntu-24.04"`         | Customizable job runner for CodeQL <br>jobs that require a little <br>extra performance/memory. List of runners <br>is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners).  |
+| <a name="input_use_setup_gradle"></a>[use_setup_gradle](#input_use_setup_gradle) | boolean |  false   |             `false`             |                                    Use "gradle/action/setup-gradle" before running autobuild <br>(Java/Kotlin only). Potentially speeds up build <br>times if cache from main <br>branch is utilized                                      |
 
 <!-- AUTO-DOC-INPUT:END -->
 
@@ -236,6 +238,12 @@ The comment needs to be set on first line of the root project file (build.gradle
 ```
 
 More detail about this fix in the [Github Issues thread](https://github.com/github/codeql-action/issues/1855#issuecomment-2161052577)
+
+### Code scanning is very slow or fails after a long timeout.
+
+It is now possible to override the runner used by GitHub to one with more cpu/ram. Input `CUSTOM_RUNNER`. The list of options is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners)
+Gradle build options can also be overridden to increase jvm memory. Input `GRADLE_OPTS`.
+When CodeQL is triggered, the environment variable `IS_CODEQL_SCAN` is set to `true` which could be used to skip certain tests during build.
 
 ## Github Rulesets
 
