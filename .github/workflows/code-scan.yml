@@ -45,7 +45,26 @@ jobs:
           regex_matches = re.findall(r'[^,\s?]+', codeql_queries)
           job_runner = os.environ['JOB_RUNNER']
           # Supported runners documented in confluence: https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners
-          supported_runners = ['ubuntu-24.04', 'grp-ubuntu-24.04-2core-x64', 'grp-ubuntu-24.04-4core-x64', 'grp-ubuntu-24.04-8core-x64', 'grp-ubuntu-24.04-16core-x64']
+          supported_runners = [
+              'ubuntu-latest',
+              'ubuntu-24.04',
+              'ubuntu-22.04',
+              'ubuntu-20.04',
+              'windows-latest',
+              'windows-2025',
+              'windows-2022',
+              'windows-2019',
+              'macos-latest',
+              'macos-15',
+              'macos-14',
+              'macos-13',
+              'grp-ubuntu-24.04-2core-x64',
+              'grp-ubuntu-24.04-4core-x64',
+              'grp-ubuntu-24.04-8core-x64',
+              'grp-ubuntu-24.04-16core-x64',
+              'grp-ubuntu-22.04-4core-x64',
+              'grp-ubuntu-24.04-2core-a64',
+              ]
           
           if (len(regex_matches) <= 0):
               print('::error ::Invalid input. codeql_queries is set to invalid list. Use a comma-separated list: default, security-extended')
@@ -486,7 +505,7 @@ jobs:
                 inherit = '' if inherit is None else inherit
 
                 tmp_external_repository = str(inherit)
-                if not re.match('^[\w\.-]+$', tmp_external_repository):
+                if tmp_external_repository != "" and not re.match(r'^[\w\.-]+$', tmp_external_repository):
                   print(f'::warning ::Failed to fetch allowlist file from external repository due to name containing illegal characters ({tmp_external_repository})')
                 else:
                   external_repository = tmp_external_repository
