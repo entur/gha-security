@@ -19,7 +19,7 @@ on:
         required: false
         type: string
       gradle_opts:
-        description: 'Gradle options to pass on to the CodeQL scanner'
+        description: '[Gradle build options](https://docs.gradle.org/current/userguide/build_environment.html#environment_variables_reference) to pass on to the CodeQL scanner'
         default: "-Dorg.gradle.jvmargs=-Xmx4g"
         required: false
         type: string
@@ -48,8 +48,7 @@ jobs:
           supported_runners = ['ubuntu-24.04', 'grp-ubuntu-24.04-2core-x64', 'grp-ubuntu-24.04-4core-x64', 'grp-ubuntu-24.04-8core-x64', 'grp-ubuntu-24.04-16core-x64']
           
           if (len(regex_matches) <= 0):
-              print('Invalid input. codeql_queries is set to invalid list. Use a comma-separated list: default, security-extended')
-              os.system('''echo '## Code Scan - Invalid input\n codeql_queries is set to invalid list.\n Use a comma-separated list as example: default, security-extended' >> $GITHUB_STEP_SUMMARY''')
+              print('::error ::Invalid input. codeql_queries is set to invalid list. Use a comma-separated list: default, security-extended')
               exit(1)
           
           if (not job_runner in supported_runners):
@@ -388,8 +387,8 @@ jobs:
         if: inputs.use_setup_gradle && (matrix.language == 'kotlin' || matrix.language == 'java')
         uses: gradle/actions/setup-gradle@v4.1.0
         with: 
+          cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
-          #cache-read-only: true  # Force read only, even in main
 
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
