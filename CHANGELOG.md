@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.2.0](https://github.com/entur/gha-security/compare/v2.1.0...v2.2.0) (2025-02-07)
+
+
+### Features
+
+* Added an environment variable IS_CODEQL_SCAN ([d10a2ed](https://github.com/entur/gha-security/commit/d10a2ed84cb72c7207ddf877270bab243db5ce48))
+* Added customizable job runner option ([d10a2ed](https://github.com/entur/gha-security/commit/d10a2ed84cb72c7207ddf877270bab243db5ce48))
+* Added gradle build options ([d10a2ed](https://github.com/entur/gha-security/commit/d10a2ed84cb72c7207ddf877270bab243db5ce48))
+
 ## [2.1.0](https://github.com/entur/gha-security/compare/v2.0.11...v2.1.0) (2025-01-16)
 
 
