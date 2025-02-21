@@ -228,13 +228,14 @@ jobs:
         uses: anchore/sbom-action@v0
         with:
           image: ${{ inputs.image_artifact }}.tar
-          #artifact-name: sbom.spdx
+          artifact-name: ${{ inputs.image_artifact }}.spdx.json
         
       - name: "Anchore Grype Scan"
         id: anchore-scan
         uses: anchore/scan-action@v6
         with: 
-          image: ${{ inputs.image_artifact }}.tar
+#          image: ${{ inputs.image_artifact }}.tar
+          sbom: ${{ inputs.image_artifact }}.spdx.json
           by-cve: true
           fail-build: false
           severity-cutoff: critical
