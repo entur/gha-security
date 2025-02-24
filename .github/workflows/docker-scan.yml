@@ -227,14 +227,14 @@ jobs:
         id: syft-scan
         uses: anchore/sbom-action@v0
         with:
+          format: spdx-json
           image: ${{ inputs.image_artifact }}.tar
-          artifact-name: ${{ inputs.image_artifact }}.spdx.json
+          output-file: ${{ inputs.image_artifact }}.spdx.json
         
       - name: "Anchore Grype Scan"
         id: anchore-scan
         uses: anchore/scan-action@v6
         with: 
-#          image: ${{ inputs.image_artifact }}.tar
           sbom: ${{ inputs.image_artifact }}.spdx.json
           by-cve: true
           fail-build: false
