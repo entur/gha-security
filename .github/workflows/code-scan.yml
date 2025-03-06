@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       use_setup_gradle:
-        description: 'Use "gradle/action/setup-gradle" before running autobuild (Java/Kotlin only). Potentially speeds up build times if cache from main branch is utilized'
+        description: 'DEPRECATED. This is now autodetected and enabled if `build.gradle(.kt(s))` is found. Uses "gradle/action/setup-gradle" before running autobuild (Java/Kotlin only). Potentially speeds up build times if cache from main branch is utilized'
         default: false
         required: false
         type: boolean
@@ -204,16 +204,26 @@ jobs:
           sarif_file: "/home/runner/work/${{ env.GITHUB_REPOSITORY }}/results"
           category: 'scan-results'
 
-  get-repository-languages:
+  get-repository-metadata:
     if: ${{ needs.upload-scan-reports-from-matching-pr.outputs.skip_job_and_continue_scan == 'True' }}
     runs-on: ubuntu-24.04
     needs: upload-scan-reports-from-matching-pr
     outputs: 
       codeql_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_CQ }}
       semgrep_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_SEM }} 
+      found_gradle: ${{ env.GHA_SECURITY_CODE_SCAN_FOUND_GRADLE }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
+
+      - name: "Find Gradle Build"
+        id: find-gradle-build
+        run: |
+          if [ $(find . -iname build.gradle -o -iname build.gradle.kts -o -iname build.gradle.kt | wc -l) -gt 0 ]; then
+            echo "GHA_SECURITY_CODE_SCAN_FOUND_GRADLE=True" >> $GITHUB_ENV
+          else
+            echo "GHA_SECURITY_CODE_SCAN_FOUND_GRADLE=False" >> $GITHUB_ENV
+          fi
 
       - name: "Get repository languages"
         id: get-repository-languages
@@ -321,9 +331,9 @@ jobs:
   semgrep-analysis:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
-    if: ${{ needs.get-repository-languages.outputs.semgrep_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
+    if: ${{ needs.get-repository-metadata.outputs.semgrep_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
     runs-on: ubuntu-24.04
-    needs: get-repository-languages
+    needs: get-repository-metadata
     permissions:
       # Semgrep - required for all workflows
       security-events: write
@@ -333,7 +343,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ${{ fromJson(needs.get-repository-languages.outputs.semgrep_languages) }}
+        language: ${{ fromJson(needs.get-repository-metadata.outputs.semgrep_languages) }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
@@ -384,10 +394,10 @@ jobs:
   codeql-analysis:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
-    if: ${{ needs.get-repository-languages.outputs.codeql_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
+    if: ${{ needs.get-repository-metadata.outputs.codeql_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
     # Runners are selected by labels: (default when you pass a string directly to runs-on) or group: "grp-runner". This snippet of code uses JSON to construct the group: object if the runner name starts with "grp-"
     runs-on:  ${{ startsWith(inputs.job_runner, 'grp-') && fromJSON(format('{{"group":"{0}"}}', inputs.job_runner)) || inputs.job_runner }}
-    needs: get-repository-languages
+    needs: get-repository-metadata
     permissions:
       # CodeQL - required for all workflows
       security-events: write
@@ -397,17 +407,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ${{ fromJson(needs.get-repository-languages.outputs.codeql_languages) }}
+        language: ${{ fromJson(needs.get-repository-metadata.outputs.codeql_languages) }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
 
       - name: "Set up Gradle for Java/Kotlin"
-        if: inputs.use_setup_gradle && (matrix.language == 'kotlin' || matrix.language == 'java')
+        if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
         uses: gradle/actions/setup-gradle@v4.1.0
         with: 
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
+          dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
 
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
