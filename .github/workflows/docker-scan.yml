@@ -231,7 +231,7 @@ jobs:
           image: ${{ inputs.image_artifact }}.tar
           output-file: ${{ inputs.image_artifact }}.spdx.json
           artifact-name: ${{ inputs.image_artifact }}.spdx.json
-          dependency-snapshot: github.ref_name == github.event.repository.default_branch
+          dependency-snapshot: ${{ github.ref_name == github.event.repository.default_branch }}
         
       - name: "Anchore Grype Scan"
         id: anchore-scan
