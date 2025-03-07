@@ -414,7 +414,7 @@ jobs:
 
       - name: "Set up Gradle for Java/Kotlin"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
-        uses: gradle/actions/setup-gradle@v4.1.0
+        uses: gradle/actions/setup-gradle@v4
         with: 
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
