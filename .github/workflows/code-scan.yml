@@ -416,7 +416,7 @@ jobs:
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
         uses: gradle/actions/setup-gradle@v4
         with: 
-          cache-read-only: true  # Force read only, even in main
+#          cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
           dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
 
