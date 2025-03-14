@@ -197,13 +197,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: "/home/runner/work/${{ env.GITHUB_REPOSITORY }}/results"
 
-      - name: "Upload cached results to current running job"
-        if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
-        uses: actions/upload-artifact@v4
-        with:
-          path: "/home/runner/work/${{ env.GITHUB_REPOSITORY }}/results/**/*.*"
-          overwrite: true
-        
       - name: "Upload scan results"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
         uses: github/codeql-action/upload-sarif@v3
@@ -213,9 +206,10 @@ jobs:
 
       - name: "Upload dependency graph"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
-        uses: gradle/actions/dependency-submission@v4
-        with:
-          dependency-graph: 'download-and-submit'
+        run: |
+          for file in /home/runner/work/$GITHUB_REPOSITORY/results/**/*.json ; do
+            gh api /repos/{owner}/{repo}/dependency-graph/snapshots --method POST --input $file
+          done
 
   get-repository-metadata:
     if: ${{ needs.upload-cached-results.outputs.skip_job_and_continue_scan == 'True' }}
