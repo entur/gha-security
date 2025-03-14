@@ -31,7 +31,7 @@ env:
   GITHUB_REPOSITORY: ${{ github.repository }}
 
 jobs:
-  input_validation:
+  input-validation:
     runs-on: ubuntu-24.04
     steps:
       - name: "Validate inputs"
@@ -77,7 +77,7 @@ jobs:
           os.system('echo Validation passed')"
   upload-cached-results:
     runs-on:  ubuntu-24.04
-    needs: input_validation
+    needs: input-validation
     outputs:
       skip_job_and_continue_scan: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN }}
     permissions:
@@ -206,6 +206,8 @@ jobs:
 
       - name: "Upload dependency graph"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           for file in /home/runner/work/$GITHUB_REPOSITORY/results/**/*.json ; do
             gh api /repos/{owner}/{repo}/dependency-graph/snapshots --method POST --input $file
