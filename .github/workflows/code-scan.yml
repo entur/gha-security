@@ -210,7 +210,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           for file in /home/runner/work/$GITHUB_REPOSITORY/results/**/*.json ; do
-            gh api /repos/{owner}/{repo}/dependency-graph/snapshots --method POST --input $file
+            gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input $file
           done
 
   get-repository-metadata:
