@@ -403,7 +403,7 @@ jobs:
       security-events: write
       # CodeQL - only required for workflows in private repositories
       actions: read
-      contents: read
+      contents: write
     strategy:
       fail-fast: false
       matrix:
