@@ -201,7 +201,7 @@ jobs:
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
         uses: actions/upload-artifact@v4
         with:
-          path: "/home/runner/work/${{ env.GITHUB_REPOSITORY }}/results"
+          path: "/home/runner/work/${{ env.GITHUB_REPOSITORY }}/results/**/*.*"
           overwrite: true
         
       - name: "Upload scan results"
