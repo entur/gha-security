@@ -211,9 +211,9 @@ jobs:
           dependency-graph: 'download-and-submit'
 
   get-repository-metadata:
-    if: ${{ needs.upload-scan-reports-from-matching-pr.outputs.skip_job_and_continue_scan == 'True' }}
+    if: ${{ needs.upload-cached-results.outputs.skip_job_and_continue_scan == 'True' }}
     runs-on: ubuntu-24.04
-    needs: upload-scan-reports-from-matching-pr
+    needs: upload-cached-results
     outputs: 
       codeql_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_CQ }}
       semgrep_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_SEM }} 
