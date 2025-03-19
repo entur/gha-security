@@ -207,15 +207,14 @@ jobs:
       - name: "Upload dependency graph"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           shopt -s globstar
           for file in /home/runner/work/$GITHUB_REPOSITORY/results/**/*.json ; do
             if [ -d $file ] ; then
               continue
             fi
-            echo $file
-            # gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input $file
+            gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input $file
           done
 
   get-repository-metadata:
