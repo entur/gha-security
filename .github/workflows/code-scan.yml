@@ -84,7 +84,7 @@ jobs:
       pull-requests: read
       actions: read
       security-events: write
-      contents: read
+      contents: write 
     steps:
       - name: "Skip job if not triggered by a push to main/master"
         env:
