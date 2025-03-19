@@ -211,11 +211,11 @@ jobs:
         run: |
           shopt -s globstar
           for file in /home/runner/work/$GITHUB_REPOSITORY/results/**/*.json ; do
-            echo $file
             if [ -d $file ] ; then
               continue
             fi
-            gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input $file
+            echo $file
+            # gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input $file
           done
 
   get-repository-metadata:
