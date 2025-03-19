@@ -211,7 +211,7 @@ jobs:
         run: |
           bash -c '
           find /home/runner/work/$GITHUB_REPOSITORY/results/
-          for file in "/home/runner/work/$GITHUB_REPOSITORY/results/**/*.json" ; do
+          for file in /home/runner/work/$GITHUB_REPOSITORY/results/**/*.json ; do
             echo $file
             gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input $file
           done
