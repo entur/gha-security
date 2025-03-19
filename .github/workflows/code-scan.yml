@@ -218,7 +218,7 @@ jobs:
             if [ -d $file ] ; then
               continue
             fi
-            gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input $file
+            cat $file | gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input -
           done
 
   get-repository-metadata:
