@@ -211,14 +211,13 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REF: ${{ github.ref }}
         run: |
-          echo sha: $GITHUB_SHA
-          echo ref: $GITHUB_REF
           shopt -s globstar
           for file in /home/runner/work/$GITHUB_REPOSITORY/results/**/*.json ; do
             if [ -d $file ] ; then
               continue
             fi
-            cat $file | gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input -
+            jq ".sha = \"$GITHUB_SHA\" | .ref = \"$GITHUB_REF\"" <$file | 
+              gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input -
           done
 
   get-repository-metadata:
