@@ -208,7 +208,11 @@ jobs:
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
+          echo sha: $GITHUB_SHA
+          echo ref: $GITHUB_REF
           shopt -s globstar
           for file in /home/runner/work/$GITHUB_REPOSITORY/results/**/*.json ; do
             if [ -d $file ] ; then
