@@ -209,13 +209,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          bash -c '
-          find /home/runner/work/$GITHUB_REPOSITORY/results/
+          shopt -s globstar
           for file in /home/runner/work/$GITHUB_REPOSITORY/results/**/*.json ; do
             echo $file
             gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input $file
           done
-          '
 
   get-repository-metadata:
     if: ${{ needs.upload-cached-results.outputs.skip_job_and_continue_scan == 'True' }}
