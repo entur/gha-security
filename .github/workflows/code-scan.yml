@@ -90,104 +90,36 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_REF: ${{ github.ref }}
+          GITHUB_REFNAME: ${{ github.ref_name }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          python -c "
-          import os
-
-          skip_job_and_continue_scan = False
-
-          env_file = os.getenv('GITHUB_ENV')
-          github_event_name = os.getenv('GITHUB_EVENT_NAME')
-          github_ref = os.getenv('GITHUB_REF')
-
-          if github_event_name != 'push' or (github_ref != 'refs/heads/main' and github_ref != 'refs/heads/master'):
-            skip_job_and_continue_scan = True
-
-          with open(env_file, 'a') as f:
-            f.write('GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=' + str(skip_job_and_continue_scan) + '\n')
-          "
+          echo event: $GITHUB_EVENT_NAME
+          echo refname: $GITHUB_REFNAME
+          echo defaultbranch: $GITHUB_DEFAULT_BRANCH
+          if [ "$GITHUB_EVENT_NAME" != "push" ] || [ "$GITHUB_REFNAME" != "$GITHUB_DEFAULT_BRANCH" ]; then
+            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> $GITHUB_ENV
+          fi
       - name: "Get workflow run ID for matching PR"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_SHA: ${{ github.sha }}
         run: |
-          python -c "
-          import os
-          import requests
-
-          skip_job_and_continue_scan = False
-
-          github_sha = os.getenv('GITHUB_SHA')
-          github_token = os.getenv('GITHUB_TOKEN')
-          github_repository = os.getenv('GITHUB_REPOSITORY')
-          env_file = os.getenv('GITHUB_ENV')
-
-          headers = {
-            'Accept': 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28',
-            'Authorization': f'token {github_token}'
-          }
-              
-          five_recently_updated_closed_prs = requests.get(
-            f'https://api.github.com/repos/{github_repository}/pulls',
-            headers=headers,
-            params={
-              'state': 'closed',
-              'per_page': '5',
-              'sort': 'updated',
-              'direction': 'desc'
-            }
-          )
-          
-          if five_recently_updated_closed_prs.status_code != 200:
-            print('::warning ::Failed to fetch closed PRs, defaulting to running a new scan')
-            skip_job_and_continue_scan = True
-          else: 
-            five_recently_updated_closed_prs = five_recently_updated_closed_prs.json()
-            pr_head = None
-            for closed_pr in five_recently_updated_closed_prs:
-              merge_commit_sha = closed_pr.get('merge_commit_sha')
-              if merge_commit_sha == github_sha:
-                pr_head = closed_pr.get('head').get('sha')
-                break
-              
-            if pr_head != None:
-              workflow_runs = requests.get(
-                f'https://api.github.com/repos/{github_repository}/actions/runs',
-                headers=headers,
-                params={
-                  'head_sha': pr_head,
-                  'event': 'pull_request',
-                  'status': 'completed'
-                }
-              )
-
-              if workflow_runs.status_code != 200:
-                print('::warning ::Failed to fetch PR workflow runs, defaulting to running a new scan')
-                skip_job_and_continue_scan = True
-              else:
-                workflow_runs = workflow_runs.json().get('workflow_runs', [])
-                run_id = None
-                for workflow_run in workflow_runs:
-                  if workflow_run.get('path','').startswith('.github/workflows/codeql.yml'):
-                    run_id = workflow_run.get('id')
-                    
-                    with open(env_file, 'a') as f:
-                      f.write(f'GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID={run_id}\n')
-                    
-                    break
-                if run_id is None:
-                  print('::warning ::Failed to find a matching workflow run on the PR, defaulting to running a new scan')
-                  skip_job_and_continue_scan = True
-                
-            else:
-              print('::warning ::Failed to fetch a matching PR, defaulting to running a new scan')
-              skip_job_and_continue_scan = True
-
-          with open(env_file, 'a') as f:
-            f.write('GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=' + str(skip_job_and_continue_scan) + '\n')
-          "
+          HEAD_REF=$(gh pr list --state merged --search "$GITHUB_SHA" --json baseRefName | jq -r '.[0].headRefOid')
+          echo Headref: $HEAD_REF
+          if [ "$HEAD_REF" = "null" ]; then
+            echo "::warning ::Failed to fetch closed PRs, defaulting to running a new scan"
+            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> $GITHUB_ENV
+          else
+            JOB_ID=$(gh run list -s completed -e pull_request -c "$HEAD_REF" --json databaseId | jq -r '.[0]'.databaseId')
+            echo JobId: $JOB_ID
+            if [ "$JOB_ID" = "null" ]; then
+              echo '::warning ::Failed to fetch a matching PR, defaulting to running a new scan'
+              echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> $GITHUB_ENV
+            else
+              echo "GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID=$JOB_ID" >> $GITHUB_ENV
+            fi
+          fi
 
       - name: "Download existing cached results from previous job (pr)"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
