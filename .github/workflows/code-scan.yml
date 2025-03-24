@@ -89,14 +89,12 @@ jobs:
       - name: "Skip job if not triggered by a push to main/master"
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_REF: ${{ github.ref }}
           GITHUB_REFNAME: ${{ github.ref_name }}
           GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          echo event: $GITHUB_EVENT_NAME
-          echo refname: $GITHUB_REFNAME
-          echo defaultbranch: $GITHUB_DEFAULT_BRANCH
-          if [ "$GITHUB_EVENT_NAME" != "push" ] || [ "$GITHUB_REFNAME" != "$GITHUB_DEFAULT_BRANCH" ]; then
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REFNAME" = "$GITHUB_DEFAULT_BRANCH" ]; then
+            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=False' >> $GITHUB_ENV
+          else
             echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> $GITHUB_ENV
           fi
       - name: "Get workflow run ID for matching PR"
