@@ -103,7 +103,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_SHA: ${{ github.sha }}
         run: |
-          HEAD_REF=$(gh pr list --state merged --search "$GITHUB_SHA" --json baseRefName -R $GITHUB_REPOSITORY | jq -r '.[0].headRefOid')
+          HEAD_REF=$(gh pr list --state merged --search "$GITHUB_SHA" --json headRefOid -R $GITHUB_REPOSITORY | jq -r '.[0].headRefOid')
           echo Headref: $HEAD_REF
           if [ "$HEAD_REF" = "null" ]; then
             echo "::warning ::Failed to fetch closed PRs, defaulting to running a new scan"
