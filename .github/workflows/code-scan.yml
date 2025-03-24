@@ -104,15 +104,13 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
         run: |
           HEAD_REF=$(gh pr list --state merged --search "$GITHUB_SHA" --json headRefOid -R $GITHUB_REPOSITORY | jq -r '.[0].headRefOid')
-          echo Headref: $HEAD_REF
           if [ "$HEAD_REF" = "null" ]; then
             echo "::warning ::Failed to fetch closed PRs, defaulting to running a new scan"
             echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> $GITHUB_ENV
           else
             JOB_ID=$(gh run list -s completed -e pull_request -c "$HEAD_REF" --json databaseId -R $GITHUB_REPOSITORY | jq -r '.[0].databaseId')
-            echo JobId: $JOB_ID
             if [ "$JOB_ID" = "null" ]; then
-              echo '::warning ::Failed to fetch a matching PR, defaulting to running a new scan'
+              echo '::warning ::Failed to find a matching job, defaulting to running a new scan'
               echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> $GITHUB_ENV
             else
               echo "GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID=$JOB_ID" >> $GITHUB_ENV
