@@ -11,17 +11,17 @@ permissions:
 jobs:
     # needed for status checks pr approvals
     update-code-scan-doc:
-        uses: entur/gha-meta/.github/workflows/auto-doc.yml@v1.2.0
+        uses: entur/gha-meta/.github/workflows/auto-doc.yml@v1.3.0
         with: 
             workflow_file: .github/workflows/code-scan.yml
             readme_file: README-code-scan.md
 
     update-docker-scan-doc:
-        uses: entur/gha-meta/.github/workflows/auto-doc.yml@v1.2.0
+        uses: entur/gha-meta/.github/workflows/auto-doc.yml@v1.3.0
         with: 
             workflow_file: .github/workflows/docker-scan.yml
             readme_file: README-docker-scan.md
     # / needed for status checks pr approvals
     release:
       needs: [update-code-scan-doc, update-docker-scan-doc]
-      uses: entur/gha-meta/.github/workflows/release.yml@v1.2.0
+      uses: entur/gha-meta/.github/workflows/release.yml@v1.3.0
