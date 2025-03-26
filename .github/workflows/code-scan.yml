@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       use_setup_gradle:
-        description: 'DEPRECATED. This is now autodetected and enabled if `build.gradle(.kt(s))` is found. Uses "gradle/action/setup-gradle" before running autobuild (Java/Kotlin only). Potentially speeds up build times if cache from main branch is utilized'
+        description: 'OBSOLETE. This is now autodetected and enabled if `build.gradle(.kt(s))` is found. Uses "gradle/action/setup-gradle" before running autobuild (Java/Kotlin only). Potentially speeds up build times if cache from main branch is utilized'
         default: false
         required: false
         type: boolean
@@ -108,7 +108,8 @@ jobs:
             echo "::warning ::Failed to fetch closed PRs, defaulting to running a new scan"
             echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> $GITHUB_ENV
           else
-            JOB_ID=$(gh run list -s completed -e pull_request -c "$HEAD_REF" --json databaseId -R $GITHUB_REPOSITORY | jq -r '.[0].databaseId')
+            JOB_ID=$(gh run list -s completed -e pull_request -c "$HEAD_REF" --json databaseId -R $GITHUB_REPOSITORY -w ".github/workflows/codeql.yml" | 
+              jq -r '.[0].databaseId')
             if [ "$JOB_ID" = "null" ]; then
               echo '::warning ::Failed to find a matching job, defaulting to running a new scan'
               echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> $GITHUB_ENV
