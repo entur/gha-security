@@ -164,7 +164,8 @@ jobs:
       - name: "Find Gradle Build"
         id: find-gradle-build
         run: |
-          if [ $(find . -iname build.gradle -o -iname build.gradle.kts -o -iname build.gradle.kt | wc -l) -gt 0 ]; then
+          # Search for the file(s) build.gradle or build.gradle.kt(s) in the repo, and report if any of those are found
+          if [ $(find . -type f -iname build.gradle -o -iname build.gradle.kts -o -iname build.gradle.kt | wc -l) -gt 0 ]; then
             echo "GHA_SECURITY_CODE_SCAN_FOUND_GRADLE=True" >> $GITHUB_ENV
           else
             echo "GHA_SECURITY_CODE_SCAN_FOUND_GRADLE=False" >> $GITHUB_ENV
