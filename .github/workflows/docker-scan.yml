@@ -223,11 +223,21 @@ jobs:
               yaml.dump(grype_allowlist, f)
           "
 
+      - name: "Anchore Syft Scan"
+        id: syft-scan
+        uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          image: ${{ inputs.image_artifact }}.tar
+          output-file: ${{ inputs.image_artifact }}.spdx.json
+          artifact-name: ${{ inputs.image_artifact }}.spdx.json
+          dependency-snapshot: ${{ github.ref_name == github.event.repository.default_branch }}
+        
       - name: "Anchore Grype Scan"
         id: anchore-scan
         uses: anchore/scan-action@v6
         with: 
-          image: ${{ inputs.image_artifact }}.tar
+          sbom: ${{ inputs.image_artifact }}.spdx.json
           by-cve: true
           fail-build: false
           severity-cutoff: critical
