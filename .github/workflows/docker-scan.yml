@@ -228,10 +228,11 @@ jobs:
         run: |
           docker import ${{ inputs.image_artifact }}.tar ${{ inputs.image_artifact }}:current
           docker images
+          docker inspect ${{ inputs.image_artifact }}:current )
           WORKDIR=$( docker inspect -f {{.Config.WorkingDir}} ${{ inputs.image_artifact }}:current )
           echo $WORKDIR
           touch syft.config
-          if [ "$WORKDIR" != "/" ]; then
+          if [[ "$WORKDIR" != "/" && "$WORKDIR" != "" ]]; then
             echo "exclude: [\"$WORKDIR/**\"]" >>syft.config
           fi
           cat syft.config
