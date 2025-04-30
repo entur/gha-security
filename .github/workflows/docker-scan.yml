@@ -223,6 +223,16 @@ jobs:
               yaml.dump(grype_allowlist, f)
           "
 
+      - name: "Docker workdir extraction"
+        id: docker-workdir
+        run: |
+          WORKDIR=$( docker inspect -f {{.Config.WorkingDir}} ${{ inputs.image_artifact }} )
+          echo $WORKDIR
+          touch syft.config
+          if [ "$WORKDIR" != "/" ]; then
+            echo "exclude: [\"$WORKDIR/**\"]" >>syft.config
+          fi
+          cat syft.config
       - name: "Anchore Syft Scan"
         id: syft-scan
         uses: anchore/sbom-action@v0
