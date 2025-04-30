@@ -226,7 +226,7 @@ jobs:
       - name: "Docker workdir extraction"
         id: docker-workdir
         run: |
-          WORKDIR=$( docker inspect -f {{.Config.WorkingDir}} ${{ inputs.image_artifact }} )
+          WORKDIR=$( docker inspect -f {{.Config.WorkingDir}} ${{ inputs.image_artifact }}.tar )
           echo $WORKDIR
           touch syft.config
           if [ "$WORKDIR" != "/" ]; then
