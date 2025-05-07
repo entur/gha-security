@@ -226,10 +226,10 @@ jobs:
       - name: "Docker workdir extraction"
         id: docker-workdir
         run: |
-          docker import ${{ inputs.image_artifact }}.tar ${{ inputs.image_artifact }}:current
+          IMAGE=(docker load -i ${{ inputs.image_artifact }}.tar | sed 's/Loaded image: //')
           docker images
-          docker inspect ${{ inputs.image_artifact }}:current
-          WORKDIR=$( docker inspect -f {{.Config.WorkingDir}} ${{ inputs.image_artifact }}:current )
+          docker inspect $IMAGE
+          WORKDIR=$( docker inspect -f {{.Config.WorkingDir}} $IMAGE )
           echo $WORKDIR
           touch syft.config
           if [[ "$WORKDIR" != "/" && "$WORKDIR" != "" ]]; then
