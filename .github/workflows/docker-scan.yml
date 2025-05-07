@@ -226,7 +226,7 @@ jobs:
       - name: "Docker workdir extraction"
         id: docker-workdir
         run: |
-          IMAGE=(docker load -i ${{ inputs.image_artifact }}.tar | sed 's/Loaded image: //')
+          IMAGE=$(docker load -i ${{ inputs.image_artifact }}.tar | sed 's/Loaded image: //')
           docker images
           docker inspect $IMAGE
           WORKDIR=$( docker inspect -f {{.Config.WorkingDir}} $IMAGE )
