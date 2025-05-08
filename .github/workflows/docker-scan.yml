@@ -227,20 +227,15 @@ jobs:
         id: docker-workdir
         run: |
           IMAGE=$(docker load -i ${{ inputs.image_artifact }}.tar | sed 's/Loaded image: //')
-          docker images
-          docker inspect $IMAGE
           WORKDIR=$( docker inspect -f {{.Config.WorkingDir}} $IMAGE )
-          echo $WORKDIR
-          touch syft.config
           if [[ "$WORKDIR" != "/" && "$WORKDIR" != "" ]]; then
-            echo "exclude: [\"$WORKDIR/**\"]" >>syft.config
+            echo "DOCKER_WORKDIR=$WORKDIR" >>$GITHUB_ENV
           fi
-          cat syft.config
       - name: "Anchore Syft Scan"
         id: syft-scan
         uses: anchore/sbom-action@v0
         env:
-          SYFT_EXCLUDE: "/kubeview"
+          SYFT_EXCLUDE: ${{ env.DOCKER_WORKDIR }}
         with:
           format: spdx-json
           image: ${{ inputs.image_artifact }}.tar
