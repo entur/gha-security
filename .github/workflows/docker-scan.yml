@@ -239,6 +239,8 @@ jobs:
       - name: "Anchore Syft Scan"
         id: syft-scan
         uses: anchore/sbom-action@v0
+        env:
+          SYFT_EXCLUDE: "/kubeview"
         with:
           format: spdx-json
           image: ${{ inputs.image_artifact }}.tar
