@@ -223,9 +223,19 @@ jobs:
               yaml.dump(grype_allowlist, f)
           "
 
+      - name: "Docker workdir extraction"
+        id: docker-workdir
+        run: |
+          IMAGE=$(docker load -i ${{ inputs.image_artifact }}.tar | sed 's/Loaded image: //')
+          WORKDIR=$( docker inspect -f {{.Config.WorkingDir}} $IMAGE )
+          if [[ "$WORKDIR" != "/" && "$WORKDIR" != "" ]]; then
+            echo "DOCKER_WORKDIR=$WORKDIR" >>$GITHUB_ENV
+          fi
       - name: "Anchore Syft Scan"
         id: syft-scan
         uses: anchore/sbom-action@v0
+        env:
+          SYFT_EXCLUDE: ${{ env.DOCKER_WORKDIR }}
         with:
           format: spdx-json
           image: ${{ inputs.image_artifact }}.tar
