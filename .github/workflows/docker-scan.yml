@@ -230,6 +230,8 @@ jobs:
           WORKDIR=$( docker inspect -f {{.Config.WorkingDir}} $IMAGE )
           if [[ "$WORKDIR" != "/" && "$WORKDIR" != "" ]]; then
             echo "DOCKER_WORKDIR=$WORKDIR" >>$GITHUB_ENV
+          else
+            echo "::warning ::Setting WORKDIR to /app (or similar) and running the application from there is highly recommended."
           fi
       - name: "Anchore Syft Scan"
         id: syft-scan
