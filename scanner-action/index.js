@@ -41,13 +41,17 @@ const main = async () => {
         
         const ThrottledOctokit = Octokit.plugin(throttling);
 
-        const octokitExternal = new ThrottledOctokit({
-            auth: TOKEN,
-            throttle: getOctokitTrottleConfig()
-        })
+        let octokitExternal = undefined;
+        
+        if (EXTERNAL_REPOSITORY_TOKEN != "") {
+            octokitExternal = new ThrottledOctokit({
+                auth: EXTERNAL_REPOSITORY_TOKEN,
+                throttle: getOctokitTrottleConfig()
+            })
+        }
 
         const octokitAction = new ThrottledOctokit({
-            auth: EXTERNAL_REPOSITORY_TOKEN,
+            auth: TOKEN,
             throttle: getOctokitTrottleConfig()
         })
 

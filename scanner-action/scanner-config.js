@@ -65,6 +65,11 @@ const getExternalScannerConfig = async (scannerConfig, scanner, octokit) => {
     console.log("[3] Get external scanner config");
     const externalRepository = scannerConfig.spec.inherit
 
+    if (octokit == undefined) {
+        console.log("[3] Skipping getting external scanner config. No external repository token found")
+        return null
+    }
+
     if (!externalRepository) {
         return null
     }
