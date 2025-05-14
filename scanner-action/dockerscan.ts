@@ -1,14 +1,10 @@
 
-import { combineAllowlists } from './allowlist'
-import { ScannerConfig, AllowlistEntry } from './typedefs'
+import { combineAllowlists } from './allowlist.js'
+import { ScannerConfig, AllowlistDockerScan } from './typedefs.js'
 import * as fs from 'fs';
 import * as yaml from 'yaml';
 
-/**
- * Generates grype file to ignore vulnerabilities
- * @param {AllowlistEntry[]} allowlist
- */
-const generateGrypeConfig = (allowlist) => {
+const generateGrypeConfig = (allowlist: AllowlistDockerScan[]) => {
     const GRYPE_CONFIG_FILE = ".grype.yaml"
 
     // comment and reason in allowlist is not being used at the moment.
@@ -27,17 +23,13 @@ const generateGrypeConfig = (allowlist) => {
     fs.writeFileSync(".grype.yaml", yamlGrype)
 }
 
-/**
- * 
- * @param {ScannerConfig} scannerConfig 
- * @param {ScannerConfig} externalScannerConfig 
- */
-const dismissDockerScanAlerts = (scannerConfig, externalScannerConfig) => {
+
+const dismissDockerScanAlerts = (scannerConfig: ScannerConfig, externalScannerConfig?: ScannerConfig) => {
     const allowlist = combineAllowlists(scannerConfig, externalScannerConfig)
 
     if (allowlist.length > 0) {
         console.log("[5] Suppress Grype alerts")
-        generateGrypeConfig(allowlist)
+        generateGrypeConfig(allowlist as AllowlistDockerScan[])
         return
     }
 

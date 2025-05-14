@@ -1,30 +1,21 @@
 import * as fs from 'fs';
 import * as yaml from 'yaml';
-import { ScannerConfig } from './typedefs'
+import { ScannerConfig } from './typedefs.js'
 import { Octokit } from "octokit";
 import { Ajv } from 'ajv'
 
 
-/**
- * @param {string} config -
- * @returns {(ScannerConfig|null)}
- */
-const parseScannerConfig = (config) => {
+
+const parseScannerConfig = (config: string) => {
     try {
         return yaml.parse(config);
     } catch (error) {
         console.error(`[SKIP] Failed to parse yaml config - ${error}`);
-        return null;
+        return;
     }
 }
 
-/**
- * @param {Octokit} octokit
- * @param {string} repository - repository name
- * @param {string} scanner - scanner name
- * @returns {(string|null)}
- */
-const fetchExternalConfigContent = async (octokit, repository, scanner) => {
+const fetchExternalConfigContent = async (octokit: Octokit, repository: string, scanner: string) => {
 
     const YAML_EXTENSIONS = ["yml", "yaml"]
     const yamlPaths = YAML_EXTENSIONS.map(extension => `.entur/security/${scanner}.${extension}`)
@@ -44,50 +35,40 @@ const fetchExternalConfigContent = async (octokit, repository, scanner) => {
         console.log(`   [SKIP] Found no external config from ${repository}`);
         return
     }
+    const response = fulfilledResult[0].value
 
-    const contentBase64 = fulfilledResult[0].value.data.content.replaceAll("\n", "")
-    const configContent = Buffer.from(contentBase64, "base64").toString("utf-8")
+    if ("content" in response.data) {
+        const contentBase64 = response.data.content.replaceAll("\n", "")
+        const configContent = Buffer.from(contentBase64, "base64").toString("utf-8")
+        return configContent
+    }
 
-    if (configContent === "")
-        return null
-
-    return configContent
+    return
 };
 
-/**
- * 
- * @param {ScannerConfig} scannerConfig - configuration for the scanner
- * @param {string} scanner - name of the scanner
- * @param {Octokit} octokit - octokit client to access external repository
- * @returns {(ScannerConfig|null)}
- */
-const getExternalScannerConfig = async (scannerConfig, scanner, octokit) => {
-    console.log("[3] Get external scanner config");
-    const externalRepository = scannerConfig.spec.inherit
-
+const getExternalScannerConfig = async (scannerConfig: ScannerConfig, scanner: string, octokit: Octokit | undefined) => {
     if (octokit == undefined) {
-        console.log("[3] Skipping getting external scanner config. No external repository token found")
-        return null
+        console.log("[3] No external repository token found, skipping 'Get external scanner config'")
+        return
     }
+
+    console.log("[3] Get external scanner config");
+    const externalRepository = scannerConfig.spec?.inherit
 
     if (!externalRepository) {
-        return null
+        return
     }
 
-    console.log(`   [3.1] Fetch external config from ${repository}`);
+    console.log(`   [3.1] Fetch external config from ${externalRepository}`);
     let content = await fetchExternalConfigContent(octokit, externalRepository, scanner)
-    if (!content) return null
+    if (!content) return
 
     console.log(`   [3.2] Parse external config from ${externalRepository}`);
     return parseScannerConfig(content)
 };
 
-/**
- * Get scanner configuration
- * @param {string} scanner - name of scanner
- * @returns {(ScannerConfig|null)}
- */
-const getScannerConfig = (scanner) => {
+
+const getScannerConfig = (scanner: string) => {
     console.log("[1] Get scanner config");
     const YAML_EXTENSIONS = ["yml", "yaml"]
     const filePathList = YAML_EXTENSIONS.map(extension => `.entur/security/${scanner}.${extension}`)
@@ -106,12 +87,7 @@ const getScannerConfig = (scanner) => {
     return parseScannerConfig(fileContent)
 };
 
-/**
- * Scanner config defined in JSON Schema
- * @param {string} scanner - scanner name
- * @returns {object}
- */
-const getScannerConfigSchema = (scanner) => {
+const getScannerConfigSchema = (scanner: string) => {
     const vulnerabilityId = scanner == "dockerscan" ? "cve" : "cwe"
 
     return {
@@ -156,12 +132,8 @@ const getScannerConfigSchema = (scanner) => {
     }
 }
 
-/**
- * Validates using Ajv with JSON Schema
- * @param {ScannerConfig} scannerConfig
- * @returns {boolean}
- */
-const validateScannerConfig = (scannerConfig, scanner) => {
+
+const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) => {
     const ajvInstance = new Ajv({
         verbose: true
     })
