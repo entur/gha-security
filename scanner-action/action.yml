@@ -4,7 +4,7 @@ inputs:
   token:
     description: "GitHub Token"
     required: true
-  external_repository_token:
+  external-repository-token:
     description: "External Repository GitHub Token"
     required: false
   scanner:
