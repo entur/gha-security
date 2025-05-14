@@ -1,6 +1,6 @@
 # Scanner Action
 
-This action prints "Hello World" or "Hello" + the name of a person to greet to the log.
+Scanner Action is used for dismissing vulnerabilities for DockerScan and CodeScan.
 
 ## Inputs
 
@@ -15,3 +15,16 @@ This action prints "Hello World" or "Hello" + the name of a person to greet to t
 ### `scanner`
 
 **Required** Type of scanner
+
+## Setup
+
+Action uses Yarn 4.9.1 and Typescript.
+
+To build a new distribution run
+```
+cd scanner-action
+yarn # installs packages
+yarn build # runs typescript compiler
+```
+
+This will update the javascript files in `/dist` if there are no typescript errors.
