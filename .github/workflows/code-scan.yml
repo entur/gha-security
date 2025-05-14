@@ -135,7 +135,7 @@ jobs:
 
       - name: "Upload dependency graph"
 #        if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
-        if: ${{ "True" == "False" }} # Temporarily disabling step
+        if: ${{ 'True' == 'False' }} # Temporarily disabling step
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_SHA: ${{ github.sha }}
