@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.2](https://github.com/entur/gha-security/compare/v2.3.1...v2.3.2) (2025-05-14)
+
+
+### Bug Fixes
+
+* Re-enable step with nullglob shell option ([#90](https://github.com/entur/gha-security/issues/90)) ([6940f2f](https://github.com/entur/gha-security/commit/6940f2fff77f4f4a4c5937888fbfeadc45dd1ccf))
+
 ## [2.3.1](https://github.com/entur/gha-security/compare/v2.3.0...v2.3.1) (2025-05-14)
 
 
