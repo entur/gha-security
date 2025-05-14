@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/entur/gha-security/compare/v2.3.0...v2.3.1) (2025-05-14)
+
+
+### Bug Fixes
+
+* Disable upload step to debug globbing ([#88](https://github.com/entur/gha-security/issues/88)) ([7df5cde](https://github.com/entur/gha-security/commit/7df5cdef6ca2606aa698835dab44a2058d55b0ee))
+
 ## [2.3.0](https://github.com/entur/gha-security/compare/v2.2.1...v2.3.0) (2025-05-14)
 
 
