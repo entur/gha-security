@@ -126,6 +126,7 @@ const getScannerConfigSchema = (scanner) => {
             },
             spec: {
                 type: ["object", "null"],
+                required: ["allowlist"],
                 properties: {
                     inherit: {
                         type: "string",
