@@ -223,11 +223,33 @@ jobs:
               yaml.dump(grype_allowlist, f)
           "
 
+      - name: "Docker workdir extraction"
+        id: docker-workdir
+        run: |
+          IMAGE=$(docker load -i ${{ inputs.image_artifact }}.tar | sed 's/Loaded image: //')
+          WORKDIR=$( docker inspect -f {{.Config.WorkingDir}} $IMAGE )
+          if [[ "$WORKDIR" != "/" && "$WORKDIR" != "" ]]; then
+            echo "DOCKER_WORKDIR=$WORKDIR" >>$GITHUB_ENV
+          else
+            echo "::warning ::Setting WORKDIR to /app (or similar) and running the application from there is highly recommended."
+          fi
+      - name: "Anchore Syft Scan"
+        id: syft-scan
+        uses: anchore/sbom-action@v0
+        env:
+          SYFT_EXCLUDE: ${{ env.DOCKER_WORKDIR }}
+        with:
+          format: spdx-json
+          image: ${{ inputs.image_artifact }}.tar
+          output-file: ${{ inputs.image_artifact }}.spdx.json
+          artifact-name: ${{ inputs.image_artifact }}.spdx.json
+          dependency-snapshot: ${{ github.ref_name == github.event.repository.default_branch }}
+        
       - name: "Anchore Grype Scan"
         id: anchore-scan
         uses: anchore/scan-action@v6
         with: 
-          image: ${{ inputs.image_artifact }}.tar
+          sbom: ${{ inputs.image_artifact }}.spdx.json
           by-cve: true
           fail-build: false
           severity-cutoff: critical
