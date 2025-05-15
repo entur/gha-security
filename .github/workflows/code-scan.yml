@@ -421,7 +421,7 @@ jobs:
       
       - name: Scanner Action
         uses: ./scanner-action
-        input:
+        with:
           scanner: 'codescan'
           token: ${{ secrets.GITHUB_TOKEN }}
           external-repository-token: ${{ secrets.external_repository_token }}
