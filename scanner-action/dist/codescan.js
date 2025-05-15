@@ -29,8 +29,9 @@ const convertToCweTagMap = (allowlist) => {
     return cweMap;
 };
 const updateCodeScanningAlerts = async (codeScanAlerts, octokit, cweTagMap, repository) => {
+    let dismissedAlerts = new Set();
     for (const [cweTag, cweTagValue] of cweTagMap.entries()) {
-        const matchingAlerts = codeScanAlerts.filter(alert => alert?.rule?.tags?.includes(cweTag));
+        const matchingAlerts = codeScanAlerts.filter(alert => alert?.rule?.tags?.includes(cweTag) && !dismissedAlerts.has(alert.number));
         for (const matchingAlert of matchingAlerts) {
             await octokit.rest.codeScanning.updateAlert({
                 owner: "entur",
@@ -40,6 +41,7 @@ const updateCodeScanningAlerts = async (codeScanAlerts, octokit, cweTagMap, repo
                 dismissed_comment: cweTagValue.comment,
                 dismissed_reason: cweTagValue.reason
             });
+            dismissedAlerts.add(matchingAlert.number);
         }
     }
 };
