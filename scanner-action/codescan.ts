@@ -41,8 +41,9 @@ const convertToCweTagMap = (allowlist: AllowlistCodeScan[]) => {
 }
 
 const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert[], octokit: Octokit, cweTagMap: Map<string, CweTagValues>, repository: string) => {
+    let dismissedAlerts = new Set()
     for (const [cweTag, cweTagValue] of cweTagMap.entries()) {
-        const matchingAlerts = codeScanAlerts.filter(alert => alert?.rule?.tags?.includes(cweTag))
+        const matchingAlerts = codeScanAlerts.filter(alert => alert?.rule?.tags?.includes(cweTag) && !dismissedAlerts.has(alert.number))
 
         for (const matchingAlert of matchingAlerts) {
             await octokit.rest.codeScanning.updateAlert({
@@ -53,6 +54,7 @@ const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert
                 dismissed_comment: cweTagValue.comment,
                 dismissed_reason: cweTagValue.reason
             })
+            dismissedAlerts.add(matchingAlert.number)
         }
     }
 }
