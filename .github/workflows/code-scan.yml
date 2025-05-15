@@ -373,6 +373,7 @@ jobs:
           languages: ${{ matrix.language }}
           build-mode: autobuild
           queries: ${{ inputs.codeql_queries }}
+          source-root: test-vulnerable
 
       - name: "Initialize CodeQL"
         if: matrix.language != 'java' && matrix.language != 'kotlin'
