@@ -409,6 +409,10 @@ jobs:
 
   allowlist-code-scan-alerts:
     needs: [codeql-analysis, semgrep-analysis]
+    if: |
+      always() && 
+      (needs.codeql-analysis.result == 'skipped' || needs.codeql-analysis.result == 'success') &&
+      (needs.semgrep-analysis.result == 'skipped' || needs.semgrep-analysis.result == 'success')
     runs-on: ubuntu-24.04
     permissions:
       # required to read and update code scan alerts
