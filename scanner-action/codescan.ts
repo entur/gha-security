@@ -13,7 +13,8 @@ const getCodeScanningAlerts = async (repository: string, octokit: Octokit) => {
                 owner: "entur",
                 repo: repository,
                 ref,
-                per_page: 100
+                per_page: 100,
+                state: "open"
             },
             (response: any) => response.data
         )
@@ -45,6 +46,7 @@ const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert
     for (const [cweTag, cweTagValue] of cweTagMap.entries()) {
         const matchingAlerts = codeScanAlerts.filter(alert => alert?.rule?.tags?.includes(cweTag) && !dismissedAlerts.has(alert.number))
 
+        
         for (const matchingAlert of matchingAlerts) {
             await octokit.rest.codeScanning.updateAlert({
                 owner: "entur",

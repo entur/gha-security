@@ -358,13 +358,13 @@ jobs:
       - name: "Checkout repository"
         uses: actions/checkout@v4
 
-      - name: "Set up Gradle for Java/Kotlin"
-        if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
-        uses: gradle/actions/setup-gradle@v4
-        with: 
-          cache-read-only: true  # Force read only, even in main
-          add-job-summary: 'on-failure'
-          dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
+      #- name: "Set up Gradle for Java/Kotlin"
+      #  if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
+      #  uses: gradle/actions/setup-gradle@v4
+      #  with: 
+      #    cache-read-only: true  # Force read only, even in main
+      #    add-job-summary: 'on-failure'
+      #    dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
 
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
@@ -411,8 +411,7 @@ jobs:
     needs: [codeql-analysis, semgrep-analysis]
     if: |
       always() && 
-      (needs.codeql-analysis.result == 'skipped' || needs.codeql-analysis.result == 'success') &&
-      (needs.semgrep-analysis.result == 'skipped' || needs.semgrep-analysis.result == 'success')
+      (needs.codeql-analysis.result == 'success' || needs.semgrep-analysis.result == 'success')
     runs-on: ubuntu-24.04
     permissions:
       # required to read and update code scan alerts
