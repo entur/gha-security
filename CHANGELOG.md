@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.3.2](https://github.com/entur/gha-security/compare/v2.3.1...v2.3.2) (2025-05-14)
+
+
+### Bug Fixes
+
+* Re-enable step with nullglob shell option ([#90](https://github.com/entur/gha-security/issues/90)) ([6940f2f](https://github.com/entur/gha-security/commit/6940f2fff77f4f4a4c5937888fbfeadc45dd1ccf))
+
+## [2.3.1](https://github.com/entur/gha-security/compare/v2.3.0...v2.3.1) (2025-05-14)
+
+
+### Bug Fixes
+
+* Disable upload step to debug globbing ([#88](https://github.com/entur/gha-security/issues/88)) ([7df5cde](https://github.com/entur/gha-security/commit/7df5cdef6ca2606aa698835dab44a2058d55b0ee))
+
+## [2.3.0](https://github.com/entur/gha-security/compare/v2.2.1...v2.3.0) (2025-05-14)
+
+
+### Features
+
+* Add Syft to docker scan ([e8a0d23](https://github.com/entur/gha-security/commit/e8a0d23ec1bd3a2e42643ff1b745c748250c97ff))
+* automatic use-setup-gradle and SBOM generation ([#82](https://github.com/entur/gha-security/issues/82)) ([b065919](https://github.com/entur/gha-security/commit/b06591943b64a1744871678fb82249ec84c8ec01))
+* Exclude workdir from Syft to prevent duplicate detections in GitHub ([e8a0d23](https://github.com/entur/gha-security/commit/e8a0d23ec1bd3a2e42643ff1b745c748250c97ff))
+* Have Grype consume Syft spdx ([e8a0d23](https://github.com/entur/gha-security/commit/e8a0d23ec1bd3a2e42643ff1b745c748250c97ff))
+* Simplify steps by converting some python code to equivalent bash ([b065919](https://github.com/entur/gha-security/commit/b06591943b64a1744871678fb82249ec84c8ec01))
+* Submit dependency graph to Github on merge/push to default branch ([b065919](https://github.com/entur/gha-security/commit/b06591943b64a1744871678fb82249ec84c8ec01))
+
 ## [2.2.1](https://github.com/entur/gha-security/compare/v2.2.0...v2.2.1) (2025-02-07)
 
 
