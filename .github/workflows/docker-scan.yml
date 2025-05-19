@@ -33,7 +33,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Scanner Action
-        uses: entur/gha-security/scanner-action@feature/SIK-1485
+        uses: entur/gha-security/scanner-action
         with:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
