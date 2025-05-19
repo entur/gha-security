@@ -423,7 +423,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Scanner Action
-        uses: entur/gha-security/scanner-action
+        uses: entur/gha-security/scanner-action@main
         with:
           scanner: 'codescan'
           token: ${{ secrets.GITHUB_TOKEN }}
