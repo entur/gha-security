@@ -308,7 +308,7 @@ jobs:
           Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
           See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities) on how to use allowlist.' >> $GITHUB_STEP_SUMMARY
       - name: "Create comment on pull request if critical alerts are found"
-        if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CREATE_ALERT_COMMENT == 'True' && github.event.name == 'pull_request' }}
+        if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CREATE_ALERT_COMMENT == 'True' && github.event_name == 'pull_request' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
