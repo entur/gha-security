@@ -2,6 +2,7 @@ import { combineAllowlists } from "./allowlist.js";
 import type { ScannerConfig, AllowlistDockerScan } from "./typedefs.js";
 import * as fs from "node:fs";
 import * as yaml from "yaml";
+import * as core from "@actions/core";
 
 const generateGrypeConfig = (allowlist: AllowlistDockerScan[]) => {
 	const GRYPE_CONFIG_FILE = ".grype.yaml";
@@ -16,9 +17,9 @@ const generateGrypeConfig = (allowlist: AllowlistDockerScan[]) => {
 
 	const grypeConfig = { ignore: grypeIgnoreList };
 
-	console.log("   [5.1] Converting grype config to YAML");
+	core.info("   [5.1] Converting grype config to YAML");
 	const yamlGrype = yaml.stringify(grypeConfig);
-	console.log(`   [5.2] Writing YAML config to ${GRYPE_CONFIG_FILE}`);
+	core.info(`   [5.2] Writing YAML config to ${GRYPE_CONFIG_FILE}`);
 	fs.writeFileSync(".grype.yaml", yamlGrype);
 };
 
@@ -26,12 +27,12 @@ const dismissDockerScanAlerts = (scannerConfig: ScannerConfig, externalScannerCo
 	const allowlist = combineAllowlists(scannerConfig, externalScannerConfig);
 
 	if (allowlist.length > 0) {
-		console.log("[5] Suppress Grype alerts");
+		core.info("[5] Suppress Grype alerts");
 		generateGrypeConfig(allowlist as AllowlistDockerScan[]);
 		return;
 	}
 
-	console.log("[5] No allowlist found, skipping 'Suppress Grype alerts'");
+	core.info("[5] No allowlist found, skipping 'Suppress Grype alerts'");
 	return;
 };
 

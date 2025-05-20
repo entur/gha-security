@@ -6,7 +6,6 @@ import { getScannerConfig, getExternalScannerConfig, validateScannerConfig } fro
 import { dismissCodeScanAlerts } from "./codescan.js";
 import { dismissDockerScanAlerts } from "./dockerscan.js";
 import type { ScannerConfig } from "./typedefs.js";
-import { EndpointDefaults } from "@octokit/types/dist-types/EndpointDefaults.js";
 
 /**
  * Shared throttle configuration used for Octokit
@@ -14,17 +13,17 @@ import { EndpointDefaults } from "@octokit/types/dist-types/EndpointDefaults.js"
 const getOctokitTrottleConfig = () => {
 	const throttle: ThrottlingOptions = {
 		onRateLimit: (retryAfter, options, octokit, retryCount) => {
-			octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
+			core.warning(`Request quota exhausted for request ${options.method} ${options.url}`);
 
 			if (retryCount < 1) {
 				// only retries once
-				octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+				core.info(`Retrying after ${retryAfter} seconds!`);
 				return true;
 			}
 		},
 		onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
 			// does not retry, only logs a warning
-			octokit.log.warn(`SecondaryRateLimit detected for request ${options.method} ${options.url}`);
+			core.warning(`SecondaryRateLimit detected for request ${options.method} ${options.url}`);
 		},
 	};
 	return throttle;
@@ -62,11 +61,11 @@ const main = async () => {
 		const scannerConfig = getScannerConfig(SCANNER);
 
 		if (!scannerConfig) {
-			console.log(`[SKIP] failed to get yaml config for ${SCANNER}`);
+			core.info(`[SKIP] failed to get yaml config for ${SCANNER}`);
 			return;
 		}
 
-		console.log("[2] Validate scanner config");
+		core.info("[2] Validate scanner config");
 		if (!validateScannerConfig(scannerConfig, SCANNER)) {
 			core.setFailed(`Failed to validate ${SCANNER} config`);
 			return;
@@ -75,9 +74,9 @@ const main = async () => {
 		const externalScannerConfig: ScannerConfig | undefined = await getExternalScannerConfig(scannerConfig, SCANNER, octokitExternal);
 
 		if (!externalScannerConfig) {
-			console.log(`[4] No external config found, skipping 'Validate external ${SCANNER} config'`);
+			core.info(`[4] No external config found, skipping 'Validate external ${SCANNER} config'`);
 		} else {
-			console.log(`[4] Validate external ${SCANNER} config`);
+			core.info(`[4] Validate external ${SCANNER} config`);
 			if (!validateScannerConfig(externalScannerConfig, SCANNER)) {
 				core.setFailed(`Failed to validate external ${SCANNER} config`);
 				return;

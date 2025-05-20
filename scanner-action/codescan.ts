@@ -7,7 +7,7 @@ import type { Octokit } from "octokit";
 const getCodeScanningAlerts = async (repository: string, octokit: Octokit) => {
 	const ref = github.context.ref;
 	try {
-		console.log(`   [5.1] Fetch code scanning alerts from repo ${repository} with ref ${ref}`);
+		core.info(`   [5.1] Fetch code scanning alerts from repo ${repository} with ref ${ref}`);
 		const alerts = await octokit.paginate(
 			octokit.rest.codeScanning.listAlertsForRepo,
 			{
@@ -70,11 +70,11 @@ const dismissCodeScanAlerts = async (repository: string, scannerConfig: ScannerC
 	const allowlist = combineAllowlists(scannerConfig, externalScannerConfig) as AllowlistCodeScan[];
 
 	if (allowlist.length === 0) {
-		console.log("[5] No allowlist found, skipping 'Suppress codescan alerts' step");
+		core.info("[5] No allowlist found, skipping 'Suppress codescan alerts' step");
 		return;
 	}
 
-	console.log("[5] Suppress codescan alerts");
+	core.info("[5] Suppress codescan alerts");
 	const codeScanAlerts = await getCodeScanningAlerts(repository, octokit);
 
 	if (!codeScanAlerts) return;

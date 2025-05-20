@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as yaml from "yaml";
+import * as core from "@actions/core";
 import type { ScannerConfig } from "./typedefs.js";
 import type { Octokit } from "octokit";
 import { Ajv } from "ajv";
@@ -8,7 +9,12 @@ const parseScannerConfig = (config: string) => {
 	try {
 		return yaml.parse(config);
 	} catch (error) {
-		console.error(`[SKIP] Failed to parse yaml config - ${error}`);
+		if (error instanceof Error) {
+			core.warning(`Failed to parse yaml config: ${error.message}`);
+			return;
+		}
+
+		core.warning("Failed to parse yaml config");
 		return;
 	}
 };
@@ -30,7 +36,7 @@ const fetchExternalConfigContent = async (octokit: Octokit, repository: string, 
 	const fulfilledResult = results.filter((result) => result.status === "fulfilled");
 
 	if (fulfilledResult.length === 0) {
-		console.log(`   [SKIP] Found no external config from ${repository}`);
+		core.info(`   [SKIP] Found no external config from ${repository}`);
 		return;
 	}
 	const response = fulfilledResult[0].value;
@@ -46,41 +52,41 @@ const fetchExternalConfigContent = async (octokit: Octokit, repository: string, 
 
 const getExternalScannerConfig = async (scannerConfig: ScannerConfig, scanner: string, octokit: Octokit | undefined) => {
 	if (octokit === undefined) {
-		console.log("[3] No external repository token found, skipping 'Get external scanner config'");
+		core.info("[3] No external repository token found, skipping 'Get external scanner config'");
 		return;
 	}
 
-	console.log("[3] Get external scanner config");
+	core.info("[3] Get external scanner config");
 	const externalRepository = scannerConfig.spec?.inherit;
 
 	if (!externalRepository) {
 		return;
 	}
 
-	console.log(`   [3.1] Fetch external config from ${externalRepository}`);
+	core.info(`   [3.1] Fetch external config from ${externalRepository}`);
 	const content = await fetchExternalConfigContent(octokit, externalRepository, scanner);
 	if (!content) return;
 
-	console.log(`   [3.2] Parse external config from ${externalRepository}`);
+	core.info(`   [3.2] Parse external config from ${externalRepository}`);
 	return parseScannerConfig(content);
 };
 
 const getScannerConfig = (scanner: string) => {
-	console.log("[1] Get scanner config");
+	core.info("[1] Get scanner config");
 	const YAML_EXTENSIONS = ["yml", "yaml"];
 	const filePathList = YAML_EXTENSIONS.map((extension) => `.entur/security/${scanner}.${extension}`);
-	console.log(`   [1.1] Get config file from ${JSON.stringify(filePathList)}`);
+	core.info(`   [1.1] Get config file from ${JSON.stringify(filePathList)}`);
 	const existingPathList = filePathList.filter((path) => fs.existsSync(path));
 
 	if (existingPathList.length === 0) {
-		console.log("[SKIP] No file found");
+		core.info("[SKIP] No file found");
 		return null;
 	}
 
-	console.log(`   [1.2] Read config file ${existingPathList[0]}`);
+	core.info(`   [1.2] Read config file ${existingPathList[0]}`);
 	const fileContent = fs.readFileSync(existingPathList[0], "utf8");
 
-	console.log(`   [1.3] Parse config file ${existingPathList[0]}`);
+	core.info(`   [1.3] Parse config file ${existingPathList[0]}`);
 	return parseScannerConfig(fileContent);
 };
 
@@ -140,8 +146,8 @@ const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) =>
 	const isValid = validate(scannerConfig);
 
 	if (!isValid) {
-		console.log(`[VALIDATE] Failed to validate ${scannerConfig.kind}`);
-		console.log(JSON.stringify(validate.errors, null, 2));
+		core.info(`[VALIDATE] Failed to validate ${scannerConfig.kind}`);
+		core.info(JSON.stringify(validate.errors, null, 2));
 		return false;
 	}
 	return true;
