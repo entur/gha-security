@@ -125,13 +125,11 @@ spec:
 
 **Metadata:**
 
-All fields in `metadata` are REQUIRED.
-
 The `id` field MUST be a unique alphanumeric (no special characters) string identifing the allowlist. This can be anything, but when in doubt use your app ID.
 
-The `name` field under the metadata section SHOULD be the name of the project.
+The OPTIONAL `name` field under the metadata section SHOULD be the name of the project.
 
-The `owner` field MUST be whomever's responsible for the list, like team or a single developer.
+The OPTIONAL `owner` field MUST be whomever's responsible for the list, like team or a single developer.
 
 **Spec:**
 
