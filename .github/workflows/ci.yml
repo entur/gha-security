@@ -24,6 +24,7 @@ jobs:
               uses: biomejs/setup-biome@v2
               with:
                 version: latest
+                working-dir: ./scanner-action
             - name: Run Biome
               working-directory: ./scanner-action
-              run: biome ci src
+              run: biome ci
