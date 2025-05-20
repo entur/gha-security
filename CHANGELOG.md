@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.3](https://github.com/entur/gha-security/compare/v2.3.2...v2.3.3) (2025-05-20)
+
+
+### Bug Fixes
+
+* Update docker-scan critical alerts pull request comment check ([#93](https://github.com/entur/gha-security/issues/93)) ([64178c1](https://github.com/entur/gha-security/commit/64178c12379b458e7b976ce4a5e8e30ad4f3b12d))
+
 ## [2.3.2](https://github.com/entur/gha-security/compare/v2.3.1...v2.3.2) (2025-05-14)
 
 
