@@ -103,7 +103,7 @@ const getScannerConfigSchema = (scanner: string) => {
                     name: { type: "string" },
                     owner: { type: "string" }
                 },
-                required: ["id", "name", "owner"]
+                required: ["id"]
             },
             spec: {
                 type: ["object", "null"],

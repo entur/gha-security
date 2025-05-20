@@ -19,8 +19,8 @@ interface ScannerSpec {
 
 interface ScannerMetadata {
     id: string,
-    name: string,
-    owner: string
+    name?: string,
+    owner?: string
 }
 
 interface ScannerConfig {
