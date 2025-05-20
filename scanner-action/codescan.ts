@@ -1,8 +1,8 @@
-import * as github from "@actions/github";
 import * as core from "@actions/core";
-import type { ScannerConfig, PartialCodeScanningAlert, CweTagValues, AllowlistCodeScan, PartialCodeScanningAlertResponse } from "./typedefs.js";
-import { combineAllowlists } from "./allowlist.js";
+import * as github from "@actions/github";
 import type { Octokit } from "octokit";
+import { combineAllowlists } from "./allowlist.js";
+import type { AllowlistCodeScan, CweTagValues, PartialCodeScanningAlert, PartialCodeScanningAlertResponse, ScannerConfig } from "./typedefs.js";
 
 const getCodeScanningAlerts = async (repository: string, octokit: Octokit) => {
 	const ref = github.context.ref;

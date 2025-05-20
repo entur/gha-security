@@ -1,10 +1,10 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import { type ThrottlingOptions, throttling } from "@octokit/plugin-throttling";
 import { Octokit } from "octokit";
-import { throttling, type ThrottlingOptions } from "@octokit/plugin-throttling";
-import { getScannerConfig, getExternalScannerConfig, validateScannerConfig } from "./scanner-config.js";
 import { dismissCodeScanAlerts } from "./codescan.js";
 import { dismissDockerScanAlerts } from "./dockerscan.js";
+import { getExternalScannerConfig, getScannerConfig, validateScannerConfig } from "./scanner-config.js";
 import type { ScannerConfig } from "./typedefs.js";
 
 /**

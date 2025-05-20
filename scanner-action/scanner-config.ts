@@ -1,9 +1,9 @@
 import * as fs from "node:fs";
-import * as yaml from "yaml";
 import * as core from "@actions/core";
-import type { ScannerConfig } from "./typedefs.js";
-import type { Octokit } from "octokit";
 import { Ajv } from "ajv";
+import type { Octokit } from "octokit";
+import * as yaml from "yaml";
+import type { ScannerConfig } from "./typedefs.js";
 
 const parseScannerConfig = (config: string) => {
 	try {

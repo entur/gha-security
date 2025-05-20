@@ -1,8 +1,8 @@
-import { combineAllowlists } from "./allowlist.js";
-import type { ScannerConfig, AllowlistDockerScan } from "./typedefs.js";
 import * as fs from "node:fs";
-import * as yaml from "yaml";
 import * as core from "@actions/core";
+import * as yaml from "yaml";
+import { combineAllowlists } from "./allowlist.js";
+import type { AllowlistDockerScan, ScannerConfig } from "./typedefs.js";
 
 const generateGrypeConfig = (allowlist: AllowlistDockerScan[]) => {
 	const GRYPE_CONFIG_FILE = ".grype.yaml";
