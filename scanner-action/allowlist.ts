@@ -1,12 +1,10 @@
-
-import { ScannerConfig } from './typedefs.js'
-
+import type { ScannerConfig } from "./typedefs.js";
 
 const combineAllowlists = (scannerConfig: ScannerConfig, externalScannerConfig?: ScannerConfig) => {
-    const localAllowlist = scannerConfig.spec?.allowlist ?? []
-    const externalAllowlist = externalScannerConfig?.spec?.allowlist ?? []
+	const localAllowlist = scannerConfig.spec?.allowlist ?? [];
+	const externalAllowlist = externalScannerConfig?.spec?.allowlist ?? [];
 
-    return [...localAllowlist, ...externalAllowlist]
-}
+	return [...localAllowlist, ...externalAllowlist];
+};
 
-export { combineAllowlists }
+export { combineAllowlists };

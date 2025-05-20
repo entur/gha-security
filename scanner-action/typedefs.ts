@@ -1,49 +1,50 @@
-
 interface AllowlistBase {
-    comment: string,
-    reason: "false_positive" | "wont_fix" | "test"
+	comment: string;
+	reason: "false_positive" | "wont_fix" | "test";
 }
 
 interface AllowlistDockerScan extends AllowlistBase {
-    cve: string
+	cve: string;
 }
 
 interface AllowlistCodeScan extends AllowlistBase {
-    cwe: string
+	cwe: string;
 }
 
 interface ScannerSpec {
-    inherit?: string,
-    allowlist?: AllowlistCodeScan[] | AllowlistDockerScan[]
+	inherit?: string;
+	allowlist?: AllowlistCodeScan[] | AllowlistDockerScan[];
 }
 
 interface ScannerMetadata {
-    id: string,
-    name?: string,
-    owner?: string
+	id: string;
+	name?: string;
+	owner?: string;
 }
 
 interface ScannerConfig {
-    apiVersion: string,
-    kind: string,
-    metadata?: ScannerMetadata,
-    spec?: ScannerSpec
+	apiVersion: string;
+	kind: string;
+	metadata?: ScannerMetadata;
+	spec?: ScannerSpec;
 }
 
 interface PartialCodeScanningAlertRule {
-    tags?: string[] | null
+	tags?: string[] | null;
+}
+
+interface PartialCodeScanningAlertResponse {
+	data: PartialCodeScanningAlert[];
 }
 
 interface PartialCodeScanningAlert {
-    "number": number
-    rule: PartialCodeScanningAlertRule
+	number: number;
+	rule: PartialCodeScanningAlertRule;
 }
 
 interface CweTagValues {
-    comment: string;
-    reason: "false positive" | "won't fix" | "used in tests"
+	comment: string;
+	reason: "false positive" | "won't fix" | "used in tests";
 }
 
-
-export { CweTagValues, PartialCodeScanningAlert, ScannerConfig, AllowlistDockerScan, AllowlistCodeScan };
-
+export type { CweTagValues, PartialCodeScanningAlert, ScannerConfig, AllowlistDockerScan, AllowlistCodeScan, PartialCodeScanningAlertResponse };
