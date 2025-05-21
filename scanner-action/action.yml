@@ -1,0 +1,15 @@
+name: 'Scanner Action'
+description: ''
+inputs:
+  token:
+    description: "GitHub Token"
+    required: true
+  external-repository-token:
+    description: "External Repository GitHub Token"
+    required: false
+  scanner:
+    description: "Type of scanner"
+    required: true
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
