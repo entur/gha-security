@@ -9,8 +9,8 @@ const setNotificationOutputs = (scanner: ScannerConfig) => {
 
 	core.setOutput("notification_severity_threshold", severityThreshold);
 	core.setOutput("notification_slack_channel_id", slackChannelId);
-	core.setOutput("notification_slack_enabled", slackEnabled ? "true" : "false");
-	core.setOutput("notification_pull_request_enabled", pullRequestEnabled ? "true" : "false");
+	core.setOutput("notification_slack_enabled", slackEnabled ? "True" : "False");
+	core.setOutput("notification_pull_request_enabled", pullRequestEnabled ? "True" : "False");
 };
 
 export { setNotificationOutputs };
