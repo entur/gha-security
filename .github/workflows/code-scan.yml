@@ -516,7 +516,7 @@ jobs:
       - name: "Check alerts"
         id: check-alerts
         env:
-          SEVERITY_THRESHOLD: ${{ run-scanner-action.outputs.notification_severity_threshold }}
+          SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e # Do not exit if a command fails
@@ -541,7 +541,7 @@ jobs:
         id: notification-message
         if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' }}
         env:
-          SEVERITY_THRESHOLD: ${{ run-scanner-action.outputs.notification_severity_threshold }}
+          SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           {
@@ -556,7 +556,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: "Pull Request notification output"
-        if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' && run-scanner-action.outputs.notification_pull_request_enabled == 'True' }}
+        if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' && needs.run-scanner-action.outputs.notification_pull_request_enabled == 'True' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NOTIFICATION_MESSAGE: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
@@ -565,8 +565,8 @@ jobs:
   slack-notification:
     needs: [notifications]
     uses: entur/gha-slack/.github/workflows/post.yml@v2
-    if: ${{ notifications.outputs.alerts_found == 'True' && run-scanner-action.outputs.notification_slack_enabled == 'True' }}
+    if: ${{ needs.notifications.outputs.alerts_found == 'True' && needs.run-scanner-action.outputs.notification_slack_enabled == 'True' }}
     with:
-      channel_id: ${{ run-scanner-action.outputs.notification_slack_channel_id }}
-      message: ${{ notifications.outputs.notification_message }}
+      channel_id: ${{ needs.run-scanner-action.outputs.notification_slack_channel_id }}
+      message: ${{ needs.notifications.outputs.notification_message }}
       secrets: inherit

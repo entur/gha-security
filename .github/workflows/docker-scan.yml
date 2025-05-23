@@ -153,7 +153,7 @@ jobs:
     - name: "Check alerts"
       id: check-alerts
       env:
-        SEVERITY_THRESHOLD: ${{ docker-scan.outputs.notification_severity_threshold }}
+        SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GIT_REF: ${{ github.ref }}
       run: |
@@ -173,7 +173,7 @@ jobs:
       id: notification-message
       if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' }}
       env:
-        SEVERITY_THRESHOLD: ${{ docker-scan.outputs.notification_severity_threshold }}
+        SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
         {
@@ -188,7 +188,7 @@ jobs:
         } >> "$GITHUB_OUTPUT"
 
     - name: "Pull Request notification output"
-      if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' && docker-scan.outputs.notification_pull_request_enabled == 'True' }}
+      if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' && needs.docker-scan.outputs.notification_pull_request_enabled == 'True' }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NOTIFICATION_MESSAGE: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
@@ -196,8 +196,8 @@ jobs:
   slack-notification:
     needs: [notifications]
     uses: entur/gha-slack/.github/workflows/post.yml@v2
-    if: ${{ notifications.outputs.alerts_found == 'True' && docker-scan.outputs.notification_slack_enabled == 'True' }}
+    if: ${{ needs.notifications.outputs.alerts_found == 'True' && needs.docker-scan.outputs.notification_slack_enabled == 'True' }}
     with:
-      channel_id: ${{ docker-scan.outputs.notification_slack_channel_id }}
-      message: ${{ notifications.outputs.notification_message }}
+      channel_id: ${{ needs.docker-scan.outputs.notification_slack_channel_id }}
+      message: ${{ needs.notifications.outputs.notification_message }}
       secrets: inherit
