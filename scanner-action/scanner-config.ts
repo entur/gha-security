@@ -7,7 +7,7 @@ import type { ScannerConfig } from "./typedefs.js";
 
 const parseScannerConfig = (config: string) => {
 	try {
-		return yaml.parse(config);
+		return yaml.parse(config) as ScannerConfig;
 	} catch (error) {
 		if (error instanceof Error) {
 			core.warning(`Failed to parse yaml config: ${error.message}`);
@@ -115,6 +115,31 @@ const getScannerConfigSchema = (scanner: string) => {
 					inherit: {
 						type: "string",
 						pattern: "^[\\w.-]+$",
+					},
+					notifications: {
+						type: "object",
+						required: ["severityThreshold"],
+						properties: {
+							severityThreshold: { type: "string" },
+							outputs: {
+								type: "object",
+								properties: {
+									pullRequest: {
+										type: "object",
+										properties: {
+											enabled: { type: "boolean" },
+										},
+									},
+									slack: {
+										type: "object",
+										properties: {
+											enabled: { type: "boolean" },
+											channelId: { type: "string" },
+										},
+									},
+								},
+							},
+						},
 					},
 					allowlist: {
 						type: ["array", "null"],

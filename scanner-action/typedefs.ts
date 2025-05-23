@@ -11,9 +11,30 @@ interface AllowlistCodeScan extends AllowlistBase {
 	cwe: string;
 }
 
+interface Notification {
+	enabled: boolean;
+}
+
+interface SlackNotification extends Notification {
+	channelId: string;
+}
+
+interface PullRequestNotification extends Notification {}
+
+interface NotificationOutputs {
+	pullRequest?: PullRequestNotification;
+	slack?: SlackNotification;
+}
+
+interface Notifications {
+	severityThreshold: string;
+	outputs?: NotificationOutputs;
+}
+
 interface ScannerSpec {
 	inherit?: string;
 	allowlist?: AllowlistCodeScan[] | AllowlistDockerScan[];
+	notifications?: Notifications;
 }
 
 interface ScannerMetadata {
