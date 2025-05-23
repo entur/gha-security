@@ -200,4 +200,4 @@ jobs:
     with:
       channel_id: ${{ needs.docker-scan.outputs.notification_slack_channel_id }}
       message: ${{ needs.notifications.outputs.notification_message }}
-      secrets: inherit
+    secrets: inherit
