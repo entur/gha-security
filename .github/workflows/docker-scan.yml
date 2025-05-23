@@ -146,8 +146,8 @@ jobs:
   notifications:
     needs: [docker-scan]
     outputs:
-      alerts_found: steps.check-alerts.outputs.ALERTS_FOUND
-      notification_message: steps.notification-message.outputs.NOTIFICATION_MESSAGE
+      alerts_found: ${{ steps.check-alerts.outputs.ALERTS_FOUND }}
+      notification_message: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
     runs-on: ubuntu-24.04
     steps:
       - name: "Check alerts"

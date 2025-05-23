@@ -509,6 +509,9 @@ jobs:
   notifications:
     needs: [ run-scanner-action ]
     runs-on: ubuntu-24.04
+    outputs:
+      alerts_found: ${{ steps.check-alerts.outputs.ALERTS_FOUND }}
+      notification_message: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
     steps:
       - name: "Check alerts"
         id: check-alerts
