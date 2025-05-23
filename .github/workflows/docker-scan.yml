@@ -90,7 +90,7 @@ jobs:
       security-events: read # required to read code scan alerts
       issues: write # required for creating issues, and/or adding issue comments
       pull-requests: write # required for creating comments on pull requests
-    steps: 
+    steps:
       - name: "Get critical docker scan alerts"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -150,50 +150,49 @@ jobs:
       notification_message: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
     runs-on: ubuntu-24.04
     steps:
-      - name: "Check alerts"
-        id: check-alerts
-        env:
-          SEVERITY_THRESHOLD: ${{ docker-scan.outputs.notification_severity_threshold }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_REF: ${{ github.ref }}
-        run: |
-          alerts="$(gh api \
-            --method GET \
-            -H 'Accept: application/vnd.github+json' \
-            -H 'X-GitHub-Api-Version: 2022-11-28' \
-            /repos/${GITHUB_REPOSITORY}/code-scanning/alerts \
-            -F severity='$SEVERITY_THRESHOLD' -F state='open' -F ref='$GIT_REF' -F per_page='100' -F tool_name='Grype' --paginate)"
-          
-         if [ "$alerts" == "[]" ]; then
-            echo 'ALERTS_FOUND='False >> $GITHUB_OUTPUT
-          else
-            echo 'ALERTS_FOUND='True >> $GITHUB_OUTPUT
-          fi
-      - name: "Notification message"
-        id: notification-message
-        if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' }}
-        env:
-          SEVERITY_THRESHOLD: ${{ docker-scan.outputs.notification_severity_threshold }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          {
-            echo "NOTIFICATION_MESSAGE<<EOF"
-            echo "## Docker Image Scan - $SEVERITY_THRESHOLD Alert(s) found
-            ### Results
-            The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A$PR_NUMBER)
-            ### Allowlist
-            Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
-            See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities) on how to use allowlist."
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
+    - name: "Check alerts"
+      id: check-alerts
+      env:
+        SEVERITY_THRESHOLD: ${{ docker-scan.outputs.notification_severity_threshold }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GIT_REF: ${{ github.ref }}
+      run: |
+        alerts="$(gh api \
+          --method GET \
+          -H 'Accept: application/vnd.github+json' \
+          -H 'X-GitHub-Api-Version: 2022-11-28' \
+          /repos/${GITHUB_REPOSITORY}/code-scanning/alerts \
+          -F severity='$SEVERITY_THRESHOLD' -F state='open' -F ref='$GIT_REF' -F per_page='100' -F tool_name='Grype' --paginate)"
+        
+        if [ "$alerts" == "[]" ]; then
+          echo 'ALERTS_FOUND='False >> $GITHUB_OUTPUT
+        else
+          echo 'ALERTS_FOUND='True >> $GITHUB_OUTPUT
+        fi
+    - name: "Notification message"
+      id: notification-message
+      if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' }}
+      env:
+        SEVERITY_THRESHOLD: ${{ docker-scan.outputs.notification_severity_threshold }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        {
+          echo "NOTIFICATION_MESSAGE<<EOF"
+          echo "## Docker Image Scan - $SEVERITY_THRESHOLD Alert(s) found
+          ### Results
+          The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A$PR_NUMBER)
+          ### Allowlist
+          Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
+          See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities) on how to use allowlist."
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
 
-      - name: "Pull Request notification output"
-        if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' && docker-scan.outputs.notification_pull_request_enabled == 'True' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NOTIFICATION_MESSAGE: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
-        run: |
-          gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b $NOTIFICATION_MESSAGE
+    - name: "Pull Request notification output"
+      if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' && docker-scan.outputs.notification_pull_request_enabled == 'True' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NOTIFICATION_MESSAGE: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
+      run: "gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b $NOTIFICATION_MESSAGE"
   slack-notification:
     needs: [notifications]
     uses: entur/gha-slack/.github/workflows/post.yml@v2
