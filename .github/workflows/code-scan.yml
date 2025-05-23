@@ -559,10 +559,11 @@ jobs:
           NOTIFICATION_MESSAGE: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
         run: |
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b $NOTIFICATION_MESSAGE
-      - name: "Slack notification output"
-        uses: entur/gha-slack/.github/workflows/post.yml@v2
-        if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' && run-scanner-action.outputs.notification_slack_enabled == 'True' }}
-        with:
-          channel_id: ${{ run-scanner-action.outputs.notification_slack_channel_id }}
-          message: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
-          secrets: inherit
+  slack-notification:
+    needs: [notifications]
+    uses: entur/gha-slack/.github/workflows/post.yml@v2
+    if: ${{ notifications.outputs.alerts_found == 'True' && run-scanner-action.outputs.notification_slack_enabled == 'True' }}
+    with:
+      channel_id: ${{ run-scanner-action.outputs.notification_slack_channel_id }}
+      message: ${{ notifications.outputs.notification_message }}
+      secrets: inherit

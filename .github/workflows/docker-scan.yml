@@ -145,6 +145,9 @@ jobs:
           See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities) on how to use allowlist."
   notifications:
     needs: [docker-scan]
+    outputs:
+      alerts_found: steps.check-alerts.outputs.ALERTS_FOUND
+      notification_message: steps.notification-message.outputs.NOTIFICATION_MESSAGE
     runs-on: ubuntu-24.04
     steps:
       - name: "Check alerts"
@@ -191,10 +194,11 @@ jobs:
           NOTIFICATION_MESSAGE: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
         run: |
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b $NOTIFICATION_MESSAGE
-      - name: "Slack notification output"
-        uses: entur/gha-slack/.github/workflows/post.yml@v2
-        if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' && docker-scan.outputs.notification_slack_enabled == 'True' }}
-        with:
-          channel_id: ${{ docker-scan.outputs.notification_slack_channel_id }}
-          message: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
-          secrets: inherit
+  slack-notification:
+    needs: [notifications]
+    uses: entur/gha-slack/.github/workflows/post.yml@v2
+    if: ${{ notifications.outputs.alerts_found == 'True' && docker-scan.outputs.notification_slack_enabled == 'True' }}
+    with:
+      channel_id: ${{ docker-scan.outputs.notification_slack_channel_id }}
+      message: ${{ notifications.outputs.notification_message }}
+      secrets: inherit
