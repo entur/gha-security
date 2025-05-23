@@ -430,7 +430,7 @@ jobs:
       
       - name: Scanner Action
         id: scanner-action
-        uses: entur/gha-security/scanner-action@v2
+        uses: entur/gha-security/scanner-action@feature/SIK-1484
         with:
           scanner: 'codescan'
           token: ${{ secrets.GITHUB_TOKEN }}
