@@ -15,6 +15,19 @@ jobs:
         with: 
             workflow_file: .github/workflows/docker-scan.yml
             readme_file: README-docker-scan.md
+    build-check:
+      runs-on: ubuntu-24.04
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+        - name: Setup Biome
+          uses: biomejs/setup-biome@v2
+          with:
+            version: latest
+            working-dir: ./scanner-action
+        - name: Run Biome
+          working-directory: ./scanner-action
+          run: biome ci
     biome-check:
         runs-on: ubuntu-24.04
         steps:
