@@ -435,6 +435,11 @@ jobs:
           scanner: 'codescan'
           token: ${{ secrets.GITHUB_TOKEN }}
           external-repository-token: ${{ secrets.external_repository_token }}
+      - name: "Print Output"
+        id: output
+        env:
+          OUTPUT: ${{ toJson(steps.scanner-action.outputs) }}
+        run: echo "$OUTPUT"
 
   check-for-critical-alerts:
     runs-on: ubuntu-24.04

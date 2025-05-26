@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import type { ScannerConfig } from "./typedefs.js";
 
 const setNotificationOutputs = (scanner: ScannerConfig) => {
+	core.info(JSON.stringify(scanner.spec?.notifications));
 	const slackEnabled = scanner.spec?.notifications?.outputs?.slack?.enabled ?? false;
 	const slackChannelId = scanner.spec?.notifications?.outputs?.slack?.channelId ?? "";
 	const pullRequestEnabled = scanner.spec?.notifications?.outputs?.pullRequest?.enabled ?? true;
