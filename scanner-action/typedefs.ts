@@ -12,11 +12,11 @@ interface AllowlistCodeScan extends AllowlistBase {
 }
 
 interface Notification {
-	enabled: boolean;
+	enabled?: boolean;
 }
 
 interface SlackNotification extends Notification {
-	channelId: string;
+	channelId?: string;
 }
 
 interface PullRequestNotification extends Notification {}

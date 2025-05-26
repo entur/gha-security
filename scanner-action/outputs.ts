@@ -7,6 +7,11 @@ const setNotificationOutputs = (scanner: ScannerConfig) => {
 	const pullRequestEnabled = scanner.spec?.notifications?.outputs?.pullRequest?.enabled ?? true;
 	const severityThreshold = scanner.spec?.notifications?.severityThreshold ?? "high";
 
+	if (slackEnabled && slackChannelId === "") {
+		core.setFailed("Missing slackChannelId from config");
+		return;
+	}
+
 	core.setOutput("notification_severity_threshold", severityThreshold);
 	core.setOutput("notification_slack_channel_id", slackChannelId);
 	core.setOutput("notification_slack_enabled", slackEnabled ? "True" : "False");

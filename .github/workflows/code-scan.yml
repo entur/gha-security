@@ -512,7 +512,9 @@ jobs:
         See the [Code Scan documentation](https://github.com/entur/gha-security/blob/main/README-code-scan.md#allow-lists) on how to use allowlist."
         
   notifications:
-    if: ${{ always() }}
+    if: ${{ always() && (
+        needs.run-scanner-action.outputs.notification_slack_enabled == 'True' || 
+        needs.run-scanner-action.outputs.notification_pull_request_enabled == 'True') }}
     needs: [ run-scanner-action ]
     runs-on: ubuntu-24.04
     permissions:
@@ -573,6 +575,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "$NOTIFICATION_MESSAGE"
+
   slack-notification:
     needs: [notifications]
     uses: entur/gha-slack/.github/workflows/post.yml@v2
