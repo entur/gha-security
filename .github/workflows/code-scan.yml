@@ -515,6 +515,10 @@ jobs:
     if: ${{ always() }}
     needs: [ run-scanner-action ]
     runs-on: ubuntu-24.04
+    permissions:
+      security-events: read # required to read code scan alerts
+      issues: write # required for creating issues, and/or adding issue comments
+      pull-requests: write # required for creating comments on pull requests
     outputs:
       alerts_found: ${{ steps.check-alerts.outputs.ALERTS_FOUND }}
       notification_message: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
@@ -567,7 +571,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NOTIFICATION_MESSAGE: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
         run: |
-          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" -b "$NOTIFICATION_MESSAGE"
+          gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "$NOTIFICATION_MESSAGE"
   slack-notification:
     needs: [notifications]
     uses: entur/gha-slack/.github/workflows/post.yml@v2

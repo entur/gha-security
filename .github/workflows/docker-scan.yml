@@ -145,6 +145,10 @@ jobs:
           See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities) on how to use allowlist."
   notifications:
     needs: [docker-scan]
+    permissions:
+      security-events: read # required to read code scan alerts
+      issues: write # required for creating issues, and/or adding issue comments
+      pull-requests: write # required for creating comments on pull requests
     outputs:
       alerts_found: ${{ steps.check-alerts.outputs.ALERTS_FOUND }}
       notification_message: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
