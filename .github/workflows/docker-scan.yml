@@ -192,7 +192,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NOTIFICATION_MESSAGE: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
-      run: "gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b $NOTIFICATION_MESSAGE"
+      run: |
+          gh pr comment $PR_NUMBER --repo "$GITHUB_REPOSITORY" -b "$NOTIFICATION_MESSAGE"
   slack-notification:
     needs: [notifications]
     uses: entur/gha-slack/.github/workflows/post.yml@v2
