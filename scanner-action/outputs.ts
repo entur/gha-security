@@ -1,6 +1,12 @@
 import * as core from "@actions/core";
 import type { ScannerConfig } from "./typedefs.js";
 
+const getSeverityFilter = (severityThreshold: string) => {
+	const severityList = ["low", "medium", "high", "critical"];
+	const severityIndex = severityList.indexOf(severityThreshold);
+	return severityList.splice(severityIndex).join(",");
+};
+
 const setNotificationOutputs = (scanner: ScannerConfig) => {
 	const slackEnabled = scanner.spec?.notifications?.outputs?.slack?.enabled ?? false;
 	const slackChannelId = scanner.spec?.notifications?.outputs?.slack?.channelId ?? "";
@@ -13,6 +19,7 @@ const setNotificationOutputs = (scanner: ScannerConfig) => {
 	}
 
 	core.setOutput("notification_severity_threshold", severityThreshold);
+	core.setOutput("notification_severity_filter", getSeverityFilter(severityThreshold));
 	core.setOutput("notification_slack_channel_id", slackChannelId);
 	core.setOutput("notification_slack_enabled", slackEnabled ? "True" : "False");
 	core.setOutput("notification_pull_request_enabled", pullRequestEnabled ? "True" : "False");

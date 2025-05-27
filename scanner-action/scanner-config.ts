@@ -120,7 +120,7 @@ const getScannerConfigSchema = (scanner: string) => {
 						type: "object",
 						required: ["severityThreshold"],
 						properties: {
-							severityThreshold: { type: "string" },
+							severityThreshold: { enum: ["low", "medium", "high", "critical"] },
 							outputs: {
 								type: "object",
 								properties: {

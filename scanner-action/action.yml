@@ -11,14 +11,16 @@ inputs:
     description: "Type of scanner"
     required: true
 outputs:
+  notification_severity_filter:
+    description: "Severity filter for fetching alerts"
   notification_severity_threshold:
-    description: "Threshold for severity"
+    description: "Severity threshold for alert to be triggered"
   notification_slack_channel_id:
-    description: 'Channel ID for slack notifications'
+    description: 'Slack channel id for notifications'
   notification_slack_enabled:
-    description: 'Slack notification is enabled'
+    description: 'Enable Slack notifications'
   notification_pull_request_enabled:
-    description: 'pull request notification enabled'
+    description: 'Enable pull request notifications'
 runs:
   using: 'node20'
   main: 'dist/index.js'

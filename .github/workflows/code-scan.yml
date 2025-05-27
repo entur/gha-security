@@ -420,6 +420,7 @@ jobs:
       # required to checkout the repository
       contents: read
     outputs:
+      notification_severity_filter: ${{ steps.scanner-action.outputs.notification_severity_filter }}
       notification_severity_threshold: ${{ steps.scanner-action.outputs.notification_severity_threshold }}
       notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
       notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
@@ -435,11 +436,6 @@ jobs:
           scanner: 'codescan'
           token: ${{ secrets.GITHUB_TOKEN }}
           external-repository-token: ${{ secrets.external_repository_token }}
-      - name: "Print Output"
-        id: output
-        env:
-          OUTPUT: ${{ toJson(steps.scanner-action.outputs) }}
-        run: echo "$OUTPUT"
 
   check-for-critical-alerts:
     runs-on: ubuntu-24.04
@@ -527,7 +523,7 @@ jobs:
       - name: "Check alerts"
         id: check-alerts
         env:
-          SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
+          SEVERITY_FILTER: ${{ needs.run-scanner-action.outputs.notification_severity_filter }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e # Do not exit if a command fails
@@ -541,7 +537,10 @@ jobs:
             alerts_exit_code=$? # Save exit code from gh api command
           }
           
-          get_alerts "$SEVERITY_THRESHOLD" "CodeQL"
+          get_alerts "$SEVERITY_FILTER" "CodeQL"
+          
+          # Semgrep not supported yet.
+          # Waiting for SIK-1338
           
           if [ "$alerts" == "[]" ]; then
             echo 'ALERTS_FOUND='False >> $GITHUB_OUTPUT
@@ -557,7 +556,7 @@ jobs:
         run: |
           {
             echo "NOTIFICATION_MESSAGE<<EOF"
-            echo "## Code Scan - $SEVERITY_THRESHOLD Alert(s) found
+            echo "## Code Scan - Alert(s) found with severity threshold $SEVERITY_THRESHOLD 
           ### Results
           The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A$PR_NUMBER)
           ### Allowlist
@@ -588,7 +587,7 @@ jobs:
               "type": "header",
               "text": {
                 "type": "plain_text",
-                "text": "Code Scan - Alert(s) found with severity ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}"
+                "text": "Code Scan - Alert(s) found with severity threshold ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}"
               }
             },
             {
