@@ -519,7 +519,6 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       security-events: read # required to read code scan alerts
-      issues: write # required for creating issues, and/or adding issue comments
       pull-requests: write # required for creating comments on pull requests
     outputs:
       alerts_found: ${{ steps.check-alerts.outputs.ALERTS_FOUND }}
@@ -577,7 +576,7 @@ jobs:
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "$NOTIFICATION_MESSAGE"
 
   slack-notification:
-    needs: [notifications]
+    needs: [notifications, run-scanner-action]
     uses: entur/gha-slack/.github/workflows/post.yml@v2
     if: ${{ always() && needs.notifications.outputs.alerts_found == 'True' && needs.run-scanner-action.outputs.notification_slack_enabled == 'True' }}
     with:

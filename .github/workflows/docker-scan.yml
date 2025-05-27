@@ -88,7 +88,6 @@ jobs:
     needs: [docker-scan]
     permissions: 
       security-events: read # required to read code scan alerts
-      issues: write # required for creating issues, and/or adding issue comments
       pull-requests: write # required for creating comments on pull requests
     steps:
       - name: "Get critical docker scan alerts"
@@ -149,7 +148,6 @@ jobs:
     needs: [docker-scan]
     permissions:
       security-events: read # required to read code scan alerts
-      issues: write # required for creating issues, and/or adding issue comments
       pull-requests: write # required for creating comments on pull requests
     outputs:
       alerts_found: ${{ steps.check-alerts.outputs.ALERTS_FOUND }}
@@ -203,7 +201,7 @@ jobs:
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "$NOTIFICATION_MESSAGE"
 
   slack-notification:
-    needs: [notifications]
+    needs: [notifications, docker-scan]
     uses: entur/gha-slack/.github/workflows/post.yml@v2
     if: ${{ needs.notifications.outputs.alerts_found == 'True' && needs.docker-scan.outputs.notification_slack_enabled == 'True' }}
     with:
