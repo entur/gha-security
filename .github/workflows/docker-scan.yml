@@ -213,7 +213,7 @@ jobs:
               "type": "header",
               "text": {
                 "type": "plain_text",
-                "text": "Docker Image Scan - Alert(s) found with severity ${{ needs.docker-scan.outputs.notification_severity_threshold }}",
+                "text": "Docker Image Scan - Alert(s) found with severity ${{ needs.docker-scan.outputs.notification_severity_threshold }}"
               }
             },
             {

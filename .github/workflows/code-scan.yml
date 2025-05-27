@@ -588,7 +588,7 @@ jobs:
               "type": "header",
               "text": {
                 "type": "plain_text",
-                "text": "Code Scan - Alert(s) found with severity ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}",
+                "text": "Code Scan - Alert(s) found with severity ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}"
               }
             },
             {
