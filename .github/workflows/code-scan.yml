@@ -552,13 +552,14 @@ jobs:
         if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' }}
         env:
           SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
+          SEVERITY_FILTER: ${{ needs.run-scanner-action.outputs.notification_severity_filter }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           {
             echo "NOTIFICATION_MESSAGE<<EOF"
             echo "## Code Scan - Alert(s) found with severity threshold $SEVERITY_THRESHOLD 
           ### Results
-          The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A$PR_NUMBER)
+          The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A$PR_NUMBER+severity%3A$SEVERITY_FILTER)
           ### Allowlist
           Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
           See the [Code Scan documentation](https://github.com/entur/gha-security/blob/main/README-code-scan.md#allow-lists) on how to use allowlist."
@@ -594,7 +595,7 @@ jobs:
               "type": "section",
               "text": {
                 "type": "mrkdwn",
-                "text": "*Results*\n Scan results can be found <https://github.com/${{ github.repository }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }}|here>"
+                "text": "*Results*\n Scan results can be found <https://github.com/${{ github.repository }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }}+severity%3A${{ needs.run-scanner-action.outputs.notification_severity_filter }}|here>"
               }
             },
             {
