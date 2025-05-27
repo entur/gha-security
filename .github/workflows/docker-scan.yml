@@ -182,7 +182,7 @@ jobs:
       run: |
         {
           echo "NOTIFICATION_MESSAGE<<EOF"
-          echo "## Docker Image Scan - $SEVERITY_THRESHOLD Alert(s) found
+          echo "## Docker Image Scan - Alert(s) found with severity $SEVERITY_THRESHOLD
           ### Results
           The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A$PR_NUMBER)
           ### Allowlist
@@ -206,5 +206,30 @@ jobs:
     if: ${{ needs.notifications.outputs.alerts_found == 'True' && needs.docker-scan.outputs.notification_slack_enabled == 'True' }}
     with:
       channel_id: ${{ needs.docker-scan.outputs.notification_slack_channel_id }}
-      message: ${{ needs.notifications.outputs.notification_message }}
+      blocks: |
+        {
+          "blocks": [
+            {
+              "type": "header",
+              "text": {
+                "type": "plain_text",
+                "text": "Docker Image Scan - Alert(s) found with severity ${{ needs.docker-scan.outputs.notification_severity_threshold }}",
+              }
+            },
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "*Results*\n Scan results can be found <https://github.com/entur/${{ github.repository }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }}|here>"
+              }
+            },
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "*Allowlist*\n Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. \nSee the <https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities|Docker Scan documentation> on how to use allowlist."
+              }
+            }
+          ]
+        }
     secrets: inherit

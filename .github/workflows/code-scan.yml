@@ -581,5 +581,30 @@ jobs:
     if: ${{ always() && needs.notifications.outputs.alerts_found == 'True' && needs.run-scanner-action.outputs.notification_slack_enabled == 'True' }}
     with:
       channel_id: ${{ needs.run-scanner-action.outputs.notification_slack_channel_id }}
-      message: ${{ needs.notifications.outputs.notification_message }}
+      blocks: |
+        {
+          "blocks": [
+            {
+              "type": "header",
+              "text": {
+                "type": "plain_text",
+                "text": "Code Scan - Alert(s) found with severity ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}",
+              }
+            },
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "*Results*\n Scan results can be found <https://github.com/entur/${{ github.repository }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }}|here>"
+              }
+            },
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "*Allowlist*\n Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. \nSee the <https://github.com/entur/gha-security/blob/main/README-code-scan.md#allow-lists|Code Scan documentation> on how to use allowlist."
+              }
+            }
+          ]
+        }
     secrets: inherit
