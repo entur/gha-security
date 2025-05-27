@@ -220,7 +220,7 @@ jobs:
               "type": "section",
               "text": {
                 "type": "mrkdwn",
-                "text": "*Results*\n Scan results can be found <https://github.com/entur/${{ github.repository }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }}|here>"
+                "text": "*Results*\n Scan results can be found <https://github.com/${{ github.repository }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }}|here>"
               }
             },
             {
