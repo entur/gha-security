@@ -63,7 +63,7 @@ const getSeverityFilter = (severityThreshold: string) => {
 
 const formatOverview = (overview: { low: number; medium: number; high: number; critical: number }) => {
 	return Object.entries(overview)
-		.map((key, value) => `- ${key}: ${value}`)
+		.map(([key, value]) => `- ${key}: ${value}`)
 		.join("\n");
 };
 

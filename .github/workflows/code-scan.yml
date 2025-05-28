@@ -509,7 +509,7 @@ jobs:
         See the [Code Scan documentation](https://github.com/entur/gha-security/blob/main/README-code-scan.md#allow-lists) on how to use allowlist."
         
   notifications:
-    if: ${{ needs.run-scanner-action.outputs.notification_severity_alert_found == 'True' && (
+    if: ${{ (!failure() && !cancelled()) && needs.run-scanner-action.outputs.notification_severity_alert_found == 'True' && (
         needs.run-scanner-action.outputs.notification_slack_enabled == 'True' || 
         needs.run-scanner-action.outputs.notification_pull_request_enabled == 'True') }}
     needs: [ run-scanner-action ]
@@ -576,7 +576,7 @@ jobs:
   slack-notification:
     needs: [notifications, run-scanner-action]
     uses: entur/gha-slack/.github/workflows/post.yml@v2
-    if: ${{ needs.run-scanner-action.outputs.notification_slack_enabled == 'True' }}
+    if: ${{ (!failure() && !cancelled()) && needs.run-scanner-action.outputs.notification_slack_enabled == 'True' }}
     with:
       channel_id: ${{ needs.run-scanner-action.outputs.notification_slack_channel_id }}
       blocks: ${{ needs.notifications.outputs.slack_block }}
