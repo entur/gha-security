@@ -201,6 +201,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
           SEVERITY_OVERVIEW: ${{ needs.docker-scan.outputs.notification_severity_overview }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "## Docker Image Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD 
           ### Results
