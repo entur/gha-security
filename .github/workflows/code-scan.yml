@@ -562,6 +562,7 @@ jobs:
       - name: "Pull Request notification output"
         if: ${{ github.event_name == 'pull_request' && needs.run-scanner-action.outputs.notification_pull_request_enabled == 'True' }}
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
           SEVERITY_OVERVIEW: ${{ needs.run-scanner-action.outputs.notification_severity_overview }}
         run: |

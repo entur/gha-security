@@ -198,6 +198,7 @@ jobs:
       - name: "Send pull request notification"
         if: ${{ github.event_name == 'pull_request' && needs.docker-scan.outputs.notification_pull_request_enabled == 'True' }}
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
           SEVERITY_OVERVIEW: ${{ needs.docker-scan.outputs.notification_severity_overview }}
         run: |
