@@ -11,10 +11,14 @@ inputs:
     description: "Type of scanner"
     required: true
 outputs:
+  notification_severity_alert_found:
+    description: "Alert with specified threshold severity has been found"
+  notification_severity_overview:
+    description: "Overview of amount of alerts with severity found in ref"
   notification_severity_filter:
     description: "Severity filter for fetching alerts"
   notification_severity_threshold:
-    description: "Severity threshold for alert to be triggered"
+    description: "Alerts with threshold matching severity triggers notifications"
   notification_slack_channel_id:
     description: 'Slack channel id for notifications'
   notification_slack_enabled:

@@ -1,28 +1,31 @@
 import * as core from "@actions/core";
-import type { ScannerConfig } from "./typedefs.js";
+import { formatOverview, getSeverityFilter } from "./notifications.js";
+import type { Notifications } from "./typedefs.js";
 
-const getSeverityFilter = (severityThreshold: string) => {
-	const severityList = ["low", "medium", "high", "critical"];
-	const severityIndex = severityList.indexOf(severityThreshold);
-	return severityList.splice(severityIndex).join(",");
-};
+const outputBool = (value: boolean) => (value ? "True" : "False");
 
-const setNotificationOutputs = (scanner: ScannerConfig) => {
-	const slackEnabled = scanner.spec?.notifications?.outputs?.slack?.enabled ?? false;
-	const slackChannelId = scanner.spec?.notifications?.outputs?.slack?.channelId ?? "";
-	const pullRequestEnabled = scanner.spec?.notifications?.outputs?.pullRequest?.enabled ?? true;
-	const severityThreshold = scanner.spec?.notifications?.severityThreshold ?? "high";
+const setNotificationOutputs = (overview: { low: number; medium: number; high: number; critical: number }, notifications?: Notifications) => {
+	const slackEnabled = notifications?.outputs?.slack?.enabled ?? false;
+	const slackChannelId = notifications?.outputs?.slack?.channelId ?? "";
+
+	const pullRequestEnabled = notifications?.outputs?.pullRequest?.enabled ?? true;
+
+	const severityThreshold = notifications?.severityThreshold ?? "high";
+	const severityFilter = getSeverityFilter(severityThreshold);
+	const severityAlertFound = severityFilter.some((it) => overview[it] > 0);
 
 	if (slackEnabled && slackChannelId === "") {
 		core.setFailed("Missing slackChannelId from config");
 		return;
 	}
 
+	core.setOutput("notification_severity_alert_found", outputBool(severityAlertFound));
+	core.setOutput("notification_severity_overview", formatOverview(overview));
 	core.setOutput("notification_severity_threshold", severityThreshold);
-	core.setOutput("notification_severity_filter", getSeverityFilter(severityThreshold));
+	core.setOutput("notification_severity_filter", severityFilter.join(","));
 	core.setOutput("notification_slack_channel_id", slackChannelId);
-	core.setOutput("notification_slack_enabled", slackEnabled ? "True" : "False");
-	core.setOutput("notification_pull_request_enabled", pullRequestEnabled ? "True" : "False");
+	core.setOutput("notification_slack_enabled", outputBool(slackEnabled));
+	core.setOutput("notification_pull_request_enabled", outputBool(pullRequestEnabled));
 };
 
 export { setNotificationOutputs };

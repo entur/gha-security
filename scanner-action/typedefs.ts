@@ -50,8 +50,11 @@ interface ScannerConfig {
 	spec?: ScannerSpec;
 }
 
+type SeverityLevel = "low" | "medium" | "high" | "critical";
+
 interface PartialCodeScanningAlertRule {
 	tags?: string[] | null;
+	security_severity_level?: SeverityLevel | null | undefined;
 }
 
 interface PartialCodeScanningAlertResponse {
@@ -68,4 +71,19 @@ interface CweTagValues {
 	reason: "false positive" | "won't fix" | "used in tests";
 }
 
-export type { CweTagValues, PartialCodeScanningAlert, ScannerConfig, AllowlistDockerScan, AllowlistCodeScan, PartialCodeScanningAlertResponse };
+interface GithubRepo {
+	owner: string;
+	repo: string;
+}
+
+export type {
+	CweTagValues,
+	PartialCodeScanningAlert,
+	ScannerConfig,
+	AllowlistDockerScan,
+	AllowlistCodeScan,
+	PartialCodeScanningAlertResponse,
+	SeverityLevel,
+	GithubRepo,
+	Notifications,
+};

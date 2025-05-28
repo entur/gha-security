@@ -4,6 +4,7 @@ import { type ThrottlingOptions, throttling } from "@octokit/plugin-throttling";
 import { Octokit } from "octokit";
 import { dismissCodeScanAlerts } from "./codescan.js";
 import { dismissDockerScanAlerts } from "./dockerscan.js";
+import { getAlertsSeverityOverview } from "./notifications.js";
 import { setNotificationOutputs } from "./outputs.js";
 import { getExternalScannerConfig, getScannerConfig, validateScannerConfig } from "./scanner-config.js";
 import type { ScannerConfig } from "./typedefs.js";
@@ -30,11 +31,48 @@ const getOctokitTrottleConfig = () => {
 	return throttle;
 };
 
+const runNotifications = async (octokitAction: Octokit, scannerType: string, scannerConfig?: ScannerConfig | null) => {
+	const overview = await getAlertsSeverityOverview(github.context.repo, octokitAction, scannerType);
+	if (overview) setNotificationOutputs(overview, scannerConfig?.spec?.notifications);
+};
+
+const runAllowlist = async (scannerConfig: ScannerConfig, scannerType: string, octokitAction: Octokit, octokitExternal?: Octokit) => {
+	core.info("[2] Validate scanner config");
+	if (!validateScannerConfig(scannerConfig, scannerType)) {
+		core.setFailed(`Failed to validate ${scannerType} config`);
+		return;
+	}
+
+	const externalScannerConfig: ScannerConfig | undefined = await getExternalScannerConfig(scannerConfig, scannerType, octokitExternal);
+
+	if (!externalScannerConfig) {
+		core.info(`[4] No external config found, skipping 'Validate external ${scannerType} config'`);
+	} else {
+		core.info(`[4] Validate external ${scannerType} config`);
+		if (!validateScannerConfig(externalScannerConfig, scannerType)) {
+			core.setFailed(`Failed to validate external ${scannerType} config`);
+			return;
+		}
+	}
+
+	switch (scannerType) {
+		case "dockerscan":
+			dismissDockerScanAlerts(scannerConfig, externalScannerConfig);
+			break;
+
+		case "codescan":
+			await dismissCodeScanAlerts(github.context.repo, scannerConfig, octokitAction, externalScannerConfig);
+			break;
+
+		default:
+			break;
+	}
+};
+
 const main = async () => {
 	try {
 		const TOKEN = core.getInput("token");
-		const REPOSITORY = github.context.repo.repo;
-		const SCANNER = core.getInput("scanner");
+		const SCANNER_TYPE = core.getInput("scanner");
 		const EXTERNAL_REPOSITORY_TOKEN = core.getInput("external-repository-token");
 		const VALID_SCANNERS = ["dockerscan", "codescan"];
 
@@ -54,49 +92,21 @@ const main = async () => {
 			throttle: getOctokitTrottleConfig(),
 		});
 
-		if (!VALID_SCANNERS.includes(SCANNER)) {
-			core.setFailed(`Invalid scanner defined ${SCANNER}`);
+		if (!VALID_SCANNERS.includes(SCANNER_TYPE)) {
+			core.setFailed(`Invalid scanner defined ${SCANNER_TYPE}`);
 			return;
 		}
 
-		const scannerConfig = getScannerConfig(SCANNER);
+		const scannerConfig = getScannerConfig(SCANNER_TYPE);
+
+		core.info("Starting notifications job");
+		await runNotifications(octokitAction, SCANNER_TYPE, scannerConfig);
 
 		if (!scannerConfig) {
-			core.info(`[SKIP] failed to get yaml config for ${SCANNER}`);
-			return;
-		}
-
-		core.info("[2] Validate scanner config");
-		if (!validateScannerConfig(scannerConfig, SCANNER)) {
-			core.setFailed(`Failed to validate ${SCANNER} config`);
-			return;
-		}
-
-		const externalScannerConfig: ScannerConfig | undefined = await getExternalScannerConfig(scannerConfig, SCANNER, octokitExternal);
-
-		if (!externalScannerConfig) {
-			core.info(`[4] No external config found, skipping 'Validate external ${SCANNER} config'`);
+			core.info(`Failed to get yaml config for ${SCANNER_TYPE}`);
 		} else {
-			core.info(`[4] Validate external ${SCANNER} config`);
-			if (!validateScannerConfig(externalScannerConfig, SCANNER)) {
-				core.setFailed(`Failed to validate external ${SCANNER} config`);
-				return;
-			}
-		}
-
-		setNotificationOutputs(scannerConfig);
-
-		switch (SCANNER) {
-			case "dockerscan":
-				dismissDockerScanAlerts(scannerConfig, externalScannerConfig);
-				break;
-
-			case "codescan":
-				await dismissCodeScanAlerts(REPOSITORY, scannerConfig, octokitAction, externalScannerConfig);
-				break;
-
-			default:
-				break;
+			core.info("Starting allowlist job");
+			await runAllowlist(scannerConfig, SCANNER_TYPE, octokitAction, octokitExternal);
 		}
 	} catch (error) {
 		if (error instanceof Error) {

@@ -2,24 +2,23 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import type { Octokit } from "octokit";
 import { combineAllowlists } from "./allowlist.js";
-import type { AllowlistCodeScan, CweTagValues, PartialCodeScanningAlert, PartialCodeScanningAlertResponse, ScannerConfig } from "./typedefs.js";
+import type { AllowlistCodeScan, CweTagValues, GithubRepo, PartialCodeScanningAlert, PartialCodeScanningAlertResponse, ScannerConfig } from "./typedefs.js";
 
-const getCodeScanningAlerts = async (repository: string, octokit: Octokit) => {
+const getCodeScanningAlerts = async (githubRepo: GithubRepo, octokit: Octokit) => {
 	const ref = github.context.ref;
 	try {
-		core.info(`   [5.1] Fetch code scanning alerts from repo ${repository} with ref ${ref}`);
-		const alerts = await octokit.paginate(
+		core.info(`   [5.1] Fetch code scanning alerts from repo ${githubRepo.owner}/${githubRepo.repo} with ref ${ref}`);
+		return await octokit.paginate(
 			octokit.rest.codeScanning.listAlertsForRepo,
 			{
-				owner: "entur",
-				repo: repository,
+				owner: githubRepo.owner,
+				repo: githubRepo.repo,
 				ref,
 				per_page: 100,
 				state: "open",
 			},
 			(response: PartialCodeScanningAlertResponse) => response.data,
 		);
-		return alerts;
 	} catch (error) {
 		if (error instanceof Error) {
 			core.setFailed(`Failed to fetch alerts: ${error.message}`);
@@ -47,15 +46,15 @@ const convertToCweTagMap = (allowlist: AllowlistCodeScan[]) => {
 	return cweMap;
 };
 
-const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert[], octokit: Octokit, cweTagMap: Map<string, CweTagValues>, repository: string) => {
+const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert[], octokit: Octokit, cweTagMap: Map<string, CweTagValues>, githubRepo: GithubRepo) => {
 	const dismissedAlerts = new Set();
 	for (const [cweTag, cweTagValue] of cweTagMap.entries()) {
 		const matchingAlerts = codeScanAlerts.filter((alert) => alert?.rule?.tags?.includes(cweTag) && !dismissedAlerts.has(alert.number));
 
 		for (const matchingAlert of matchingAlerts) {
 			await octokit.rest.codeScanning.updateAlert({
-				owner: "entur",
-				repo: repository,
+				owner: githubRepo.owner,
+				repo: githubRepo.repo,
 				alert_number: matchingAlert.number,
 				state: "dismissed",
 				dismissed_comment: cweTagValue.comment,
@@ -66,7 +65,7 @@ const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert
 	}
 };
 
-const dismissCodeScanAlerts = async (repository: string, scannerConfig: ScannerConfig, octokit: Octokit, externalScannerConfig?: ScannerConfig) => {
+const dismissCodeScanAlerts = async (githubRepo: GithubRepo, scannerConfig: ScannerConfig, octokit: Octokit, externalScannerConfig?: ScannerConfig) => {
 	const allowlist = combineAllowlists(scannerConfig, externalScannerConfig) as AllowlistCodeScan[];
 
 	if (allowlist.length === 0) {
@@ -75,13 +74,13 @@ const dismissCodeScanAlerts = async (repository: string, scannerConfig: ScannerC
 	}
 
 	core.info("[5] Suppress codescan alerts");
-	const codeScanAlerts = await getCodeScanningAlerts(repository, octokit);
+	const codeScanAlerts = await getCodeScanningAlerts(githubRepo, octokit);
 
 	if (!codeScanAlerts) return;
 
 	const cweMap = convertToCweTagMap(allowlist);
 
-	await updateCodeScanningAlerts(codeScanAlerts, octokit, cweMap, repository);
+	await updateCodeScanningAlerts(codeScanAlerts, octokit, cweMap, githubRepo);
 };
 
 export { dismissCodeScanAlerts };

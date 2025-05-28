@@ -410,9 +410,9 @@ jobs:
 
   run-scanner-action:
     needs: [codeql-analysis, semgrep-analysis]
-    if: |
-      always() && 
-      (needs.codeql-analysis.result == 'success' || needs.semgrep-analysis.result == 'success')
+    # If needs jobs have not failed or been cancelled,
+    # and if at least one of the needs has successful run
+    if: ${{ (!failure() && !cancelled()) && (needs.codeql-analysis.result == 'success' || needs.semgrep-analysis.result == 'success') }}
     runs-on: ubuntu-24.04
     permissions:
       # required to read and update code scan alerts
@@ -420,7 +420,8 @@ jobs:
       # required to checkout the repository
       contents: read
     outputs:
-      notification_severity_filter: ${{ steps.scanner-action.outputs.notification_severity_filter }}
+      notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
+      notification_severity_overview: ${{ steps.scanner-action.outputs.notification_severity_overview }}
       notification_severity_threshold: ${{ steps.scanner-action.outputs.notification_severity_threshold }}
       notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
       notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
@@ -508,7 +509,7 @@ jobs:
         See the [Code Scan documentation](https://github.com/entur/gha-security/blob/main/README-code-scan.md#allow-lists) on how to use allowlist."
         
   notifications:
-    if: ${{ always() && (
+    if: ${{ needs.run-scanner-action.outputs.notification_severity_alert_found == 'True' && (
         needs.run-scanner-action.outputs.notification_slack_enabled == 'True' || 
         needs.run-scanner-action.outputs.notification_pull_request_enabled == 'True') }}
     needs: [ run-scanner-action ]
@@ -517,94 +518,66 @@ jobs:
       security-events: read # required to read code scan alerts
       pull-requests: write # required for creating comments on pull requests
     outputs:
-      alerts_found: ${{ steps.check-alerts.outputs.ALERTS_FOUND }}
-      notification_message: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
+      slack_block: ${{ steps.slack-block.outputs.SLACK_BLOCK }}
     steps:
-      - name: "Check alerts"
-        id: check-alerts
-        env:
-          SEVERITY_FILTER: ${{ needs.run-scanner-action.outputs.notification_severity_filter }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set +e # Do not exit if a command fails
-          get_alerts () {
-            alerts="$(gh api \
-            --method GET \
-            -H 'Accept: application/vnd.github+json' \
-            -H 'X-GitHub-Api-Version: 2022-11-28' \
-            /repos/${GITHUB_REPOSITORY}/code-scanning/alerts \
-            -F severity="$1" -F state='open' -F ref='${{ github.ref }}' -F per_page='100' -F tool_name="$2" --paginate)"
-            alerts_exit_code=$? # Save exit code from gh api command
-          }
-          
-          get_alerts "$SEVERITY_FILTER" "CodeQL"
-          
-          # Semgrep not supported yet.
-          # Waiting for SIK-1338
-          
-          if [ "$alerts" == "[]" ]; then
-            echo 'ALERTS_FOUND='False >> $GITHUB_OUTPUT
-          else
-            echo 'ALERTS_FOUND='True >> $GITHUB_OUTPUT
-          fi
-      - name: "Notification message"
-        id: notification-message
-        if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' }}
+      - name: "Create Slack block"
+        id: slack-block
+        if: ${{ needs.run-scanner-action.outputs.notification_slack_enabled == 'True' }}
         env:
           SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
-          SEVERITY_FILTER: ${{ needs.run-scanner-action.outputs.notification_severity_filter }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SEVERITY_OVERVIEW: ${{ needs.run-scanner-action.outputs.notification_severity_overview }}
         run: |
           {
-            echo "NOTIFICATION_MESSAGE<<EOF"
-            echo "## Code Scan - Alert(s) found with severity threshold $SEVERITY_THRESHOLD 
-          ### Results
-          The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A$PR_NUMBER+severity%3A$SEVERITY_FILTER)
-          ### Allowlist
-          Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
-          See the [Code Scan documentation](https://github.com/entur/gha-security/blob/main/README-code-scan.md#allow-lists) on how to use allowlist."
+            echo "SLACK_BLOCK<<EOF"
+            echo "
+            {
+              \"blocks\":
+                [
+                  {
+                    \"type\": \"header\",
+                    \"text\": {
+                      \"type\": \"plain_text\",
+                      \"text\": \"Code Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD\"
+                    }
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"text\": {
+                      \"type\": \"mrkdwn\",
+                      \"text\": \"*Results* $SEVERITY_OVERVIEW \n Code Scan Report can be found <https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF|here>\"
+                    }
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"text\": {
+                      \"type\": \"mrkdwn\",
+                      \"text\": \"*Allowlist*\n Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. \nSee the <https://github.com/entur/gha-security/blob/main/README-code-scan.md#allow-lists|Code Scan documentation> on how to use allowlist.\"
+                    }
+                  }
+                ]
+            }"
             echo EOF
           } >> "$GITHUB_OUTPUT"
 
       - name: "Pull Request notification output"
-        if: ${{ steps.check-alerts.outputs.ALERTS_FOUND == 'True' && needs.run-scanner-action.outputs.notification_pull_request_enabled == 'True' }}
+        if: ${{ github.event_name == 'pull_request' && needs.run-scanner-action.outputs.notification_pull_request_enabled == 'True' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NOTIFICATION_MESSAGE: ${{ steps.notification-message.outputs.NOTIFICATION_MESSAGE }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
+          SEVERITY_OVERVIEW: ${{ needs.run-scanner-action.outputs.notification_severity_overview }}
         run: |
-          gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "$NOTIFICATION_MESSAGE"
+          gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "## Code Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD 
+          ### Results
+          $SEVERITY_OVERVIEW
+          Code Scan Report can be found [here](https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF)
+          ### Allowlist
+          Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
+          See the [Code Scan documentation](https://github.com/entur/gha-security/blob/main/README-code-scan.md#allow-lists) on how to use allowlist."
 
   slack-notification:
     needs: [notifications, run-scanner-action]
     uses: entur/gha-slack/.github/workflows/post.yml@v2
-    if: ${{ always() && needs.notifications.outputs.alerts_found == 'True' && needs.run-scanner-action.outputs.notification_slack_enabled == 'True' }}
+    if: ${{ needs.run-scanner-action.outputs.notification_slack_enabled == 'True' }}
     with:
       channel_id: ${{ needs.run-scanner-action.outputs.notification_slack_channel_id }}
-      blocks: |
-        {
-          "blocks": [
-            {
-              "type": "header",
-              "text": {
-                "type": "plain_text",
-                "text": "Code Scan - Alert(s) found with severity threshold ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}"
-              }
-            },
-            {
-              "type": "section",
-              "text": {
-                "type": "mrkdwn",
-                "text": "*Results*\n Scan results can be found <https://github.com/${{ github.repository }}/security/code-scanning?query=is%3Aopen+pr%3A${{ github.event.pull_request.number }}+severity%3A${{ needs.run-scanner-action.outputs.notification_severity_filter }}|here>"
-              }
-            },
-            {
-              "type": "section",
-              "text": {
-                "type": "mrkdwn",
-                "text": "*Allowlist*\n Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. \nSee the <https://github.com/entur/gha-security/blob/main/README-code-scan.md#allow-lists|Code Scan documentation> on how to use allowlist."
-              }
-            }
-          ]
-        }
+      blocks: ${{ needs.notifications.outputs.slack_block }}
     secrets: inherit
