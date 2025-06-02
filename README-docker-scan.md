@@ -166,6 +166,66 @@ spec:
     comment: "This alert is a false positive"
     reason: "false_positive"
 ```
+
+## Notifications
+
+
+
 ## Github Rulesets
 
 See [Security rulesets](README-security-rulesets.md) for how to setup code scanning merge protection ruleset.
+
+## Config Schema
+```yaml
+apiVersion: entur.io/securitytools/v1
+kind: DockerScanConfig
+metadata:
+  id: {unique identifier}
+  name: {human readable name}
+  owner: {responsible team or developer}
+spec:
+  inherit: {repository where the external allowlist file is placed}
+  allowlist:
+      - cve: {cve-id}
+        comment: {comment explaining why the vulnerability is dismissed}
+        reason: {reason for dismissing the vulnerability}
+  notifications:
+    severityThreshold: {threshold for notifications. possible values: low, medium, high, or critical}
+    outputs:
+      slack:
+          enabled: {true/false}
+          channelId: {clack channel id with github action bot}
+      pullRequest:
+           enabled: {true/false}
+```
+
+**Metadata:**
+
+The `id` field MUST be a unique alphanumeric (no special characters) string identifing the allowlist. This can be anything, but when in doubt use your app ID.
+
+The OPTIONAL `name` field under the metadata section SHOULD be the name of the project.
+
+The OPTIONAL `owner` field MUST be whomever's responsible for the list, like team or a single developer.
+
+**Spec:**
+
+The OPTIONAL `inherit` field MUST be the name of containing repository where containing a valid allow list you wish to inherit from. Only used when using an external allowlist.
+
+The OPTIONAL `allowlist` field MUST be a list of vulnerabilities that you want to dismiss/allow. For each vulnerability you want to dismiss, you MUST add a new item to the list. Each item is an object and MUST contain the following fields: `cwe`, `comment`, and `reason`.
+- The `cve` field corresponds to the CWE-ID of the vulnerability you want to dismiss,
+- The `comment` field is a comment explaining why the vulnerability is dismissed.
+- The `reason` field MUST be one of the following types:
+   - `false_positive` This alert is not valid
+   - `wont_fix` This alert is not relevant
+   - `test` This alert is not in production code
+
+The OPTIONAL `notifications` field
+- The `severityThreshold` field corresponds to alert severity threshold for when notifications are sent out,
+- The `comment` field is a comment explaining why the vulnerability is dismissed.
+- The `severityThreshold` field MUST be one of the following types:
+   - `low`
+   - `medium` 
+   - `high`
+   - `critical`
+
+*Note:* `inherit` and `allowlist` are NOT mutually exclusive. Any items in `allowlist` takes presedence over an inherited allowlist.

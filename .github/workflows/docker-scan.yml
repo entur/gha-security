@@ -15,6 +15,7 @@ on:
 env:
   GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT: ${{ inputs.image_artifact }}
   GITHUB_REPOSITORY: ${{ github.repository }}
+  GIT_REF: ${{ github.ref }}
 
 jobs:
   docker-scan:
