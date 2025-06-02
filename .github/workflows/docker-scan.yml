@@ -154,7 +154,7 @@ jobs:
           Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
           See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities) on how to use allowlist."
   notifications:
-    if: ${{ needs.docker-scan.outputs.outputs.notification_severity_alert_found == 'True' && (needs.docker-scan.outputs.notification_slack_enabled == 'True' || needs.docker-scan.outputs.notification_pull_request_enabled == 'True') }}
+    if: ${{ needs.docker-scan.outputs.notification_severity_alert_found == 'True' && (needs.docker-scan.outputs.notification_slack_enabled == 'True' || needs.docker-scan.outputs.notification_pull_request_enabled == 'True') }}
     needs: [ docker-scan ]
     runs-on: ubuntu-24.04
     permissions:
