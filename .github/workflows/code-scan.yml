@@ -161,6 +161,8 @@ jobs:
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: "Find Gradle Build"
         id: find-gradle-build
@@ -294,6 +296,8 @@ jobs:
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: "Set up Semgrep"
         run: |
@@ -358,6 +362,8 @@ jobs:
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: "Set up Gradle for Java/Kotlin"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
@@ -432,6 +438,8 @@ jobs:
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       
       - name: Scanner Action
         id: scanner-action
