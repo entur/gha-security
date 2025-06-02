@@ -421,7 +421,7 @@ jobs:
       contents: read
     outputs:
       notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
-      notification_severity_overview: ${{ steps.scanner-action.outputs.notification_severity_overview }}
+      notification_severity_overview: ${{ toJson(steps.scanner-action.outputs.notification_severity_overview) }}
       notification_severity_threshold: ${{ steps.scanner-action.outputs.notification_severity_threshold }}
       notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
       notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
@@ -525,7 +525,10 @@ jobs:
         if: ${{ needs.run-scanner-action.outputs.notification_slack_enabled == 'True' }}
         env:
           SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
-          SEVERITY_OVERVIEW: ${{ needs.run-scanner-action.outputs.notification_severity_overview }}
+          LOW_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.low }}
+          MEDIUM_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.medium }}
+          HIGH_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.high }}
+          CRITICAL_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.critical }}
         run: |
           {
             echo "SLACK_BLOCK<<EOF"
@@ -544,7 +547,7 @@ jobs:
                     \"type\": \"section\",
                     \"text\": {
                       \"type\": \"mrkdwn\",
-                      \"text\": \"*Results* $SEVERITY_OVERVIEW \n Code Scan Report can be found <https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF|here>\"
+                      \"text\": \"*Results*\n- critical: $CRITICAL_SEVERITY_COUNT \n- high: $HIGH_SEVERITY_COUNT \n- medium: $MEDIUM_SEVERITY_COUNT \n- low: $LOW_SEVERITY_COUNT \n Code Scan Report can be found <https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF|here>\"
                     }
                   },
                   {
@@ -569,7 +572,10 @@ jobs:
         run: |
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "## Code Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD 
           ### Results
-          $SEVERITY_OVERVIEW
+          - critical: $CRITICAL_SEVERITY_COUNT  
+          - high: $HIGH_SEVERITY_COUNT  
+          - medium: $MEDIUM_SEVERITY_COUNT  
+          - low: $LOW_SEVERITY_COUNT  
           Code Scan Report can be found [here](https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF)
           ### Allowlist
           Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.

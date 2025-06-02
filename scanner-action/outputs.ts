@@ -20,7 +20,7 @@ const setNotificationOutputs = (overview: { low: number; medium: number; high: n
 	}
 
 	core.setOutput("notification_severity_alert_found", outputBool(severityAlertFound));
-	core.setOutput("notification_severity_overview", formatOverview(overview));
+	core.setOutput("notification_severity_overview", overview);
 	core.setOutput("notification_severity_threshold", severityThreshold);
 	core.setOutput("notification_severity_filter", severityFilter.join(","));
 	core.setOutput("notification_slack_channel_id", slackChannelId);
