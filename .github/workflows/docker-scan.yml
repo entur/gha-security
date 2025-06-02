@@ -32,6 +32,11 @@ jobs:
       - name: "Checkout repository"
         uses: actions/checkout@v4
 
+      - name: "Download the image artifact"
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT }}
+
       - name: Scanner Action
         uses: entur/gha-security/scanner-action@v2
         with:
