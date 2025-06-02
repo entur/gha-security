@@ -421,7 +421,10 @@ jobs:
       contents: read
     outputs:
       notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
-      notification_severity_overview: ${{ steps.scanner-action.outputs.notification_severity_overview }}
+      notification_severity_low: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).low }}
+      notification_severity_medium: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).medium }}
+      notification_severity_high: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).high }}
+      notification_severity_critical: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).critical }}
       notification_severity_threshold: ${{ steps.scanner-action.outputs.notification_severity_threshold }}
       notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
       notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
@@ -525,10 +528,10 @@ jobs:
         if: ${{ needs.run-scanner-action.outputs.notification_slack_enabled == 'True' }}
         env:
           SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
-          LOW_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.low }}
-          MEDIUM_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.medium }}
-          HIGH_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.high }}
-          CRITICAL_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.critical }}
+          SEVERITY_LOW: ${{ needs.run-scanner-action.outputs.notification_severity_low }}
+          SEVERITY_MEDIUM: ${{ needs.run-scanner-action.outputs.notification_severity_medium }}
+          SEVERITY_HIGH: ${{ needs.run-scanner-action.outputs.notification_severity_high }}
+          SEVERITY_CRITICAL: ${{ needs.run-scanner-action.outputs.notification_severity_critical }}
         run: |
           {
             echo "SLACK_BLOCK<<EOF"
@@ -547,7 +550,7 @@ jobs:
                     \"type\": \"section\",
                     \"text\": {
                       \"type\": \"mrkdwn\",
-                      \"text\": \"*Results*\n- critical: $CRITICAL_SEVERITY_COUNT \n- high: $HIGH_SEVERITY_COUNT \n- medium: $MEDIUM_SEVERITY_COUNT \n- low: $LOW_SEVERITY_COUNT \n Code Scan Report can be found <https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF|here>\"
+                      \"text\": \"*Results*\n- critical: $SEVERITY_CRITICAL \n- high: $SEVERITY_HIGH \n- medium: $SEVERITY_MEDIUM \n- low: $SEVERITY_LOW \n Code Scan Report can be found <https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF|here>\"
                     }
                   },
                   {
@@ -567,18 +570,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
-          LOW_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.low }}
-          MEDIUM_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.medium }}
-          HIGH_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.high }}
-          CRITICAL_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.critical }}
+          SEVERITY_LOW: ${{ needs.run-scanner-action.outputs.notification_severity_overview.low }}
+          SEVERITY_MEDIUM: ${{ needs.run-scanner-action.outputs.notification_severity_overview.medium }}
+          SEVERITY_HIGH: ${{ needs.run-scanner-action.outputs.notification_severity_overview.high }}
+          SEVERITY_CRITICAL: ${{ needs.run-scanner-action.outputs.notification_severity_overview.critical }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "## Code Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD 
           ### Results
-          - critical: $CRITICAL_SEVERITY_COUNT  
-          - high: $HIGH_SEVERITY_COUNT  
-          - medium: $MEDIUM_SEVERITY_COUNT  
-          - low: $LOW_SEVERITY_COUNT  
+          - critical: $SEVERITY_CRITICAL 
+          - high: $SEVERITY_HIGH 
+          - medium: $SEVERITY_MEDIUM 
+          - low: $SEVERITY_LOW 
           Code Scan Report can be found [here](https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF)
           ### Allowlist
           Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.

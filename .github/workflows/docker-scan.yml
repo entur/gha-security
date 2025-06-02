@@ -19,8 +19,11 @@ env:
 jobs:
   docker-scan:
     outputs:
-      notification_severity_overview: ${{ steps.scanner-action.outputs.notification_severity_overview }}
       notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_alert_found }}
+      notification_severity_low: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).low }}
+      notification_severity_medium: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).medium }}
+      notification_severity_high: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).high }}
+      notification_severity_critical: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).critical }}
       notification_severity_threshold: ${{ steps.scanner-action.outputs.notification_severity_threshold }}
       notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
       notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
@@ -161,7 +164,10 @@ jobs:
         if: ${{ needs.docker-scan.outputs.notification_pull_request_enabled == 'True' }}
         env:
           SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
-          SEVERITY_OVERVIEW: ${{ needs.docker-scan.outputs.notification_severity_overview }}
+          SEVERITY_LOW: ${{ needs.docker-scan.outputs.notification_severity_low }}
+          SEVERITY_MEDIUM: ${{ needs.docker-scan.outputs.notification_severity_medium }}
+          SEVERITY_HIGH: ${{ needs.docker-scan.outputs.notification_severity_high }}
+          SEVERITY_CRITICAL: ${{ needs.docker-scan.outputs.notification_severity_critical }}
         run: |
           {
             echo "SLACK_BLOCK<<EOF"
@@ -180,7 +186,7 @@ jobs:
                   \"type\": \"section\",
                   \"text\": {
                     \"type\": \"mrkdwn\",
-                    \"text\": \"*Results* $SEVERITY_OVERVIEW \n Docker Scan Report can be found <https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF+tool:Grype|here>\"
+                    \"text\": \"*Results*\n- critical: $SEVERITY_CRITICAL \n- high: $SEVERITY_HIGH \n- medium: $SEVERITY_MEDIUM \n- low: $SEVERITY_LOW \n Docker Scan Report can be found <https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF+tool:Grype|here>\"
                   }
                 },
                 {
@@ -201,11 +207,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
           SEVERITY_OVERVIEW: ${{ needs.docker-scan.outputs.notification_severity_overview }}
+          LOW_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_low }}
+          MEDIUM_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_medium }}
+          HIGH_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_high }}
+          CRITICAL_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_critical }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "## Docker Image Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD 
           ### Results
-          $SEVERITY_OVERVIEW
+          - critical: $CRITICAL_SEVERITY 
+          - high: $HIGH_SEVERITY 
+          - medium: $MEDIUM_SEVERITY  
+          - low: $LOW_SEVERITY 
           Docker Image Scan Report can be found [here](https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF+tool:Grype)
           ### Allowlist
           Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
