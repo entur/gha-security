@@ -179,7 +179,7 @@ jobs:
                   \"type\": \"header\",
                   \"text\": {
                     \"type\": \"plain_text\",
-                    \"text\": \"Docker Image Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD\"
+                    \"text\": \"Docker Image Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD on $GITHUB_REPOSITORY\"
                   }
                 },
                 {
