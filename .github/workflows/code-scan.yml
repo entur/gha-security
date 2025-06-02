@@ -421,7 +421,7 @@ jobs:
       contents: read
     outputs:
       notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
-      notification_severity_overview: ${{ toJson(steps.scanner-action.outputs.notification_severity_overview) }}
+      notification_severity_overview: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview) }}
       notification_severity_threshold: ${{ steps.scanner-action.outputs.notification_severity_threshold }}
       notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
       notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
@@ -567,7 +567,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
-          SEVERITY_OVERVIEW: ${{ needs.run-scanner-action.outputs.notification_severity_overview }}
+          LOW_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.low }}
+          MEDIUM_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.medium }}
+          HIGH_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.high }}
+          CRITICAL_SEVERITY_COUNT: ${{ needs.run-scanner-action.outputs.notification_severity_overview.critical }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "## Code Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD 
