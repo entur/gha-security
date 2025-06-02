@@ -105,7 +105,6 @@ jobs:
       - name: "Get critical docker scan alerts"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_REF: ${{ github.ref }}
         run: |
           set +e # Do not exit if a command fails
           alerts="$(gh api \
@@ -132,7 +131,6 @@ jobs:
         if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CREATE_ALERT_COMMENT == 'True' }}
         env:
           REPOSITORY: ${{ github.repository }}
-          GIT_REF: ${{ github.ref }}
         run: |
           echo '## ⛔ Docker Image Scan - Critical Vulnerabilities ⛔
           **Docker Image scan found critical vulnerabilities in the image artifact that needs to be addressed.**
