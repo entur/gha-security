@@ -551,7 +551,7 @@ jobs:
                     \"type\": \"header\",
                     \"text\": {
                       \"type\": \"plain_text\",
-                      \"text\": \"Code Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD on $$GITHUB_REPOSITORY\"
+                      \"text\": \"Code Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD on $GITHUB_REPOSITORY\"
                     }
                   },
                   {

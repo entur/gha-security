@@ -42,6 +42,11 @@ jobs:
       - name: "Checkout repository"
         uses: actions/checkout@v4
 
+      - name: "Download the image artifact"
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT }}
+
       - name: Scanner Action
         id: scanner-action
         uses: entur/gha-security/scanner-action@feature/SIK-1484
@@ -49,6 +54,7 @@ jobs:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
           external-repository-token: ${{ secrets.external_repository_token }}
+
 
       - name: "Docker workdir extraction"
         id: docker-workdir
