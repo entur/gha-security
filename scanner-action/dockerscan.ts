@@ -8,7 +8,7 @@ const generateGrypeConfig = (allowlist: AllowlistDockerScan[]) => {
 	const GRYPE_CONFIG_FILE = ".grype.yaml";
 
 	// comment and reason in allowlist is not being used at the moment.
-	// it's available so we can easily put it into BigQuery.
+	// it's available, so we can easily put it into BigQuery.
 	const vulnerabilities = new Set(allowlist.map((it) => it.cve));
 
 	const grypeIgnoreList = Array.from(vulnerabilities).map((item) => {
@@ -17,9 +17,9 @@ const generateGrypeConfig = (allowlist: AllowlistDockerScan[]) => {
 
 	const grypeConfig = { ignore: grypeIgnoreList };
 
-	core.info("   [5.1] Converting grype config to YAML");
+	core.info("Converting grype config to YAML");
 	const yamlGrype = yaml.stringify(grypeConfig);
-	core.info(`   [5.2] Writing YAML config to ${GRYPE_CONFIG_FILE}`);
+	core.info(`Writing YAML grype config to ${GRYPE_CONFIG_FILE}`);
 	fs.writeFileSync(".grype.yaml", yamlGrype);
 };
 
@@ -27,12 +27,11 @@ const dismissDockerScanAlerts = (scannerConfig: ScannerConfig, externalScannerCo
 	const allowlist = combineAllowlists(scannerConfig, externalScannerConfig);
 
 	if (allowlist.length > 0) {
-		core.info("[5] Suppress Grype alerts");
 		generateGrypeConfig(allowlist as AllowlistDockerScan[]);
 		return;
 	}
 
-	core.info("[5] No allowlist found, skipping 'Suppress Grype alerts'");
+	core.info("No allowlist found");
 	return;
 };
 

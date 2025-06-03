@@ -36,15 +36,14 @@ const fetchExternalConfigContent = async (octokit: Octokit, repository: string, 
 	const fulfilledResult = results.filter((result) => result.status === "fulfilled");
 
 	if (fulfilledResult.length === 0) {
-		core.info(`   [SKIP] Found no external config from ${repository}`);
+		core.info(`Found no external config from ${repository}`);
 		return;
 	}
 	const response = fulfilledResult[0].value;
 
 	if ("content" in response.data) {
 		const contentBase64 = response.data.content.replaceAll("\n", "");
-		const configContent = Buffer.from(contentBase64, "base64").toString("utf-8");
-		return configContent;
+		return Buffer.from(contentBase64, "base64").toString("utf-8");
 	}
 
 	return;
@@ -52,41 +51,41 @@ const fetchExternalConfigContent = async (octokit: Octokit, repository: string, 
 
 const getExternalScannerConfig = async (scannerConfig: ScannerConfig, scanner: string, octokit: Octokit | undefined) => {
 	if (octokit === undefined) {
-		core.info("[3] No external repository token found, skipping 'Get external scanner config'");
+		core.info("No external repository token found");
 		return;
 	}
 
-	core.info("[3] Get external scanner config");
+	core.info("Get external scanner config");
 	const externalRepository = scannerConfig.spec?.inherit;
 
 	if (!externalRepository) {
 		return;
 	}
 
-	core.info(`   [3.1] Fetch external config from ${externalRepository}`);
+	core.info(`Fetch external config from ${externalRepository}`);
 	const content = await fetchExternalConfigContent(octokit, externalRepository, scanner);
 	if (!content) return;
 
-	core.info(`   [3.2] Parse external config from ${externalRepository}`);
+	core.info(`Parse external config from ${externalRepository}`);
 	return parseScannerConfig(content);
 };
 
 const getScannerConfig = (scanner: string) => {
-	core.info("[1] Get scanner config");
+	core.info("Get scanner config");
 	const YAML_EXTENSIONS = ["yml", "yaml"];
 	const filePathList = YAML_EXTENSIONS.map((extension) => `.entur/security/${scanner}.${extension}`);
-	core.info(`   [1.1] Get config file from ${JSON.stringify(filePathList)}`);
+	core.info(`Get config file from ${JSON.stringify(filePathList)}`);
 	const existingPathList = filePathList.filter((path) => fs.existsSync(path));
 
 	if (existingPathList.length === 0) {
-		core.info("[SKIP] No file found");
+		core.info("No scanner config found");
 		return null;
 	}
 
-	core.info(`   [1.2] Read config file ${existingPathList[0]}`);
+	core.info(`Read config file ${existingPathList[0]}`);
 	const fileContent = fs.readFileSync(existingPathList[0], "utf8");
 
-	core.info(`   [1.3] Parse config file ${existingPathList[0]}`);
+	core.info(`Parse config file ${existingPathList[0]}`);
 	return parseScannerConfig(fileContent);
 };
 
@@ -171,7 +170,7 @@ const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) =>
 	const isValid = validate(scannerConfig);
 
 	if (!isValid) {
-		core.info(`[VALIDATE] Failed to validate ${scannerConfig.kind}`);
+		core.info(`Failed to validate ${scannerConfig.kind}`);
 		core.info(JSON.stringify(validate.errors, null, 2));
 		return false;
 	}

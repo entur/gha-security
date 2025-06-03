@@ -37,18 +37,12 @@ const runNotifications = async (octokitAction: Octokit, scannerType: string, sca
 };
 
 const runAllowlist = async (scannerConfig: ScannerConfig, scannerType: string, octokitAction: Octokit, octokitExternal?: Octokit) => {
-	core.info("[2] Validate scanner config");
-	if (!validateScannerConfig(scannerConfig, scannerType)) {
-		core.setFailed(`Failed to validate ${scannerType} config`);
-		return;
-	}
-
 	const externalScannerConfig: ScannerConfig | undefined = await getExternalScannerConfig(scannerConfig, scannerType, octokitExternal);
 
 	if (!externalScannerConfig) {
-		core.info(`[4] No external config found, skipping 'Validate external ${scannerType} config'`);
+		core.info(`No external config found, skipping 'Validate external ${scannerType} config'`);
 	} else {
-		core.info(`[4] Validate external ${scannerType} config`);
+		core.info(`Validate external ${scannerType} config`);
 		if (!validateScannerConfig(externalScannerConfig, scannerType)) {
 			core.setFailed(`Failed to validate external ${scannerType} config`);
 			return;
@@ -99,11 +93,18 @@ const main = async () => {
 
 		const scannerConfig = getScannerConfig(SCANNER_TYPE);
 
-		core.info("Starting notifications job");
+		if (scannerConfig) {
+			core.info("Validate scanner config");
+			if (!validateScannerConfig(scannerConfig, SCANNER_TYPE)) {
+				core.setFailed("Scanner config validation failed");
+				return;
+			}
+		}
+
 		await runNotifications(octokitAction, SCANNER_TYPE, scannerConfig);
 
 		if (!scannerConfig) {
-			core.info(`Failed to get yaml config for ${SCANNER_TYPE}`);
+			core.info(`Failed to get config for ${SCANNER_TYPE}`);
 		} else {
 			core.info("Starting allowlist job");
 			await runAllowlist(scannerConfig, SCANNER_TYPE, octokitAction, octokitExternal);

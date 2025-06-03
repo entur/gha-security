@@ -7,7 +7,7 @@ import type { AllowlistCodeScan, CweTagValues, GithubRepo, PartialCodeScanningAl
 const getCodeScanningAlerts = async (githubRepo: GithubRepo, octokit: Octokit) => {
 	const ref = github.context.ref;
 	try {
-		core.info(`   [5.1] Fetch code scanning alerts from repo ${githubRepo.owner}/${githubRepo.repo} with ref ${ref}`);
+		core.info(`Fetching code scanning alerts from repo ${githubRepo.owner}/${githubRepo.repo} with ref ${ref}`);
 		return await octokit.paginate(
 			octokit.rest.codeScanning.listAlertsForRepo,
 			{
@@ -69,11 +69,11 @@ const dismissCodeScanAlerts = async (githubRepo: GithubRepo, scannerConfig: Scan
 	const allowlist = combineAllowlists(scannerConfig, externalScannerConfig) as AllowlistCodeScan[];
 
 	if (allowlist.length === 0) {
-		core.info("[5] No allowlist found, skipping 'Suppress codescan alerts' step");
+		core.info("No allowlist found");
 		return;
 	}
 
-	core.info("[5] Suppress codescan alerts");
+	core.info("Suppress codescan alerts");
 	const codeScanAlerts = await getCodeScanningAlerts(githubRepo, octokit);
 
 	if (!codeScanAlerts) return;
