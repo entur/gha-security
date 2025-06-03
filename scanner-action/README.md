@@ -16,6 +16,36 @@ Scanner Action is used for dismissing vulnerabilities for DockerScan and CodeSca
 
 **Required** Type of scanner
 
+## Outputs
+
+### `notification_severity_alert_found`
+
+Alert with specified threshold severity has been found
+
+### `notification_severity_overview`
+
+Overview of amount of alerts with severity found
+
+### `notification_severity_filter`
+
+Severity filter for fetching alerts
+
+### `notification_severity_threshold`
+
+Alerts with threshold matching severity triggers notifications
+
+### `notification_slack_channel_id`
+
+Slack channel id for notifications
+
+### `notification_slack_enabled`
+
+Enabled Slack notifications
+
+### `notification_pull_request_enabled`
+
+Enabled pull request notifications
+
 ## Setup
 
 Action uses Yarn 4.9.1 and Typescript.
