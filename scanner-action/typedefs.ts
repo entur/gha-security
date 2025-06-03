@@ -27,7 +27,7 @@ interface NotificationOutputs {
 }
 
 interface Notifications {
-	severityThreshold: string;
+	severityThreshold: "low" | "medium" | "high" | "critical";
 	outputs?: NotificationOutputs;
 }
 

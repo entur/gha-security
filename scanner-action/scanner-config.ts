@@ -79,7 +79,7 @@ const getScannerConfig = (scanner: string) => {
 
 	if (existingPathList.length === 0) {
 		core.info("No scanner config found");
-		return null;
+		return undefined;
 	}
 
 	core.info(`Read config file ${existingPathList[0]}`);
@@ -177,4 +177,35 @@ const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) =>
 	return true;
 };
 
-export { getExternalScannerConfig, getScannerConfig, validateScannerConfig };
+const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit) => {
+	const scannerConfig = getScannerConfig(scannerType);
+
+	if (!scannerConfig) {
+		core.info("Failed to get scanner config");
+		return null;
+	}
+
+	core.info("Validate scanner config");
+
+	if (!validateScannerConfig(scannerConfig, scannerType)) {
+		core.setFailed("Failed to validate local scanner config");
+		return undefined;
+	}
+
+	const externalScannerConfig = await getExternalScannerConfig(scannerConfig, scannerType, octokitExternal);
+
+	if (!externalScannerConfig) {
+		core.info("No external config found");
+		return { localConfig: scannerConfig, externalConfig: undefined };
+	}
+
+	core.info("Validate external scanner config");
+	if (!validateScannerConfig(externalScannerConfig, scannerType)) {
+		core.setFailed("Failed to validate external scanner config");
+		return undefined;
+	}
+
+	return { localConfig: scannerConfig, externalConfig: externalScannerConfig };
+};
+
+export { getScannerConfigs };
