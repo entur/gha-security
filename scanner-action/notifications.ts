@@ -27,6 +27,7 @@ class ScannerNotifications {
 		this.severityList = ["low", "medium", "high", "critical"];
 		this.toolName = this.scannerType === "dockerscan" ? "grype" : "codeql";
 
+		// local notifications values take priority
 		this.slack = {
 			enabled: local?.outputs?.slack?.enabled ?? external?.outputs?.slack?.enabled ?? false,
 			channelId: local?.outputs?.slack?.channelId ?? external?.outputs?.slack?.channelId ?? "",

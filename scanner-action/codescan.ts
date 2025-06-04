@@ -1,7 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import type { Octokit } from "octokit";
-import { combineAllowlists } from "./allowlist.js";
 import type { AllowlistCodeScan, CweTagValues, GithubRepo, PartialCodeScanningAlert, PartialCodeScanningAlertResponse, ScannerConfig } from "./typedefs.js";
 
 const getCodeScanningAlerts = async (githubRepo: GithubRepo, octokit: Octokit) => {
@@ -30,7 +29,7 @@ const getCodeScanningAlerts = async (githubRepo: GithubRepo, octokit: Octokit) =
 	}
 };
 
-const convertToCweTagMap = (allowlist: AllowlistCodeScan[]) => {
+const convertToCweTagMap = (localAllowlist: AllowlistCodeScan[], externalAllowlist: AllowlistCodeScan[]) => {
 	const cweMap: Map<string, CweTagValues> = new Map();
 
 	const REASON_MAPPING = new Map([
@@ -39,7 +38,12 @@ const convertToCweTagMap = (allowlist: AllowlistCodeScan[]) => {
 		["test", "used in tests"],
 	]);
 
-	for (const entry of allowlist) {
+	for (const entry of externalAllowlist) {
+		cweMap.set(`external/cwe/${entry.cwe}`, { comment: entry.comment, reason: REASON_MAPPING.get(entry.reason) as "false positive" | "won't fix" | "used in tests" });
+	}
+
+	// Set Priority
+	for (const entry of localAllowlist) {
 		cweMap.set(`external/cwe/${entry.cwe}`, { comment: entry.comment, reason: REASON_MAPPING.get(entry.reason) as "false positive" | "won't fix" | "used in tests" });
 	}
 
@@ -66,9 +70,10 @@ const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert
 };
 
 const dismissCodeScanAlerts = async (githubRepo: GithubRepo, scannerConfig: ScannerConfig, octokit: Octokit, externalScannerConfig?: ScannerConfig) => {
-	const allowlist = combineAllowlists(scannerConfig, externalScannerConfig) as AllowlistCodeScan[];
+	const localAllowlist = (scannerConfig.spec?.allowlist ?? []) as AllowlistCodeScan[];
+	const externalAllowlist = (externalScannerConfig?.spec?.allowlist ?? []) as AllowlistCodeScan[];
 
-	if (allowlist.length === 0) {
+	if (localAllowlist.length === 0 && externalAllowlist.length === 0) {
 		core.info("No allowlist found");
 		return;
 	}
@@ -78,7 +83,7 @@ const dismissCodeScanAlerts = async (githubRepo: GithubRepo, scannerConfig: Scan
 
 	if (!codeScanAlerts) return;
 
-	const cweMap = convertToCweTagMap(allowlist);
+	const cweMap = convertToCweTagMap(localAllowlist, externalAllowlist);
 
 	await updateCodeScanningAlerts(codeScanAlerts, octokit, cweMap, githubRepo);
 };
