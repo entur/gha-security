@@ -11,9 +11,30 @@ interface AllowlistCodeScan extends AllowlistBase {
 	cwe: string;
 }
 
+interface Notification {
+	enabled?: boolean;
+}
+
+interface SlackNotification extends Notification {
+	channelId?: string;
+}
+
+interface PullRequestNotification extends Notification {}
+
+interface NotificationOutputs {
+	pullRequest?: PullRequestNotification;
+	slack?: SlackNotification;
+}
+
+interface Notifications {
+	severityThreshold: "low" | "medium" | "high" | "critical";
+	outputs?: NotificationOutputs;
+}
+
 interface ScannerSpec {
 	inherit?: string;
 	allowlist?: AllowlistCodeScan[] | AllowlistDockerScan[];
+	notifications?: Notifications;
 }
 
 interface ScannerMetadata {
@@ -29,8 +50,11 @@ interface ScannerConfig {
 	spec?: ScannerSpec;
 }
 
+type SeverityLevel = "low" | "medium" | "high" | "critical";
+
 interface PartialCodeScanningAlertRule {
 	tags?: string[] | null;
+	security_severity_level?: SeverityLevel | null | undefined;
 }
 
 interface PartialCodeScanningAlertResponse {
@@ -47,4 +71,19 @@ interface CweTagValues {
 	reason: "false positive" | "won't fix" | "used in tests";
 }
 
-export type { CweTagValues, PartialCodeScanningAlert, ScannerConfig, AllowlistDockerScan, AllowlistCodeScan, PartialCodeScanningAlertResponse };
+interface GithubRepo {
+	owner: string;
+	repo: string;
+}
+
+export type {
+	CweTagValues,
+	PartialCodeScanningAlert,
+	ScannerConfig,
+	AllowlistDockerScan,
+	AllowlistCodeScan,
+	PartialCodeScanningAlertResponse,
+	SeverityLevel,
+	GithubRepo,
+	Notifications,
+};
