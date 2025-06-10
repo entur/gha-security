@@ -19,7 +19,29 @@ const parseScannerConfig = (config: string) => {
 	}
 };
 
+const hasAccessToRepository = async (octokit: Octokit, repository: string) => {
+	try {
+		await octokit.rest.repos.get({
+			owner: "Entur",
+			repo: repository,
+		});
+		return true;
+	} catch (error) {
+		if (error instanceof Error) {
+			core.warning(error.message);
+			return false;
+		}
+		return false;
+	}
+};
+
 const fetchExternalConfigContent = async (octokit: Octokit, repository: string, scanner: string) => {
+	const hasRepositoryAccess = await hasAccessToRepository(octokit, repository);
+
+	if (!hasRepositoryAccess) {
+		throw Error(`External token do not have access to repository Entur/${repository}`);
+	}
+
 	const YAML_EXTENSIONS = ["yml", "yaml"];
 	const yamlPaths = YAML_EXTENSIONS.map((extension) => `.entur/security/${scanner}.${extension}`);
 
@@ -188,8 +210,7 @@ const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit)
 	core.info("Validate scanner config");
 
 	if (!validateScannerConfig(scannerConfig, scannerType)) {
-		core.setFailed("Failed to validate local scanner config");
-		return undefined;
+		throw Error("Failed to validate local scanner config");
 	}
 
 	const externalScannerConfig = await getExternalScannerConfig(scannerConfig, scannerType, octokitExternal);
@@ -201,8 +222,7 @@ const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit)
 
 	core.info("Validate external scanner config");
 	if (!validateScannerConfig(externalScannerConfig, scannerType)) {
-		core.setFailed("Failed to validate external scanner config");
-		return undefined;
+		throw Error("Failed to validate external scanner config");
 	}
 
 	return { localConfig: scannerConfig, externalConfig: externalScannerConfig };

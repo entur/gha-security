@@ -39,8 +39,7 @@ class ScannerNotifications {
 		this.severityThreshold = local?.severityThreshold ?? external?.severityThreshold ?? "high";
 
 		if (this.slack && this.slack.channelId === "") {
-			core.setFailed("Missing slack channelId in scanner config");
-			return;
+			throw Error("Missing slack channelId in scanner config");
 		}
 	}
 
@@ -89,12 +88,10 @@ class ScannerNotifications {
 			return true;
 		} catch (error) {
 			if (error instanceof Error) {
-				core.setFailed(`Failed to fetch notification alerts: ${error.message}`);
-				return false;
+				throw Error(`Failed to fetch notification alerts: ${error.message}`);
 			}
 
-			core.setFailed("Failed to fetch notification alerts");
-			return false;
+			throw Error("Failed to fetch notification alerts");
 		}
 	}
 }

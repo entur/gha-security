@@ -20,12 +20,10 @@ const getCodeScanningAlerts = async (githubRepo: GithubRepo, octokit: Octokit) =
 		);
 	} catch (error) {
 		if (error instanceof Error) {
-			core.setFailed(`Failed to fetch alerts: ${error.message}`);
-		} else {
-			core.setFailed("Failed to fetch alerts");
+			throw Error(`Failed to fetch alerts: ${error.message}`);
 		}
 
-		return null;
+		throw Error("Failed to fetch alerts");
 	}
 };
 
