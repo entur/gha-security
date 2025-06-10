@@ -166,10 +166,10 @@ jobs:
     env:
       SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
       SEVERITY_OVERVIEW: ${{ needs.docker-scan.outputs.notification_severity_overview }}
-      LOW_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_low }}
-      MEDIUM_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_medium }}
-      HIGH_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_high }}
-      CRITICAL_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_critical }}
+      SEVERITY_LOW: ${{ needs.docker-scan.outputs.notification_severity_low }}
+      SEVERITY_MEDIUM: ${{ needs.docker-scan.outputs.notification_severity_medium }}
+      SEVERITY_HIGH: ${{ needs.docker-scan.outputs.notification_severity_high }}
+      SEVERITY_CRITICAL: ${{ needs.docker-scan.outputs.notification_severity_critical }}
     steps:
       - name: "Create Slack block"
         id: slack-block
@@ -215,10 +215,10 @@ jobs:
         run: |
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "## Docker Image Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD 
           ### Results
-          - critical: $CRITICAL_SEVERITY 
-          - high: $HIGH_SEVERITY 
-          - medium: $MEDIUM_SEVERITY  
-          - low: $LOW_SEVERITY 
+          - critical: $SEVERITY_CRITICAL 
+          - high: $SEVERITY_HIGH
+          - medium: $SEVERITY_MEDIUM  
+          - low: $SEVERITY_LOW
           Docker Image Scan Report can be found [here](https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF+tool:Grype)
           ### Allowlist
           Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
