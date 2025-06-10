@@ -93,8 +93,8 @@ const main = async () => {
 
 		const { localConfig, externalConfig } = configs;
 
-		await runNotifications(octokitAction, SCANNER_TYPE, localConfig, externalConfig);
 		await runAllowlist(localConfig, SCANNER_TYPE, octokitAction, externalConfig);
+		await runNotifications(octokitAction, SCANNER_TYPE, localConfig, externalConfig);
 	} catch (error) {
 		if (error instanceof Error) {
 			core.setFailed(error.message);
