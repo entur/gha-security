@@ -163,16 +163,17 @@ jobs:
       pull-requests: write # required for creating comments on pull requests
     outputs:
       slack_block: ${{ steps.slack-block.outputs.SLACK_BLOCK }}
+    env:
+      SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
+      SEVERITY_OVERVIEW: ${{ needs.docker-scan.outputs.notification_severity_overview }}
+      LOW_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_low }}
+      MEDIUM_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_medium }}
+      HIGH_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_high }}
+      CRITICAL_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_critical }}
     steps:
       - name: "Create Slack block"
         id: slack-block
         if: ${{ needs.docker-scan.outputs.notification_slack_enabled == 'True' }}
-        env:
-          SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
-          SEVERITY_LOW: ${{ needs.docker-scan.outputs.notification_severity_low }}
-          SEVERITY_MEDIUM: ${{ needs.docker-scan.outputs.notification_severity_medium }}
-          SEVERITY_HIGH: ${{ needs.docker-scan.outputs.notification_severity_high }}
-          SEVERITY_CRITICAL: ${{ needs.docker-scan.outputs.notification_severity_critical }}
         run: |
           {
             echo "SLACK_BLOCK<<EOF"
@@ -210,12 +211,6 @@ jobs:
         if: ${{ github.event_name == 'pull_request' && needs.docker-scan.outputs.notification_pull_request_enabled == 'True' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
-          SEVERITY_OVERVIEW: ${{ needs.docker-scan.outputs.notification_severity_overview }}
-          LOW_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_low }}
-          MEDIUM_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_medium }}
-          HIGH_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_high }}
-          CRITICAL_SEVERITY: ${{ needs.docker-scan.outputs.notification_severity_critical }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "## Docker Image Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD 

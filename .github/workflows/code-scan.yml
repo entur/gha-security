@@ -530,16 +530,16 @@ jobs:
       pull-requests: write # required for creating comments on pull requests
     outputs:
       slack_block: ${{ steps.slack-block.outputs.SLACK_BLOCK }}
+    env:
+      SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
+      SEVERITY_LOW: ${{ needs.run-scanner-action.outputs.notification_severity_low }}
+      SEVERITY_MEDIUM: ${{ needs.run-scanner-action.outputs.notification_severity_medium }}
+      SEVERITY_HIGH: ${{ needs.run-scanner-action.outputs.notification_severity_high }}
+      SEVERITY_CRITICAL: ${{ needs.run-scanner-action.outputs.notification_severity_critical }}
     steps:
       - name: "Create Slack block"
         id: slack-block
         if: ${{ needs.run-scanner-action.outputs.notification_slack_enabled == 'True' }}
-        env:
-          SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
-          SEVERITY_LOW: ${{ needs.run-scanner-action.outputs.notification_severity_low }}
-          SEVERITY_MEDIUM: ${{ needs.run-scanner-action.outputs.notification_severity_medium }}
-          SEVERITY_HIGH: ${{ needs.run-scanner-action.outputs.notification_severity_high }}
-          SEVERITY_CRITICAL: ${{ needs.run-scanner-action.outputs.notification_severity_critical }}
         run: |
           {
             echo "SLACK_BLOCK<<EOF"
@@ -577,11 +577,6 @@ jobs:
         if: ${{ github.event_name == 'pull_request' && needs.run-scanner-action.outputs.notification_pull_request_enabled == 'True' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SEVERITY_THRESHOLD: ${{ needs.run-scanner-action.outputs.notification_severity_threshold }}
-          SEVERITY_LOW: ${{ needs.run-scanner-action.outputs.notification_severity_overview.low }}
-          SEVERITY_MEDIUM: ${{ needs.run-scanner-action.outputs.notification_severity_overview.medium }}
-          SEVERITY_HIGH: ${{ needs.run-scanner-action.outputs.notification_severity_overview.high }}
-          SEVERITY_CRITICAL: ${{ needs.run-scanner-action.outputs.notification_severity_overview.critical }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "## Code Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD 
