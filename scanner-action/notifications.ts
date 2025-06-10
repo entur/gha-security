@@ -38,7 +38,7 @@ class ScannerNotifications {
 		};
 		this.severityThreshold = local?.severityThreshold ?? external?.severityThreshold ?? "high";
 
-		if (this.slack && this.slack.channelId === "") {
+		if (this.slack.enabled && this.slack.channelId === "") {
 			throw Error("Missing slack channelId in scanner config");
 		}
 	}
