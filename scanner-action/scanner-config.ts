@@ -1,9 +1,9 @@
 import * as fs from "node:fs";
 import * as core from "@actions/core";
-import { Ajv } from "ajv";
-import type { Octokit } from "octokit";
+import {Ajv} from "ajv";
+import type {Octokit} from "octokit";
 import * as yaml from "yaml";
-import type { ScannerConfig } from "./typedefs.js";
+import type {ScannerConfig} from "./typedefs.js";
 
 const parseScannerConfig = (config: string) => {
 	try {
@@ -92,23 +92,34 @@ const getExternalScannerConfig = async (scannerConfig: ScannerConfig, scanner: s
 	return parseScannerConfig(content);
 };
 
-const getScannerConfig = (scanner: string) => {
+const getScannerContent = (scannerType: string) => {
 	core.info("Get scanner config");
 	const YAML_EXTENSIONS = ["yml", "yaml"];
-	const filePathList = YAML_EXTENSIONS.map((extension) => `.entur/security/${scanner}.${extension}`);
-	core.info(`Get config file from ${JSON.stringify(filePathList)}`);
-	const existingPathList = filePathList.filter((path) => fs.existsSync(path));
+	let yamlPaths = YAML_EXTENSIONS.map((extension) => `.entur/security/${scannerType}.${extension}`);
+	yamlPaths = yamlPaths.filter((path) => fs.existsSync(path));
 
-	if (existingPathList.length === 0) {
-		core.info("No scanner config found");
-		return undefined;
+	if (yamlPaths.length === 0) {
+		core.info("No scanner config found in .entur/security/");
+		return null;
 	}
 
-	core.info(`Read config file ${existingPathList[0]}`);
-	const fileContent = fs.readFileSync(existingPathList[0], "utf8");
+	if (yamlPaths.length > 1) {
+		throw Error(`Expected 1 config file, found more than 1 ${scannerType} config`)
+	}
 
-	core.info(`Parse config file ${existingPathList[0]}`);
-	return parseScannerConfig(fileContent);
+	core.info(`Read config file from ${yamlPaths[0]}`);
+	return fs.readFileSync(yamlPaths[0], "utf8")
+}
+
+const getScannerConfig = (scanner: string) => {
+	const scannerContent = getScannerContent(scanner)
+
+	if (scannerContent === null) {
+		return null
+	}
+
+	core.info("Parse config file");
+	return parseScannerConfig(scannerContent);
 };
 
 const getScannerConfigSchema = (scanner: string) => {

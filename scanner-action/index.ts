@@ -1,5 +1,4 @@
 import * as core from "@actions/core";
-import * as github from "@actions/github";
 import { type ThrottlingOptions, throttling } from "@octokit/plugin-throttling";
 import { Octokit } from "octokit";
 import { dismissCodeScanAlerts } from "./codescan.js";

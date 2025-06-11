@@ -165,7 +165,6 @@ jobs:
       slack_block: ${{ steps.slack-block.outputs.SLACK_BLOCK }}
     env:
       SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
-      SEVERITY_OVERVIEW: ${{ needs.docker-scan.outputs.notification_severity_overview }}
       SEVERITY_LOW: ${{ needs.docker-scan.outputs.notification_severity_low }}
       SEVERITY_MEDIUM: ${{ needs.docker-scan.outputs.notification_severity_medium }}
       SEVERITY_HIGH: ${{ needs.docker-scan.outputs.notification_severity_high }}
