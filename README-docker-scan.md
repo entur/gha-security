@@ -106,14 +106,10 @@ jobs:
 
 ## Notifications
 
-Notifications will be sent out when there are alerts with severity equal or higher than threshold set. By default, high alerts will be notified under pull requests. We support notifications in pull requests and slack.
+Notifications will be sent out when there are alerts with severity equal or higher than threshold set. By default, high alerts will be notified under pull requests.
 
 Notifications for Docker Scan supports alerts from tool(s):
 - Grype
-
-
-**Note:** Slack channel used for Notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot.
-
 
 **Severity threshold:**
 
@@ -132,15 +128,13 @@ Slack notifications are by default disabled, and needs to be enabled using scann
 
 We use [entur/gha-slack](https://github.com/entur/gha-slack) to send out notifications.
 
+**Note:** Slack channel used for Notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot.
+
 
 **Pull Request:**
 
-Pull request notifications are by default enabled.
+Pull request notifications are by default enabled, and can be disabled using scanner config.
 
-
-## Github Rulesets
-
-See [Security rulesets](README-security-rulesets.md) for how to setup code scanning merge protection ruleset.
 
 ## Docker Scan config
 
@@ -245,3 +239,7 @@ spec:
       pullRequest:
         enabled: false
 ```
+
+## Github Rulesets
+
+See [Security rulesets](README-security-rulesets.md) for how to setup code scanning merge protection ruleset.

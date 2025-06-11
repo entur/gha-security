@@ -172,14 +172,12 @@ When CodeQL is triggered, the environment variable `IS_CODEQL_SCAN` is set to `t
 
 ## Notifications
 
-Notifications will be sent out when there are alerts with severity equal or higher than threshold set. By default, high alerts will be notified under pull requests. We support notifications in pull requests and slack.
+Notifications will be sent out when there are alerts with severity equal or higher than threshold set. By default, high alerts will be notified under pull requests.
 
 Notifications for Code Scan supports alerts from tool(s):
 - CodeQL
 
 Support for alerts from semgrep will be added soon.
-
-**Note:** Slack channel used for Notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot.
 
 
 **Severity threshold:**
@@ -199,10 +197,11 @@ Slack notifications are by default disabled, and needs to be enabled using scann
 
 We use [entur/gha-slack](https://github.com/entur/gha-slack) to send out notifications.
 
+**Note:** Slack channel used for Notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot.
 
 **Pull Request:**
 
-Pull request notifications are by default enabled.
+Pull request notifications are by default enabled, and can be disabled using scanner config.
 
 ## Code Scan config
 
