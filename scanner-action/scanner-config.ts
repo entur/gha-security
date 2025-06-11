@@ -1,9 +1,9 @@
 import * as fs from "node:fs";
 import * as core from "@actions/core";
-import {Ajv} from "ajv";
-import type {Octokit} from "octokit";
+import { Ajv } from "ajv";
+import type { Octokit } from "octokit";
 import * as yaml from "yaml";
-import type {ScannerConfig} from "./typedefs.js";
+import type { ScannerConfig } from "./typedefs.js";
 
 const parseScannerConfig = (config: string) => {
 	try {
@@ -104,18 +104,18 @@ const getScannerContent = (scannerType: string) => {
 	}
 
 	if (yamlPaths.length > 1) {
-		throw Error(`Expected 1 config file, found more than 1 ${scannerType} config`)
+		throw Error(`Expected 1 config file, found more than 1 ${scannerType} config`);
 	}
 
 	core.info(`Read config file from ${yamlPaths[0]}`);
-	return fs.readFileSync(yamlPaths[0], "utf8")
-}
+	return fs.readFileSync(yamlPaths[0], "utf8");
+};
 
 const getScannerConfig = (scanner: string) => {
-	const scannerContent = getScannerContent(scanner)
+	const scannerContent = getScannerContent(scanner);
 
 	if (scannerContent === null) {
-		return null
+		return null;
 	}
 
 	core.info("Parse config file");
