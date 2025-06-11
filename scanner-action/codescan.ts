@@ -3,8 +3,9 @@ import * as github from "@actions/github";
 import type { Octokit } from "octokit";
 import type { AllowlistCodeScan, CweTagValues, GithubRepo, PartialCodeScanningAlert, PartialCodeScanningAlertResponse, ScannerConfig } from "./typedefs.js";
 
-const getCodeScanningAlerts = async (githubRepo: GithubRepo, octokit: Octokit) => {
+const getCodeScanningAlerts = async (octokit: Octokit) => {
 	const ref = github.context.ref;
+	const githubRepo = github.context.repo;
 	try {
 		core.info(`Fetching code scanning alerts from repo ${githubRepo.owner}/${githubRepo.repo} with ref ${ref}`);
 		return await octokit.paginate(
@@ -48,8 +49,9 @@ const convertToCweTagMap = (localAllowlist: AllowlistCodeScan[], externalAllowli
 	return cweMap;
 };
 
-const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert[], octokit: Octokit, cweTagMap: Map<string, CweTagValues>, githubRepo: GithubRepo) => {
+const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert[], octokit: Octokit, cweTagMap: Map<string, CweTagValues>) => {
 	const dismissedAlerts = new Set();
+	const githubRepo = github.context.repo;
 	for (const [cweTag, cweTagValue] of cweTagMap.entries()) {
 		const matchingAlerts = codeScanAlerts.filter((alert) => alert?.rule?.tags?.includes(cweTag) && !dismissedAlerts.has(alert.number));
 
@@ -67,7 +69,7 @@ const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert
 	}
 };
 
-const dismissCodeScanAlerts = async (githubRepo: GithubRepo, scannerConfig: ScannerConfig, octokit: Octokit, externalScannerConfig?: ScannerConfig) => {
+const dismissCodeScanAlerts = async (scannerConfig: ScannerConfig, octokit: Octokit, externalScannerConfig?: ScannerConfig) => {
 	const localAllowlist = (scannerConfig.spec?.allowlist ?? []) as AllowlistCodeScan[];
 	const externalAllowlist = (externalScannerConfig?.spec?.allowlist ?? []) as AllowlistCodeScan[];
 
@@ -77,13 +79,13 @@ const dismissCodeScanAlerts = async (githubRepo: GithubRepo, scannerConfig: Scan
 	}
 
 	core.info("Suppress codescan alerts");
-	const codeScanAlerts = await getCodeScanningAlerts(githubRepo, octokit);
+	const codeScanAlerts = await getCodeScanningAlerts(octokit);
 
 	if (!codeScanAlerts) return;
 
 	const cweMap = convertToCweTagMap(localAllowlist, externalAllowlist);
 
-	await updateCodeScanningAlerts(codeScanAlerts, octokit, cweMap, githubRepo);
+	await updateCodeScanningAlerts(codeScanAlerts, octokit, cweMap);
 };
 
 export { dismissCodeScanAlerts };

@@ -46,7 +46,7 @@ const runAllowlist = async (scannerConfig: ScannerConfig, scannerType: string, o
 			break;
 
 		case "codescan":
-			await dismissCodeScanAlerts(github.context.repo, scannerConfig, octokitAction, externalScannerConfig);
+			await dismissCodeScanAlerts(scannerConfig, octokitAction, externalScannerConfig);
 			break;
 
 		default:
