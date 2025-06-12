@@ -203,11 +203,8 @@ const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) =>
 	const isValid = validate(scannerConfig);
 
 	if (!isValid) {
-		core.info(`Failed to validate ${scannerConfig.kind}`);
-		core.info(JSON.stringify(validate.errors, null, 2));
-		return false;
+		throw Error(`Failed to validate ${scannerConfig.kind}\n ${JSON.stringify(validate.errors, null, 2)}`);
 	}
-	return true;
 };
 
 const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit) => {
@@ -220,9 +217,7 @@ const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit)
 
 	core.info("Validate scanner config");
 
-	if (!validateScannerConfig(scannerConfig, scannerType)) {
-		throw Error("Failed to validate local scanner config");
-	}
+	validateScannerConfig(scannerConfig, scannerType);
 
 	const externalScannerConfig = await getExternalScannerConfig(scannerConfig, scannerType, octokitExternal);
 
@@ -232,9 +227,8 @@ const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit)
 	}
 
 	core.info("Validate external scanner config");
-	if (!validateScannerConfig(externalScannerConfig, scannerType)) {
-		throw Error("Failed to validate external scanner config");
-	}
+
+	validateScannerConfig(externalScannerConfig, scannerType);
 
 	return { localConfig: scannerConfig, externalConfig: externalScannerConfig };
 };
