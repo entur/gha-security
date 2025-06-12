@@ -202,9 +202,6 @@ We use [entur/gha-slack](https://github.com/entur/gha-slack) to send out notific
 Pull request notifications will comment on current pull request after a scan, and are by default enabled.
 To configure pull request notifications see [Code Scan config](#code-scan-config) section.
 
-### Known issues
-* Notifications will always be sent out when an alert with severity matching or higher than threshold exists.
-    * You can skip notifications step by adding `[skip-notifications]` in current commit message.
 
 ## Code Scan config
 

@@ -139,8 +139,6 @@ To disable pull request notifications see [Docker Scan config](#docker-scan-conf
 
 ### Known issues
 * Notifications fetches alerts before allowlist changes happen for Docker Scan.
-* Notifications will always be sent out when an alert with severity matching or higher than threshold exists.
-  * You can skip notifications step by adding `[skip-notifications]` in current commit message.
 
 ## Docker Scan config
 
