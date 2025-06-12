@@ -522,7 +522,7 @@ jobs:
   notifications:
     if: ${{ (!failure() && !cancelled()) && needs.run-scanner-action.outputs.notification_severity_alert_found == 'True' && (
         needs.run-scanner-action.outputs.notification_slack_enabled == 'True' || 
-        needs.run-scanner-action.outputs.notification_pull_request_enabled == 'True') }}
+        needs.run-scanner-action.outputs.notification_pull_request_enabled == 'True') && !contains(github.event.head_commit.message, '[skip-notifications]') }}
     needs: [ run-scanner-action ]
     runs-on: ubuntu-24.04
     permissions:

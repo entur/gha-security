@@ -85,7 +85,7 @@ jobs:
 ```     
 
 ## Allow lists
-The reusable workflow uses [CodeQL](https://codeql.github.com/) to scan the codebase for vulnerabilities. Any discovered vulnerabilities will be published in the _Security_ tab for the repository, under the _Code Scanning_ section. If you believe a finding is a false positive or otherwise not relevant, you can either manually dimiss the alert, or create a allowlist file (YAML-file) that dismisses all alerts that matches a vulnerability ID. This list is then used in the current repo, but can also be shared and used with other repos.
+The reusable workflow uses [CodeQL](https://codeql.github.com/) to scan the codebase for vulnerabilities. Any discovered vulnerabilities will be published in the _Security_ tab for the repository, under the _Code Scanning_ section. If you believe a finding is a false positive or otherwise not relevant, you can either manually dimiss the alert, or create a scanner config file (YAML-file) with allowlist spec that dismisses all alerts that matches a vulnerability ID. This list is then used in the current repo, but can also be shared and used with other repos.
 
 *Note*: If the scan is performed on a pull request, remember to filter the Code Scanning results by pull request number and not the branch name.
 
@@ -193,15 +193,18 @@ The threshold can be set to one of the following values:
 
 **Slack:**
 
-Slack notifications are by default disabled, and needs to be enabled using scanner config.
+Slack notifications are by default disabled, and can be configured by creating a scanner config in repository or inherit a shared config.
 
-We use [entur/gha-slack](https://github.com/entur/gha-slack) to send out notifications.
-
-**Note:** Slack channel used for Notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot.
+We use [entur/gha-slack](https://github.com/entur/gha-slack) to send out notifications. Slack channel used for Notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot.
 
 **Pull Request:**
 
-Pull request notifications are by default enabled, and can be disabled using scanner config.
+Pull request notifications will comment on current pull request after a scan, and are by default enabled.
+To configure pull request notifications see [Code Scan config](#code-scan-config) section.
+
+### Known issues
+* Notifications will always be sent out when an alert with severity matching or higher than threshold exists.
+    * You can skip notifications step by adding `[skip-notifications]` in current commit message.
 
 ## Code Scan config
 

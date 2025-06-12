@@ -83,7 +83,7 @@ jobs:
 
 
 ## Allowlisting vulnerabilities
-The reusable workflow uses the [Grype scanner](https://github.com/marketplace/actions/anchore-container-scan) to scan the Docker image for vulnerabilities. Any findings will be published to the _Security_ tab of the repository, under the _Code Scanning_ section. If you believe that a finding is a false positive or otherwise not relevant, you can either manually dimiss the alert, or create a allowlist file (YAML-file) that dismisses all alerts that matches a vulnerability ID (CVE). This list is then used in the current repo, but can also be shared and used with other repos. 
+The reusable workflow uses the [Grype scanner](https://github.com/marketplace/actions/anchore-container-scan) to scan the Docker image for vulnerabilities. Any findings will be published to the _Security_ tab of the repository, under the _Code Scanning_ section. If you believe that a finding is a false positive or otherwise not relevant, you can either manually dimiss the alert, or create a scanner config file (YAML-file) with allowlist spec that dismisses all alerts that matches a vulnerability ID (CVE). This list is then used in the current repo, but can also be shared and used with other repos. 
 
 This list is also used by the Artifact Registry Scanner.
 
@@ -124,7 +124,8 @@ The threshold can be set to one of the following values:
 
 **Slack:**
 
-Slack notifications are by default disabled, and needs to be enabled using scanner config.
+Slack notifications are by default disabled, and can be configured by creating a scanner config in repository or inherit a shared config.
+See [Docker Scan config](#docker-scan-config) for how to configure Docker Scan config.
 
 We use [entur/gha-slack](https://github.com/entur/gha-slack) to send out notifications.
 
@@ -133,8 +134,13 @@ We use [entur/gha-slack](https://github.com/entur/gha-slack) to send out notific
 
 **Pull Request:**
 
-Pull request notifications are by default enabled, and can be disabled using scanner config.
+Pull request notifications will comment on current pull request after a scan, and are by default enabled.
+To disable pull request notifications see [Docker Scan config](#docker-scan-config) section.
 
+### Known issues
+* Notifications fetches alerts before allowlist changes happen for Docker Scan.
+* Notifications will always be sent out when an alert with severity matching or higher than threshold exists.
+  * You can skip notifications step by adding `[skip-notifications]` in current commit message.
 
 ## Docker Scan config
 
