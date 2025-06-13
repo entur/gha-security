@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.4.0](https://github.com/entur/gha-security/compare/v2.3.3...v2.4.0) (2025-06-13)
+
+
+### Features
+
+* add slack and pull request alerts notifications ([#95](https://github.com/entur/gha-security/issues/95)) ([eaffcbb](https://github.com/entur/gha-security/commit/eaffcbb84a315b66687cb116bb1c2cf0ef7f5416))
+
+
+### Bug Fixes
+
+* add back download image artifact for docker-scan ([#97](https://github.com/entur/gha-security/issues/97)) ([c3dfaad](https://github.com/entur/gha-security/commit/c3dfaad63d0cb26c182a844279d79fa504c56db2))
+
 ## [2.3.3](https://github.com/entur/gha-security/compare/v2.3.2...v2.3.3) (2025-05-20)
 
 
