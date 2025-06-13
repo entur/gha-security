@@ -1,37 +1,34 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import type { Octokit } from "octokit";
-import { combineAllowlists } from "./allowlist.js";
-import type { AllowlistCodeScan, CweTagValues, PartialCodeScanningAlert, PartialCodeScanningAlertResponse, ScannerConfig } from "./typedefs.js";
+import type { AllowlistCodeScan, CweTagValues, GithubRepo, PartialCodeScanningAlert, PartialCodeScanningAlertResponse, ScannerConfig } from "./typedefs.js";
 
-const getCodeScanningAlerts = async (repository: string, octokit: Octokit) => {
+const getCodeScanningAlerts = async (octokit: Octokit) => {
 	const ref = github.context.ref;
+	const githubRepo = github.context.repo;
 	try {
-		core.info(`   [5.1] Fetch code scanning alerts from repo ${repository} with ref ${ref}`);
-		const alerts = await octokit.paginate(
+		core.info(`Fetching code scanning alerts from repo ${githubRepo.owner}/${githubRepo.repo} with ref ${ref}`);
+		return await octokit.paginate(
 			octokit.rest.codeScanning.listAlertsForRepo,
 			{
-				owner: "entur",
-				repo: repository,
+				owner: githubRepo.owner,
+				repo: githubRepo.repo,
 				ref,
 				per_page: 100,
 				state: "open",
 			},
 			(response: PartialCodeScanningAlertResponse) => response.data,
 		);
-		return alerts;
 	} catch (error) {
 		if (error instanceof Error) {
-			core.setFailed(`Failed to fetch alerts: ${error.message}`);
-		} else {
-			core.setFailed("Failed to fetch alerts");
+			throw Error(`Failed to fetch alerts: ${error.message}`);
 		}
 
-		return null;
+		throw Error("Failed to fetch alerts");
 	}
 };
 
-const convertToCweTagMap = (allowlist: AllowlistCodeScan[]) => {
+const convertToCweTagMap = (localAllowlist: AllowlistCodeScan[], externalAllowlist: AllowlistCodeScan[]) => {
 	const cweMap: Map<string, CweTagValues> = new Map();
 
 	const REASON_MAPPING = new Map([
@@ -40,22 +37,28 @@ const convertToCweTagMap = (allowlist: AllowlistCodeScan[]) => {
 		["test", "used in tests"],
 	]);
 
-	for (const entry of allowlist) {
+	for (const entry of externalAllowlist) {
+		cweMap.set(`external/cwe/${entry.cwe}`, { comment: entry.comment, reason: REASON_MAPPING.get(entry.reason) as "false positive" | "won't fix" | "used in tests" });
+	}
+
+	// Set Priority
+	for (const entry of localAllowlist) {
 		cweMap.set(`external/cwe/${entry.cwe}`, { comment: entry.comment, reason: REASON_MAPPING.get(entry.reason) as "false positive" | "won't fix" | "used in tests" });
 	}
 
 	return cweMap;
 };
 
-const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert[], octokit: Octokit, cweTagMap: Map<string, CweTagValues>, repository: string) => {
+const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert[], octokit: Octokit, cweTagMap: Map<string, CweTagValues>) => {
 	const dismissedAlerts = new Set();
+	const githubRepo = github.context.repo;
 	for (const [cweTag, cweTagValue] of cweTagMap.entries()) {
 		const matchingAlerts = codeScanAlerts.filter((alert) => alert?.rule?.tags?.includes(cweTag) && !dismissedAlerts.has(alert.number));
 
 		for (const matchingAlert of matchingAlerts) {
 			await octokit.rest.codeScanning.updateAlert({
-				owner: "entur",
-				repo: repository,
+				owner: githubRepo.owner,
+				repo: githubRepo.repo,
 				alert_number: matchingAlert.number,
 				state: "dismissed",
 				dismissed_comment: cweTagValue.comment,
@@ -66,22 +69,23 @@ const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert
 	}
 };
 
-const dismissCodeScanAlerts = async (repository: string, scannerConfig: ScannerConfig, octokit: Octokit, externalScannerConfig?: ScannerConfig) => {
-	const allowlist = combineAllowlists(scannerConfig, externalScannerConfig) as AllowlistCodeScan[];
+const dismissCodeScanAlerts = async (scannerConfig: ScannerConfig, octokit: Octokit, externalScannerConfig?: ScannerConfig) => {
+	const localAllowlist = (scannerConfig.spec?.allowlist ?? []) as AllowlistCodeScan[];
+	const externalAllowlist = (externalScannerConfig?.spec?.allowlist ?? []) as AllowlistCodeScan[];
 
-	if (allowlist.length === 0) {
-		core.info("[5] No allowlist found, skipping 'Suppress codescan alerts' step");
+	if (localAllowlist.length === 0 && externalAllowlist.length === 0) {
+		core.info("No allowlist found");
 		return;
 	}
 
-	core.info("[5] Suppress codescan alerts");
-	const codeScanAlerts = await getCodeScanningAlerts(repository, octokit);
+	core.info("Suppress codescan alerts");
+	const codeScanAlerts = await getCodeScanningAlerts(octokit);
 
 	if (!codeScanAlerts) return;
 
-	const cweMap = convertToCweTagMap(allowlist);
+	const cweMap = convertToCweTagMap(localAllowlist, externalAllowlist);
 
-	await updateCodeScanningAlerts(codeScanAlerts, octokit, cweMap, repository);
+	await updateCodeScanningAlerts(codeScanAlerts, octokit, cweMap);
 };
 
 export { dismissCodeScanAlerts };
