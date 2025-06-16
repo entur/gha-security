@@ -243,15 +243,18 @@ jobs:
               'njk': 'javascript-typescript',
               'hbs': 'javascript-typescript',
             };
+            
             const semgrepMappings = {
               // Scala
               'scala': 'scala',
               'sc': 'scala',
             };
-            const languageIgnore = core.getInput('ignore-language')
+            
+            const ignoreLanguage = core.getInput('ignore_language')
               .split(',')
               .map(f => f.trim())
               .filter(e => e !== '');
+              
             const globber = await glob.create('**', { matchDirectories: false });
             const repoFileTypes = [... new Set(             // Unique array
               (await globber.glob())                        // Traverse current folder
@@ -259,16 +262,19 @@ jobs:
                 .filter(f => f.lastIndexOf('.') > -1)       // Remove filenames without extension
                 .map(f => f.slice(f.lastIndexOf('.') + 1))  // Get the extension
             )];
+            
             const codeqlLanguages = [... new Set(
               repoFileTypes
                 .filter(f => codeqlMappings.hasOwnProperty(f))
                 .map(f => codeqlMappings[f])
-            )].filter(f => !languageIgnore.includes(f));
+            )].filter(f => !ignoreLanguage.includes(f));
+            
             const semgrepLanguages = [... new Set(
               repoFileTypes
                 .filter(f => semgrepMappings.hasOwnProperty(f))
                 .map(f => semgrepMappings[f])
-            )].filter(f => !languageIgnore.includes(f));
+            )].filter(f => !ignoreLanguage.includes(f));
+            
             core.exportVariable("GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_CQ", codeqlLanguages);
             core.exportVariable("GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_SEM", semgrepLanguages);
 
