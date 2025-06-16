@@ -156,7 +156,7 @@ jobs:
           done
 
   get-repository-metadata:
-    if: ${{ needs.upload-cached-results.outputs.skip_job_and_continue_scan == 'True' }}
+    if: ${{ failure() || needs.upload-cached-results.outputs.skip_job_and_continue_scan == 'True' }}
     runs-on: ubuntu-24.04
     needs: upload-cached-results
     outputs: 
