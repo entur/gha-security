@@ -183,6 +183,7 @@ jobs:
         id: get-repository-languages
         uses: actions/github-script@v7
         with:
+          ignore_language: ${{ inputs.ignore_language }}
           script: |
             const codeqlMappings = {
               // Python
