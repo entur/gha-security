@@ -268,7 +268,8 @@ jobs:
               repoFileTypes
                 .filter(f => codeqlMappings.hasOwnProperty(f))
                 .map(f => codeqlMappings[f])
-            )].filter(f => !ignoreLanguage.includes(f));
+              ), 'actions']
+            .filter(f => !ignoreLanguage.includes(f));
             
             const semgrepLanguages = [... new Set(
               repoFileTypes
