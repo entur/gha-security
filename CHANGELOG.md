@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.5.0](https://github.com/entur/gha-security/compare/v2.4.1...v2.5.0) (2025-07-02)
+
+
+### Features
+
+* Add GitHub Actions to CodeQL scan ([300e97d](https://github.com/entur/gha-security/commit/300e97dde07d1b82ec5c6679ac386ac0b7cd5a9d))
+* Add ignore_language option ([#99](https://github.com/entur/gha-security/issues/99)) ([300e97d](https://github.com/entur/gha-security/commit/300e97dde07d1b82ec5c6679ac386ac0b7cd5a9d))
+
+
+### Bug Fixes
+
+* Continue with scan if cached artifact fails to upload or has expired ([300e97d](https://github.com/entur/gha-security/commit/300e97dde07d1b82ec5c6679ac386ac0b7cd5a9d))
+
 ## [2.4.1](https://github.com/entur/gha-security/compare/v2.4.0...v2.4.1) (2025-06-17)
 
 
