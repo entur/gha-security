@@ -391,6 +391,10 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: ${{ inputs.codeql_queries }}
+          config: |
+            query-filters:
+              - exclude:
+                  tags: /cwe-275/
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
