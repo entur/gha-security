@@ -395,7 +395,7 @@ jobs:
           config: |
             query-filters:
               - exclude:
-                  tags: /cwe-275/
+                  id: actions/missing-workflow-permissions
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
