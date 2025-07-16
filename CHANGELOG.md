@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.1](https://github.com/entur/gha-security/compare/v2.5.0...v2.5.1) (2025-07-16)
+
+
+### Bug Fixes
+
+* CodeQL Action scan spam reduction ([#106](https://github.com/entur/gha-security/issues/106)) ([430b938](https://github.com/entur/gha-security/commit/430b938451323ab7cea2238df253e372332a3537))
+* Let gha-meta set its own permissions ([#105](https://github.com/entur/gha-security/issues/105)) ([226df03](https://github.com/entur/gha-security/commit/226df039a3553badc9ebe2e67b2a7f0c06d9d598))
+
 ## [2.5.0](https://github.com/entur/gha-security/compare/v2.4.1...v2.5.0) (2025-07-02)
 
 
