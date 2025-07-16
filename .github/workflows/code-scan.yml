@@ -391,6 +391,11 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: ${{ inputs.codeql_queries }}
+          # CWE-275 is generating a lot of spam on Action scanning despite teams following golden path. Ignore for now.
+          config: |
+            query-filters:
+              - exclude:
+                  id: actions/missing-workflow-permissions
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
