@@ -46,12 +46,12 @@ jobs:
           persist-credentials: false
 
       - name: "Download the image artifact"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ env.GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT }}
 
       - name: "Download the image artifact"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ env.GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT }}
 
