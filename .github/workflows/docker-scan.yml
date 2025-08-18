@@ -41,7 +41,7 @@ jobs:
       actions: read #required for uploading SARIF file to GitHub (workflows in private repositories)
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
 

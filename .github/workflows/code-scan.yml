@@ -165,7 +165,7 @@ jobs:
       found_gradle: ${{ env.GHA_SECURITY_CODE_SCAN_FOUND_GRADLE }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
 
@@ -299,7 +299,7 @@ jobs:
         language: ${{ fromJson(needs.get-repository-metadata.outputs.semgrep_languages) }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
 
@@ -365,7 +365,7 @@ jobs:
         language: ${{ fromJson(needs.get-repository-metadata.outputs.codeql_languages) }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
 
@@ -446,7 +446,7 @@ jobs:
       notification_pull_request_enabled: ${{ steps.scanner-action.outputs.notification_pull_request_enabled }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       
