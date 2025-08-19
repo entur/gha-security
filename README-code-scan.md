@@ -137,17 +137,21 @@ See [Github documentation](https://docs.github.com/en/rest/code-scanning/code-sc
 
 ### Autobuild fails for Gradle projects because of JVM version mismatch
 
-This can happen if Autobuild detects the wrong version of the JVM to run Gradle with. This can be solved by statically setting the JVM version in the Gradle toolchain:
+This can happen if Autobuild detects the wrong version of the JVM to run Gradle with. This can be solved by 
+updating workflow configuration to use `use_setup_java`
 
+```yaml
+jobs:
+    code-scan:
+        name: Code Scan
+        uses: entur/gha-security/.github/workflows/code-scan.yml@v2
+        secrets: inherit
+        with:
+          use_setup_java: true
+          java_version: "21"
+          java_distribution: "temurin"
 ```
-...
-java {
-  toolchain {
-    languageVersion.set(JavaLanguageVersion.of(<JVM_VERSION>)) // Replace with correct JVM Version
-  }
-}
-...
-```
+
 
 ### Autobuild fails for Gradle projects with multiple gradle project files.
 
