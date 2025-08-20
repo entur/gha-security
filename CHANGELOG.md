@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.0](https://github.com/entur/gha-security/compare/v2.5.1...v2.6.0) (2025-08-20)
+
+
+### Features
+
+* Add setup-java@v4 to codeql ([#110](https://github.com/entur/gha-security/issues/110)) ([2b2a12f](https://github.com/entur/gha-security/commit/2b2a12f0a2afcc8b6950025a94cf701a243e8751))
+
 ## [2.5.1](https://github.com/entur/gha-security/compare/v2.5.0...v2.5.1) (2025-07-16)
 
 
