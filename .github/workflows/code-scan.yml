@@ -18,6 +18,21 @@ on:
         default: ""
         required: false
         type: string
+      use_setup_java:
+        description: 'Uses "actions/setup-java" before running autobuild (Java/Kotlin only). Autobuild will detect Java version from action.'
+        default: false
+        required: false
+        type: boolean
+      java_version:
+        description: 'Java version for "actions/setup-java" to use'
+        default: "21"
+        required: false
+        type: string
+      java_distribution:
+        description: 'Java distribution for "actions/setup-java" to use'
+        default: "temurin"
+        required: false
+        type: string
       job_runner:
         description: 'Customizable job runner for CodeQL jobs that require a little extra performance/memory. List of runners is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners).'
         default: "ubuntu-24.04"
@@ -368,6 +383,12 @@ jobs:
         uses: actions/checkout@v5
         with:
           persist-credentials: false
+      - name: "Setup Java for Java/Kotlin"
+        if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java')
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.java_distribution }}
 
       - name: "Set up Gradle for Java/Kotlin"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
