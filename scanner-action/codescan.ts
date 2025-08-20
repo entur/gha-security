@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import type { Octokit } from "octokit";
+import { type Octokit, RequestError } from "octokit";
 import type { AllowlistCodeScan, CweTagValues, GithubRepo, PartialCodeScanningAlert, PartialCodeScanningAlertResponse, ScannerConfig } from "./typedefs.js";
 
 const getCodeScanningAlerts = async (octokit: Octokit) => {
@@ -20,8 +20,18 @@ const getCodeScanningAlerts = async (octokit: Octokit) => {
 			(response: PartialCodeScanningAlertResponse) => response.data,
 		);
 	} catch (error) {
-		if (error instanceof Error) {
-			throw Error(`Failed to fetch alerts: ${error.message}`);
+		if (error instanceof RequestError) {
+			if (error.status === 404) {
+				core.warning(`No scanning alerts found: ${JSON.stringify(error.response?.data)}`);
+				return null;
+			}
+
+			if (error.status === 403) {
+				core.warning("GitHub Advanced Security is not enabled for this repository");
+				return null;
+			}
+
+			throw Error(`Failed to fetch code scanning alerts: ${error.message}`);
 		}
 
 		throw Error("Failed to fetch alerts");

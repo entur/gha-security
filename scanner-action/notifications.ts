@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import type { Octokit } from "octokit";
+import { type Octokit, RequestError } from "octokit";
 import type { Notifications, PartialCodeScanningAlert, PartialCodeScanningAlertResponse, SeverityLevel } from "./typedefs.js";
 
 class ScannerNotifications {
@@ -87,7 +87,17 @@ class ScannerNotifications {
 			);
 			return true;
 		} catch (error) {
-			if (error instanceof Error) {
+			if (error instanceof RequestError) {
+				if (error.status === 404) {
+					core.warning(`No notification alerts found: ${JSON.stringify(error.response?.data)}`);
+					return false;
+				}
+
+				if (error.status === 403) {
+					core.warning("GitHub Advanced Security is not enabled for this repository");
+					return false;
+				}
+
 				throw Error(`Failed to fetch notification alerts: ${error.message}`);
 			}
 
