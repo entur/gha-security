@@ -61,6 +61,31 @@ jobs:
         secrets: inherit
 ```
 
+
+## Maven
+
+Code Scan have been developed with Gradle in mind, so we can't guarantee every Maven project to work with default setup.
+
+### Setup Artifactory
+
+Maven uses `.m2/settings.xml` to setup server credentials for repository artifactory. 
+
+Use setup below and replace `server_id_here` with the server id for repository artifactory.
+
+```yaml
+jobs:
+  code-scan:
+    name: Code Scan
+    uses: entur/gha-security/.github/workflows/code-scan.yml@v2
+    secrets: inherit
+    with:
+      use_setup_java: true
+      java_version: "21"
+      java_distribution: "temurin"
+      java_server_id_artifactory: "server_id_here"
+```
+
+
 ## Optional Dependency caching for Java/Kotlin (Gradle)
 
 Code vulnerability scans of Java and Kotlin are done by running autobuild, which runs any identified build systems, like Gradle.
