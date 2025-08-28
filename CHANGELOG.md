@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.0](https://github.com/entur/gha-security/compare/v2.6.1...v2.7.0) (2025-08-28)
+
+
+### Features
+
+* add support for Maven artifactory server credentials to code-scan ([#115](https://github.com/entur/gha-security/issues/115)) ([bd6b1cc](https://github.com/entur/gha-security/commit/bd6b1cc55f10783cfc5314537e8c2aefb9bf6c3d))
+
 ## [2.6.1](https://github.com/entur/gha-security/compare/v2.6.0...v2.6.1) (2025-08-21)
 
 
