@@ -18,16 +18,17 @@ or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your 
 
 <!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
 
-|                                        INPUT                                        |  TYPE   | REQUIRED |             DEFAULT             |                                                                                                                          DESCRIPTION                                                                                                                           |
-|-------------------------------------------------------------------------------------|---------|----------|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|     <a name="input_codeql_queries"></a>[codeql_queries](#input_codeql_queries)      | string  |  false   |      `"security-extended"`      |                                                                              Comma-separated list of queries for <br>CodeQL to run. By default <br>is set to security-extended.                                                                                |
-|          <a name="input_gradle_opts"></a>[gradle_opts](#input_gradle_opts)          | string  |  false   | `"-Dorg.gradle.jvmargs=-Xmx4g"` |                                                 [Gradle build options](https://docs.gradle.org/current/userguide/build_environment.html#environment_variables_reference) to pass on to <br>the CodeQL scanner                                                  |
-|    <a name="input_ignore_language"></a>[ignore_language](#input_ignore_language)    | string  |  false   |                                 |                               Comma-separated list of languages for <br>CodeQL or Semgrep to ignore. <br>See [CodeQL Languages](https://github.com/github/codeql-action/blob/main/src/languages.ts) or "scala" for <br>Semgrep                                 |
-| <a name="input_java_distribution"></a>[java_distribution](#input_java_distribution) | string  |  false   |           `"temurin"`           |                                                                                                     Java distribution for "actions/setup-java" to <br>use                                                                                                      |
-|        <a name="input_java_version"></a>[java_version](#input_java_version)         | string  |  false   |             `"21"`              |                                                                                                       Java version for "actions/setup-java" to <br>use                                                                                                         |
-|           <a name="input_job_runner"></a>[job_runner](#input_job_runner)            | string  |  false   |        `"ubuntu-24.04"`         |           Customizable job runner for CodeQL <br>jobs that require a little <br>extra performance/memory. List of runners <br>is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners).             |
-|  <a name="input_use_setup_gradle"></a>[use_setup_gradle](#input_use_setup_gradle)   | boolean |  false   |             `false`             | OBSOLETE. This is now autodetected <br>and enabled if `build.gradle(.kt(s))` is <br>found. Uses "gradle/action/setup-gradle" before running <br>autobuild (Java/Kotlin only). Potentially speeds up <br>build times if cache from <br>main branch is utilized  |
-|     <a name="input_use_setup_java"></a>[use_setup_java](#input_use_setup_java)      | boolean |  false   |             `false`             |                                                                Uses "actions/setup-java" before running autobuild <br>(Java/Kotlin only). Autobuild will detect Java <br>version from action.                                                                  |
+|                                                     INPUT                                                      |  TYPE   | REQUIRED |             DEFAULT             |                                                                                                                          DESCRIPTION                                                                                                                           |
+|----------------------------------------------------------------------------------------------------------------|---------|----------|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                   <a name="input_codeql_queries"></a>[codeql_queries](#input_codeql_queries)                   | string  |  false   |      `"security-extended"`      |                                                                              Comma-separated list of queries for <br>CodeQL to run. By default <br>is set to security-extended.                                                                                |
+|                       <a name="input_gradle_opts"></a>[gradle_opts](#input_gradle_opts)                        | string  |  false   | `"-Dorg.gradle.jvmargs=-Xmx4g"` |                                                 [Gradle build options](https://docs.gradle.org/current/userguide/build_environment.html#environment_variables_reference) to pass on to <br>the CodeQL scanner                                                  |
+|                 <a name="input_ignore_language"></a>[ignore_language](#input_ignore_language)                  | string  |  false   |                                 |                               Comma-separated list of languages for <br>CodeQL or Semgrep to ignore. <br>See [CodeQL Languages](https://github.com/github/codeql-action/blob/main/src/languages.ts) or "scala" for <br>Semgrep                                 |
+|              <a name="input_java_distribution"></a>[java_distribution](#input_java_distribution)               | string  |  false   |           `"temurin"`           |                                                                                                     Java distribution for "actions/setup-java" to <br>use                                                                                                      |
+| <a name="input_java_server_id_artifactory"></a>[java_server_id_artifactory](#input_java_server_id_artifactory) | string  |  false   |                                 |                                                      Java server id for "actions/setup-java" <br>to use. This will setup <br>maven server with artifactory credentials <br>for CodeQL autobuild to use.                                                        |
+|                      <a name="input_java_version"></a>[java_version](#input_java_version)                      | string  |  false   |             `"21"`              |                                                                                                       Java version for "actions/setup-java" to <br>use                                                                                                         |
+|                         <a name="input_job_runner"></a>[job_runner](#input_job_runner)                         | string  |  false   |        `"ubuntu-24.04"`         |           Customizable job runner for CodeQL <br>jobs that require a little <br>extra performance/memory. List of runners <br>is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners).             |
+|                <a name="input_use_setup_gradle"></a>[use_setup_gradle](#input_use_setup_gradle)                | boolean |  false   |             `false`             | OBSOLETE. This is now autodetected <br>and enabled if `build.gradle(.kt(s))` is <br>found. Uses "gradle/action/setup-gradle" before running <br>autobuild (Java/Kotlin only). Potentially speeds up <br>build times if cache from <br>main branch is utilized  |
+|                   <a name="input_use_setup_java"></a>[use_setup_java](#input_use_setup_java)                   | boolean |  false   |             `false`             |                                                                Uses "actions/setup-java" before running autobuild <br>(Java/Kotlin only). Autobuild will detect Java <br>version from action.                                                                  |
 
 <!-- AUTO-DOC-INPUT:END -->
 
@@ -60,33 +61,39 @@ jobs:
         secrets: inherit
 ```
 
-## Optional Dependency caching for Java/Kotlin
+
+## Maven
+
+Code Scan have been developed with Gradle in mind, so we can't guarantee every Maven project to work with default setup.
+
+### Setup Artifactory
+
+Maven uses `.m2/settings.xml` to setup server credentials for repository artifactory. 
+
+Use setup below and replace `server_id_here` with the server id for repository artifactory.
+
+```yaml
+jobs:
+  code-scan:
+    name: Code Scan
+    uses: entur/gha-security/.github/workflows/code-scan.yml@v2
+    secrets: inherit
+    with:
+      use_setup_java: true
+      java_version: "21"
+      java_distribution: "temurin"
+      java_server_id_artifactory: "server_id_here"
+```
+
+
+## Optional Dependency caching for Java/Kotlin (Gradle)
 
 Code vulnerability scans of Java and Kotlin are done by running autobuild, which runs any identified build systems, like Gradle.
 
 If the project uses the [gradle/actions/setup-gradle](https://github.com/gradle/actions/?tab=readme-ov-file#the-setup-gradle-action) action, you can set code scanning to utilize any available cache from the 'main' branch. This potentially speeds up code analysis jobs.
 
 
-**Caching is deactivated by default.**
-
-To activate caching, set input `use_setup_gradle` to `true`.
-
-Example:
-
-```yaml
-# codeql.yml
-name: "CodeQL"
-
-...
-
-jobs:
-    code-scan:
-        name: Code Scan
-        uses: entur/gha-security/.github/workflows/code-scan.yml@v2
-        secrets: inherit
-        with:
-          use_setup_gradle: true
-```     
+**Gradle Caching is detected by default.**
 
 ## Allow lists
 The reusable workflow uses [CodeQL](https://codeql.github.com/) to scan the codebase for vulnerabilities. Any discovered vulnerabilities will be published in the _Security_ tab for the repository, under the _Code Scanning_ section. If you believe a finding is a false positive or otherwise not relevant, you can either manually dimiss the alert, or create a scanner config file (YAML-file) with allowlist spec that dismisses all alerts that matches a vulnerability ID. This list is then used in the current repo, but can also be shared and used with other repos.

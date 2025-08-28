@@ -33,6 +33,11 @@ on:
         default: "temurin"
         required: false
         type: string
+      java_server_id_artifactory:
+        description: 'Java server id for "actions/setup-java" to use. This will setup maven server with artifactory credentials for CodeQL autobuild to use.'
+        default: ""
+        required: false
+        type: string
       job_runner:
         description: 'Customizable job runner for CodeQL jobs that require a little extra performance/memory. List of runners is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners).'
         default: "ubuntu-24.04"
@@ -384,11 +389,22 @@ jobs:
         with:
           persist-credentials: false
       - name: "Setup Java for Java/Kotlin"
-        if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java')
+        if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java') && inputs.java_server_id_artifactory == ''
         uses: actions/setup-java@v4
         with:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
+          overwrite-settings: false # Do not create .m2 settings config.
+    
+      - name: "Setup Java for Java/Kotlin with Artifactory server credentials."
+        if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java') && inputs.java_server_id_artifactory != ''
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.java_distribution }}
+          server-id:  ${{ inputs.java_server_id_artifactory }}
+          server-username: "ARTIFACTORY_AUTH_USER"
+          server-password: "ARTIFACTORY_AUTH_TOKEN"
 
       - name: "Set up Gradle for Java/Kotlin"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
