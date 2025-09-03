@@ -343,7 +343,7 @@ jobs:
 
       - name: "Set up Gradle for Scala"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/dependency-submission@v4
         with:
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
