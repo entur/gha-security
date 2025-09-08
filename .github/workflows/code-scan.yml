@@ -23,6 +23,11 @@ on:
         default: false
         required: false
         type: boolean
+      java_cache:
+        description: 'Cache for "actions/setup-java" to use (gradle/maven)'
+        default: ""
+        required: false
+        type: string
       java_version:
         description: 'Java version for "actions/setup-java" to use'
         default: "21"
@@ -322,24 +327,37 @@ jobs:
         uses: actions/checkout@v5
         with:
           persist-credentials: false
+
+      - name: "Get Setup Java inputs"
+        if: inputs.use_setup_java && matrix.language == 'scala'
+        id: java-inputs
+        uses: actions/github-script@v8
+        env: 
+          JAVA_VERSION: ${{ inputs.java_version }}
+          JAVA_DISTRIBUTION: ${{ inputs.java_distribution }}
+          JAVA_SERVER_ID: ${{ inputs.java_server_id_artifactory }}
+          JAVA_CACHE: ${{ inputs.java_cache }}
+        with:
+          script: |
+            const serverId = process.env.JAVA_SERVER_ID
+            const cache = process.env.JAVA_CACHE
+            const serverCredentials = { 
+              "server-id": serverId, 
+              "server-username": "ARTIFACTORY_AUTH_USER", 
+              "server-password": "ARTIFACTORY_AUTH_TOKEN" 
+              }
+
+            return {
+              "java-version": process.env.JAVA_VERSION,
+              "distribution": process.env.JAVA_DISTRIBUTION,
+              ...(serverId ? serverCredentials : {}}),
+              ...(cacheInput = cache ? { cache } : {})
+            }
       
       - name: "Setup Java for Scala"
-        if: inputs.use_setup_java && (matrix.language == 'scala') && inputs.java_server_id_artifactory == ''
+        if: inputs.use_setup_java && (matrix.language == 'scala')
         uses: actions/setup-java@v5
-        with:
-          java-version: ${{ inputs.java_version }}
-          distribution: ${{ inputs.java_distribution }}
-          overwrite-settings: false # Do not create .m2 settings config.
-       
-      - name: "Setup Java for Scala with Artifactory server credentials."
-        if: inputs.use_setup_java && (matrix.language == 'scala') && inputs.java_server_id_artifactory != ''
-        uses: actions/setup-java@v5
-        with:
-          java-version: ${{ inputs.java_version }}
-          distribution: ${{ inputs.java_distribution }}
-          server-id:  ${{ inputs.java_server_id_artifactory }}
-          server-username: "ARTIFACTORY_AUTH_USER"
-          server-password: "ARTIFACTORY_AUTH_TOKEN"
+        with: ${{ fromJson(steps.java-inputs.outputs.result) }}
 
       - name: "Gradle Dependency Graph for Scala"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
@@ -421,23 +439,37 @@ jobs:
         uses: actions/checkout@v5
         with:
           persist-credentials: false
+
+      - name: "Get Setup Java inputs"
+        if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java')
+        id: java-inputs
+        uses: actions/github-script@v8
+        env: 
+          JAVA_VERSION: ${{ inputs.java_version }}
+          JAVA_DISTRIBUTION: ${{ inputs.java_distribution }}
+          JAVA_SERVER_ID: ${{ inputs.java_server_id_artifactory }}
+          JAVA_CACHE: ${{ inputs.java_cache }}
+        with:
+          script: |
+            const serverId = process.env.JAVA_SERVER_ID
+            const cache = process.env.JAVA_CACHE
+            const serverCredentials = { 
+              "server-id": serverId, 
+              "server-username": "ARTIFACTORY_AUTH_USER", 
+              "server-password": "ARTIFACTORY_AUTH_TOKEN" 
+              }
+
+            return {
+              "java-version": process.env.JAVA_VERSION,
+              "distribution": process.env.JAVA_DISTRIBUTION,
+              ...(serverId ? serverCredentials : {}}),
+              ...(cacheInput = cache ? { cache } : {})
+            }
+      
       - name: "Setup Java for Java/Kotlin"
-        if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java') && inputs.java_server_id_artifactory == ''
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ inputs.java_version }}
-          distribution: ${{ inputs.java_distribution }}
-          overwrite-settings: false # Do not create .m2 settings config.
-    
-      - name: "Setup Java for Java/Kotlin with Artifactory server credentials."
-        if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java') && inputs.java_server_id_artifactory != ''
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ inputs.java_version }}
-          distribution: ${{ inputs.java_distribution }}
-          server-id:  ${{ inputs.java_server_id_artifactory }}
-          server-username: "ARTIFACTORY_AUTH_USER"
-          server-password: "ARTIFACTORY_AUTH_TOKEN"
+        if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java')
+        uses: actions/setup-java@v5
+        with: ${{ fromJson(steps.java-inputs.outputs.result) }}
 
       - name: "Set up Gradle for Java/Kotlin"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
