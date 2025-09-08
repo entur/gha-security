@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       use_setup_gradle:
-        description: 'OBSOLETE. This is now autodetected and enabled if `build.gradle(.kt(s))` is found. Uses "gradle/action/setup-gradle" before running autobuild (Java/Kotlin only). Potentially speeds up build times if cache from main branch is utilized'
+        description: 'OBSOLETE. This is now autodetected and enabled if `build.gradle(.kt(s))` is found. Uses "gradle/action/setup-gradle" before running autobuild (Java/Kotlin/Scala only). Potentially speeds up build times if cache from main branch is utilized'
         default: false
         required: false
         type: boolean
@@ -19,7 +19,7 @@ on:
         required: false
         type: string
       use_setup_java:
-        description: 'Uses "actions/setup-java" before running autobuild (Java/Kotlin only). Autobuild will detect Java version from action.'
+        description: 'Uses "actions/setup-java" before running autobuild (Java/Kotlin/Scala only). Autobuild will detect Java version from action.'
         default: false
         required: false
         type: boolean
@@ -39,7 +39,7 @@ on:
         required: false
         type: string
       job_runner:
-        description: 'Customizable job runner for CodeQL jobs that require a little extra performance/memory. List of runners is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners).'
+        description: 'Customizable job runner for CodeQL or Semgrep jobs that require a little extra performance/memory. List of runners is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners).'
         default: "ubuntu-24.04"
         required: false
         type: string
@@ -305,14 +305,14 @@ jobs:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
     if: ${{ needs.get-repository-metadata.outputs.semgrep_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
-    runs-on: ubuntu-24.04
+    runs-on:  ${{ startsWith(inputs.job_runner, 'grp-') && fromJSON(format('{{"group":"{0}"}}', inputs.job_runner)) || inputs.job_runner }}
     needs: get-repository-metadata
     permissions:
       # Semgrep - required for all workflows
       security-events: write
       # Semgrep - only required for workflows in private repositories
       actions: read
-      contents: read
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -322,6 +322,39 @@ jobs:
         uses: actions/checkout@v5
         with:
           persist-credentials: false
+      
+      - name: "Setup Java for Scala"
+        if: inputs.use_setup_java && (matrix.language == 'scala') && inputs.java_server_id_artifactory == ''
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.java_distribution }}
+          overwrite-settings: false # Do not create .m2 settings config.
+       
+      - name: "Setup Java for Scala with Artifactory server credentials."
+        if: inputs.use_setup_java && (matrix.language == 'scala') && inputs.java_server_id_artifactory != ''
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.java_distribution }}
+          server-id:  ${{ inputs.java_server_id_artifactory }}
+          server-username: "ARTIFACTORY_AUTH_USER"
+          server-password: "ARTIFACTORY_AUTH_TOKEN"
+
+      - name: "Gradle Dependency Graph for Scala"
+        if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
+        uses: gradle/actions/dependency-submission@v4
+        env:
+          ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
+          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }} # Kept for backwards compatability
+          ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
+          ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
+          ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
+        with:
+          cache-read-only: true  # Force read only, even in main
+          add-job-summary: 'on-failure'
+          dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
+          dependency-graph-continue-on-failure: true
 
       - name: "Set up Semgrep"
         run: |
