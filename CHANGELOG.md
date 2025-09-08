@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.8.0](https://github.com/entur/gha-security/compare/v2.7.0...v2.8.0) (2025-09-08)
+
+
+### Features
+
+* Scala dependency graph generation ([#117](https://github.com/entur/gha-security/issues/117)) ([ea9e42a](https://github.com/entur/gha-security/commit/ea9e42a3bebd8a1aad579bb2d8e754f717c06ac9))
+
 ## [2.7.0](https://github.com/entur/gha-security/compare/v2.6.1...v2.7.0) (2025-08-28)
 
 
