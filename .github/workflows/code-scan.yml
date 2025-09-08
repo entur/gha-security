@@ -39,7 +39,7 @@ on:
         required: false
         type: string
       job_runner:
-        description: 'Customizable job runner for CodeQL jobs that require a little extra performance/memory. List of runners is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners).'
+        description: 'Customizable job runner for CodeQL or Semgrep jobs that require a little extra performance/memory. List of runners is available in [Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners).'
         default: "ubuntu-24.04"
         required: false
         type: string
