@@ -423,7 +423,7 @@ jobs:
           persist-credentials: false
       - name: "Setup Java for Java/Kotlin"
         if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java') && inputs.java_server_id_artifactory == ''
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
@@ -431,7 +431,7 @@ jobs:
     
       - name: "Setup Java for Java/Kotlin with Artifactory server credentials."
         if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java') && inputs.java_server_id_artifactory != ''
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
