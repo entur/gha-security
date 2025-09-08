@@ -350,7 +350,7 @@ jobs:
             return {
               "java-version": process.env.JAVA_VERSION,
               "distribution": process.env.JAVA_DISTRIBUTION,
-              ...(serverId ? serverCredentials : {}}),
+              ...(serverId ? serverCredentials : {}),
               ...(cacheInput = cache ? { cache } : {})
             }
       
@@ -462,7 +462,7 @@ jobs:
             return {
               "java-version": process.env.JAVA_VERSION,
               "distribution": process.env.JAVA_DISTRIBUTION,
-              ...(serverId ? serverCredentials : {}}),
+              ...(serverId ? serverCredentials : {}),
               ...(cacheInput = cache ? { cache } : {})
             }
       
