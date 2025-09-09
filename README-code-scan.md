@@ -97,13 +97,10 @@ jobs:
     uses: entur/gha-security/.github/workflows/code-scan.yml@v2
     secrets: inherit
     with:
-      use_setup_java: true
-      java_version: "21"
-      java_distribution: "temurin"
-      java_cache: "maven"
+      use_maven_cache: true
 ```
 
-**note: workflow input `use_setup_java` and `java_cache` is required for workflow to cache Maven dependencies.**
+**note: workflow input `use_maven_cache` is required for workflow to cache Maven dependencies.**
 
 
 ## Optional Dependency caching for Java/Kotlin (Gradle)
