@@ -27,8 +27,9 @@ or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your 
 | <a name="input_java_server_id_artifactory"></a>[java_server_id_artifactory](#input_java_server_id_artifactory) | string  |  false   |                                 |                                                         Java server id for "actions/setup-java" <br>to use. This will setup <br>maven server with artifactory credentials <br>for CodeQL autobuild to use.                                                           |
 |                      <a name="input_java_version"></a>[java_version](#input_java_version)                      | string  |  false   |             `"21"`              |                                                                                                          Java version for "actions/setup-java" to <br>use                                                                                                            |
 |                         <a name="input_job_runner"></a>[job_runner](#input_job_runner)                         | string  |  false   |        `"ubuntu-24.04"`         |       Customizable job runner for CodeQL <br>or Semgrep jobs that require <br>a little extra performance/memory. List <br>of runners is available in <br>[Confluence](https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners).        |
+|                 <a name="input_use_maven_cache"></a>[use_maven_cache](#input_use_maven_cache)                  | boolean |  false   |             `false`             |                                                                              Uses "actions/cache" to cache local <br>maven repository, and can speed <br>up autobuild times for CodeQL                                                                               |
 |                <a name="input_use_setup_gradle"></a>[use_setup_gradle](#input_use_setup_gradle)                | boolean |  false   |             `false`             | OBSOLETE. This is now autodetected <br>and enabled if `build.gradle(.kt(s))` is <br>found. Uses "gradle/action/setup-gradle" before running <br>autobuild (Java/Kotlin/Scala only). Potentially speeds up <br>build times if cache from <br>main branch is utilized  |
-|                   <a name="input_use_setup_java"></a>[use_setup_java](#input_use_setup_java)                   | boolean |  false   |             `false`             |                                                                Uses "actions/setup-java" before running autobuild <br>(Java/Kotlin/Scala only). Autobuild will detect Java <br>version from action.                                                                  |
+|                   <a name="input_use_setup_java"></a>[use_setup_java](#input_use_setup_java)                   | boolean |  false   |             `false`             |                        Uses "actions/setup-java" before running CodeQL <br>or Gradle Dependency Graph (Java/Kotlin/Scala only). <br>CodeQL autobuild / Gradle Dependency <br>Graph will use the Java <br>version from "actions/setup-java".                          |
 
 <!-- AUTO-DOC-INPUT:END -->
 
@@ -84,6 +85,22 @@ jobs:
       java_distribution: "temurin"
       java_server_id_artifactory: "server_id_here"
 ```
+
+### Setup Maven Cache
+
+To cache maven dependencies use the setup below.
+
+```yaml
+jobs:
+  code-scan:
+    name: Code Scan
+    uses: entur/gha-security/.github/workflows/code-scan.yml@v2
+    secrets: inherit
+    with:
+      use_maven_cache: true
+```
+
+**note: workflow input `use_maven_cache` is required for workflow to cache Maven dependencies.**
 
 
 ## Optional Dependency caching for Java/Kotlin (Gradle)
