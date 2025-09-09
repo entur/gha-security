@@ -86,6 +86,25 @@ jobs:
       java_server_id_artifactory: "server_id_here"
 ```
 
+### Setup Maven Cache
+
+To cache maven dependencies use the setup below.
+
+```yaml
+jobs:
+  code-scan:
+    name: Code Scan
+    uses: entur/gha-security/.github/workflows/code-scan.yml@v2
+    secrets: inherit
+    with:
+      use_setup_java: true
+      java_version: "21"
+      java_distribution: "temurin"
+      java_cache: "maven"
+```
+
+**note: workflow input `use_setup_java` and `java_cache` is required for workflow to cache Maven dependencies.**
+
 
 ## Optional Dependency caching for Java/Kotlin (Gradle)
 
