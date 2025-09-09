@@ -350,15 +350,6 @@ jobs:
               "distribution": process.env.JAVA_DISTRIBUTION,
               ...(serverId ? serverCredentials : {}),
             }
-      
-      - name: Cache local Maven repository
-        uses: actions/cache@v4
-        if: inputs.use_maven_cache && (matrix.language == 'scala')
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
 
       - name: "Setup Java for Scala"
         if: inputs.use_setup_java && (matrix.language == 'scala')
