@@ -336,7 +336,6 @@ jobs:
           JAVA_VERSION: ${{ inputs.java_version }}
           JAVA_DISTRIBUTION: ${{ inputs.java_distribution }}
           JAVA_SERVER_ID: ${{ inputs.java_server_id_artifactory }}
-          JAVA_CACHE: ${{ inputs.java_cache }}
         with:
           script: |
             const serverId = process.env.JAVA_SERVER_ID
