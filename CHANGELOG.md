@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.0](https://github.com/entur/gha-security/compare/v2.8.0...v2.9.0) (2025-09-09)
+
+
+### Features
+
+* Add support for Maven repository caching ([#120](https://github.com/entur/gha-security/issues/120)) ([5e0ff88](https://github.com/entur/gha-security/commit/5e0ff8808549cf2d896c47c988d6be4d2cb4d238))
+
 ## [2.8.0](https://github.com/entur/gha-security/compare/v2.7.0...v2.8.0) (2025-09-08)
 
 
