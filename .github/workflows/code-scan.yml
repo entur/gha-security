@@ -19,7 +19,7 @@ on:
         required: false
         type: string
       use_setup_java:
-        description: 'Uses "actions/setup-java" before running CodeQL or Gradle Dependency Graph (Java/Kotlin/Scala only). CodeQL autobuild / Gradle Dependency Graph will use the Java version from "action/setup-java".'
+        description: 'Uses "actions/setup-java" before running CodeQL or Gradle Dependency Graph (Java/Kotlin/Scala only). CodeQL autobuild / Gradle Dependency Graph will use the Java version from "actions/setup-java".'
         default: false
         required: false
         type: boolean
