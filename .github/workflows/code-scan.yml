@@ -68,41 +68,14 @@ jobs:
       - name: "Validate inputs"
         env:
           CODEQL_QUERIES: ${{ inputs.codeql_queries }}
-          JOB_RUNNER: ${{ inputs.job_runner }}
         run: |
           python -c "import re
           import os
           codeql_queries = os.environ['CODEQL_QUERIES']
           regex_matches = re.findall(r'[^,\s?]+', codeql_queries)
-          job_runner = os.environ['JOB_RUNNER']
-          # Supported runners documented in confluence: https://enturas.atlassian.net/wiki/spaces/ESP/pages/4989059095/GitHub+Actions+Runners
-          supported_runners = [
-            'ubuntu-latest',
-            'ubuntu-24.04',
-            'ubuntu-22.04',
-            'ubuntu-20.04',
-            'windows-latest',
-            'windows-2025',
-            'windows-2022',
-            'windows-2019',
-            'macos-latest',
-            'macos-15',
-            'macos-14',
-            'macos-13',
-            'grp-ubuntu-24.04-2core-x64',
-            'grp-ubuntu-24.04-4core-x64',
-            'grp-ubuntu-24.04-8core-x64',
-            'grp-ubuntu-24.04-16core-x64',
-            'grp-ubuntu-22.04-4core-x64',
-            'grp-ubuntu-24.04-2core-a64',
-            ]
           
           if (len(regex_matches) <= 0):
             print('::error ::Invalid input. codeql_queries is set to invalid list. Use a comma-separated list: default, security-extended')
-            exit(1)
-          
-          if (not job_runner in supported_runners):
-            print('::error ::Invalid input. Supported runners are: ', supported_runners)
             exit(1)
           
           os.system('echo Validation passed')"
@@ -261,14 +234,6 @@ jobs:
               'html': 'javascript-typescript',
               'xhtm': 'javascript-typescript',
               'xhtml': 'javascript-typescript',
-              // Misc
-              'yml': 'javascript-typescript',
-              'yaml': 'javascript-typescript',
-              'raml': 'javascript-typescript',
-              'xml': 'javascript-typescript',
-              'json': 'javascript-typescript',
-              'njk': 'javascript-typescript',
-              'hbs': 'javascript-typescript',
             };
             
             const semgrepMappings = {
