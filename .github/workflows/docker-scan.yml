@@ -63,7 +63,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           external-repository-token: ${{ secrets.external_repository_token }}
 
-
       - name: "Docker workdir extraction"
         id: docker-workdir
         run: |
@@ -101,6 +100,7 @@ jobs:
         with: 
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
           category: 'anchore-grype-scan'
+
   check-for-critical-alerts:
     runs-on: ubuntu-24.04
     if: ${{ always() }}

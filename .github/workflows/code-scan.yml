@@ -261,14 +261,6 @@ jobs:
               'html': 'javascript-typescript',
               'xhtm': 'javascript-typescript',
               'xhtml': 'javascript-typescript',
-              // Misc
-              'yml': 'javascript-typescript',
-              'yaml': 'javascript-typescript',
-              'raml': 'javascript-typescript',
-              'xml': 'javascript-typescript',
-              'json': 'javascript-typescript',
-              'njk': 'javascript-typescript',
-              'hbs': 'javascript-typescript',
             };
             
             const semgrepMappings = {
