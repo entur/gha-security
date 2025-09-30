@@ -33,6 +33,7 @@ interface Notifications {
 
 interface ScannerSpec {
 	inherit?: string;
+	centralAllowlist?: boolean;
 	allowlist?: AllowlistCodeScan[] | AllowlistDockerScan[];
 	notifications?: Notifications;
 }
@@ -48,6 +49,12 @@ interface ScannerConfig {
 	kind: string;
 	metadata?: ScannerMetadata;
 	spec?: ScannerSpec;
+}
+
+interface GlobalConfig {
+	localConfig: ScannerConfig,
+	externalConfig: ScannerConfig | undefined,
+	centralConfig: ScannerConfig | undefined
 }
 
 type SeverityLevel = "low" | "medium" | "high" | "critical";
@@ -86,4 +93,5 @@ export type {
 	SeverityLevel,
 	GithubRepo,
 	Notifications,
+	GlobalConfig
 };
