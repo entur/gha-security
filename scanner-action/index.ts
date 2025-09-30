@@ -5,8 +5,8 @@ import { dismissCodeScanAlerts } from "./codescan.js";
 import { dismissDockerScanAlerts } from "./dockerscan.js";
 import { ScannerNotifications } from "./notifications.js";
 import { setNotificationOutputs } from "./outputs.js";
-import { getScannerConfigs } from "./scanner-config.js";
 import type { ScannerConfig } from "./typedefs.js";
+import { getGlobalConfig } from "./global-config.js";
 
 const getOctokitThrottleConfig = () => {
 	const throttle: ThrottlingOptions = {
@@ -38,10 +38,10 @@ const runNotifications = async (octokitAction: Octokit, scannerType: string, sca
 	setNotificationOutputs(scannerNotifications);
 };
 
-const runAllowlist = async (scannerConfig: ScannerConfig, scannerType: string, octokitAction: Octokit, externalScannerConfig?: ScannerConfig) => {
+const runAllowlist = async (scannerConfig: ScannerConfig, scannerType: string, octokitAction: Octokit, externalScannerConfig?: ScannerConfig, centralScannerConfig?: ScannerConfig) => {
 	switch (scannerType) {
 		case "dockerscan":
-			dismissDockerScanAlerts(scannerConfig, externalScannerConfig);
+			dismissDockerScanAlerts(scannerConfig, externalScannerConfig, centralScannerConfig);
 			break;
 
 		case "codescan":
@@ -58,15 +58,25 @@ const main = async () => {
 		const TOKEN = core.getInput("token");
 		const SCANNER_TYPE = core.getInput("scanner");
 		const EXTERNAL_REPOSITORY_TOKEN = core.getInput("external-repository-token");
+		const CENTRAL_ALLOWLIST_TOKEN = core.getInput("central-allowlist-token");
+
 		const VALID_SCANNERS = ["dockerscan", "codescan"];
 
 		const ThrottledOctokit = Octokit.plugin(throttling);
 
 		let octokitExternal: Octokit | undefined = undefined;
+		let octokitCentral: Octokit | undefined = undefined;
 
 		if (EXTERNAL_REPOSITORY_TOKEN !== "") {
 			octokitExternal = new ThrottledOctokit({
 				auth: EXTERNAL_REPOSITORY_TOKEN,
+				throttle: getOctokitThrottleConfig(),
+			});
+		}
+
+		if (CENTRAL_ALLOWLIST_TOKEN !== "") {
+			octokitCentral = new ThrottledOctokit({
+				auth: CENTRAL_ALLOWLIST_TOKEN,
 				throttle: getOctokitThrottleConfig(),
 			});
 		}
@@ -81,7 +91,7 @@ const main = async () => {
 			return;
 		}
 
-		const configs = await getScannerConfigs(SCANNER_TYPE, octokitExternal);
+		const configs = await getGlobalConfig(SCANNER_TYPE, octokitExternal, octokitCentral);
 
 		if (configs === undefined) return;
 
@@ -90,9 +100,9 @@ const main = async () => {
 			return;
 		}
 
-		const { localConfig, externalConfig } = configs;
+		const { localConfig, externalConfig, centralConfig } = configs;
 
-		await runAllowlist(localConfig, SCANNER_TYPE, octokitAction, externalConfig);
+		await runAllowlist(localConfig, SCANNER_TYPE, octokitAction, externalConfig, centralConfig);
 		await runNotifications(octokitAction, SCANNER_TYPE, localConfig, externalConfig);
 	} catch (error) {
 		if (error instanceof Error) {
