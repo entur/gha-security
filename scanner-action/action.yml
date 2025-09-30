@@ -7,6 +7,9 @@ inputs:
   external-repository-token:
     description: "External Repository GitHub Token"
     required: false
+  central-allowlist-token:
+    description: "Central Allowlist GitHub Token"
+    required: false
   scanner:
     description: "Type of scanner"
     required: true
