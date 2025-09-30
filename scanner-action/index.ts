@@ -3,10 +3,10 @@ import { type ThrottlingOptions, throttling } from "@octokit/plugin-throttling";
 import { Octokit } from "octokit";
 import { dismissCodeScanAlerts } from "./codescan.js";
 import { dismissDockerScanAlerts } from "./dockerscan.js";
+import { getGlobalConfig } from "./global-config.js";
 import { ScannerNotifications } from "./notifications.js";
 import { setNotificationOutputs } from "./outputs.js";
 import type { ScannerConfig } from "./typedefs.js";
-import { getGlobalConfig } from "./global-config.js";
 
 const getOctokitThrottleConfig = () => {
 	const throttle: ThrottlingOptions = {
@@ -38,7 +38,13 @@ const runNotifications = async (octokitAction: Octokit, scannerType: string, sca
 	setNotificationOutputs(scannerNotifications);
 };
 
-const runAllowlist = async (scannerConfig: ScannerConfig, scannerType: string, octokitAction: Octokit, externalScannerConfig?: ScannerConfig, centralScannerConfig?: ScannerConfig) => {
+const runAllowlist = async (
+	scannerConfig: ScannerConfig,
+	scannerType: string,
+	octokitAction: Octokit,
+	externalScannerConfig?: ScannerConfig,
+	centralScannerConfig?: ScannerConfig,
+) => {
 	switch (scannerType) {
 		case "dockerscan":
 			dismissDockerScanAlerts(scannerConfig, externalScannerConfig, centralScannerConfig);

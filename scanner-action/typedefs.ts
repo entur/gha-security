@@ -52,9 +52,9 @@ interface ScannerConfig {
 }
 
 interface GlobalConfig {
-	localConfig: ScannerConfig,
-	externalConfig: ScannerConfig | undefined,
-	centralConfig: ScannerConfig | undefined
+	localConfig: ScannerConfig;
+	externalConfig: ScannerConfig | undefined;
+	centralConfig: ScannerConfig | undefined;
 }
 
 type SeverityLevel = "low" | "medium" | "high" | "critical";
@@ -93,5 +93,5 @@ export type {
 	SeverityLevel,
 	GithubRepo,
 	Notifications,
-	GlobalConfig
+	GlobalConfig,
 };
