@@ -30,6 +30,14 @@ Go to the _Actions_ tab in your repository, click on _New workflow_ and select t
 
 ## Secrets
 
+<!-- AUTO-DOC-SECRETS:START - Do not remove or modify this section -->
+
+|                                                    SECRET                                                     | REQUIRED |                                                             DESCRIPTION                                                             |
+|---------------------------------------------------------------------------------------------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------|
+| <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   | Token to access the external <br>repository mentioned in the dockerscan.yml <br>file. Must have read access <br>to the repository.  |
+
+<!-- AUTO-DOC-SECRETS:END -->
+
 ## Golden Path
 
 - Docker image must be built before being scanned, preferably using reusable workflow `entur/gha-docker/.github/workflows/build.yml@v2`.
