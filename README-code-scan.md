@@ -160,7 +160,7 @@ The format and location of the config can be found [in the section below](#code-
 
 **Pull Request:**
 
-Pull request notifications (comments) are enabled by default, but can be enabled by creating a scanner config in repository or inheriting a shared config.
+Pull request notifications (comments) are enabled by default, but can be disabled by creating a scanner config in repository or inheriting a shared config.
 
 The format and location of the config can be found [in the section below](#code-scan-config).
 
