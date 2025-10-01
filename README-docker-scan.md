@@ -9,6 +9,7 @@ jobs:
   docker-scan:
     name: Docker Scan
     uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
+    secrets: inherit
     with:
         image_artifact: # The name of the image artifact to scan
     
@@ -26,6 +27,8 @@ Go to the _Actions_ tab in your repository, click on _New workflow_ and select t
 | <a name="input_image_artifact"></a>[image_artifact](#input_image_artifact) | string |   true   |         | Image artifact to scan |
 
 <!-- AUTO-DOC-INPUT:END -->
+
+## Secrets
 
 ## Golden Path
 
@@ -68,16 +71,17 @@ jobs:
     uses: entur/gha-docker/.github/workflows/build.yml@v1
     with:
       dockerfile: Dockerfile
-  docker-push:
-    name: Push Docker Image
-    needs: docker-build
-    uses: entur/gha-docker/.github/workflows/push.yml@v1
   docker-scan:
     name: Scan Docker Image
     needs: docker-build
     uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
+    secrets: inherit
     with:
       image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
+  docker-push:
+    name: Push Docker Image
+    needs: docker-scan
+    uses: entur/gha-docker/.github/workflows/push.yml@v1
       
 ```
 
@@ -98,10 +102,9 @@ jobs:
   docker-scan:
     needs: docker-build
     uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
+    secrets: inherit
     with:
         image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
-    secrets:
-        external_repository_token: ${{ secrets.EXTERNAL_REPOSITORY_TOKEN }}
 ```
 
 ## Notifications
@@ -124,18 +127,17 @@ The threshold can be set to one of the following values:
 
 **Slack:**
 
-Slack notifications are by default disabled, and can be configured by creating a scanner config in repository or inherit a shared config.
-See [Docker Scan config](#docker-scan-config) for how to configure Docker Scan config.
+Slack notifications are by default disabled, but can be enabled by creating a scanner config in repository or inheriting a shared config.
 
-We use [entur/gha-slack](https://github.com/entur/gha-slack) to send out notifications.
+**Note:** The slack channel used for notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot. Additionally, you MUST specify `secrets: inherit` when calling the docker-scan reusable-workflow.
 
-**Note:** Slack channel used for Notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot.
-
+The format and location of the config can be found [in the section below](#docker-scan-config).
 
 **Pull Request:**
 
-Pull request notifications will comment on current pull request after a scan, and are by default enabled.
-To disable pull request notifications see [Docker Scan config](#docker-scan-config) section.
+Pull request notifications (comments) are enabled by default, but can be enabled by creating a scanner config in repository or inheriting a shared config.
+
+The format and location of the config can be found [in the section below](#docker-scan-config).
 
 ### Known issues
 * Notifications fetches alerts before allowlist changes happen for Docker Scan.
@@ -155,7 +157,7 @@ Read Permissions of the repo containing any external allowslists are REQUIRED. I
 
 You can find documentation on how to create a fine-grained access token [here](https://docs.github.com/en/enterprise-cloud@latest/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token), and how to add it as a secret to your repository [here](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository).
 
-Requirements for referencing **external** config
+Requirements for referencing an **external** config
 - A fine-grained access token must be created to access the external config file, with READ CONTENT permissions to the external repository.
 - The token must be added as a secret to the repository where the workflow is run, and be named `EXTERNAL_REPOSITORY_TOKEN`.
 - Any repository using an external config file for inheritance, must still define `inherit` under spec referencing the name of the repo containing the external config file. See [schema](#schema) for more info.
@@ -166,8 +168,6 @@ apiVersion: entur.io/securitytools/v1
 kind: DockerScanConfig
 metadata:
   id: {unique identifier}
-  name: {human readable name}
-  owner: {responsible team or developer}
 spec:
   inherit: {repository where the external allowlist file is placed}
   allowlist:
@@ -187,10 +187,6 @@ spec:
 **Metadata:**
 
 The `id` field MUST be a unique alphanumeric (no special characters) string identifing the allowlist. This can be anything, but when in doubt use your app ID.
-
-The OPTIONAL `name` field under the metadata section SHOULD be the name of the project.
-
-The OPTIONAL `owner` field MUST be whomever's responsible for the list, like team or a single developer.
 
 **Spec:**
 
@@ -227,8 +223,6 @@ apiVersion: entur.io/securitytools/v1
 kind: DockerScanConfig
 metadata:
   id: myprojectconfig
-  name: my-project-config
-  owner: team-supreme
 spec:
   allowlist:
   - cve: "CVE-2021-1234-abc"
