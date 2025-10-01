@@ -62,6 +62,7 @@ jobs:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
           external-repository-token: ${{ secrets.external_repository_token }}
+          central-allowlist-token: ""
 
       - name: "Docker workdir extraction"
         id: docker-workdir
