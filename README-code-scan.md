@@ -35,6 +35,14 @@ or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your 
 
 ## Secrets
 
+<!-- AUTO-DOC-SECRETS:START - Do not remove or modify this section -->
+
+|                                                    SECRET                                                     | REQUIRED |                                                            DESCRIPTION                                                            |
+|---------------------------------------------------------------------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------|
+| <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   | Token to access the external <br>repository mentioned in the codescan.yml <br>file. Must have read access <br>to the repository.  |
+
+<!-- AUTO-DOC-SECRETS:END -->
+
 ## Golden Path
 
 - Workflow must be named `codeql.yml`.
