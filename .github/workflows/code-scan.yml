@@ -323,7 +323,7 @@ jobs:
 
       - name: "Gradle Dependency Graph for Scala"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
-        uses: gradle/actions/dependency-submission@v4
+        uses: gradle/actions/dependency-submission@v5
         env:
           ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
           ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }} # Kept for backwards compatability
@@ -441,7 +441,7 @@ jobs:
 
       - name: "Set up Gradle for Java/Kotlin"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with: 
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
