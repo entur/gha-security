@@ -3,8 +3,12 @@ import * as core from "@actions/core";
 import * as yaml from "yaml";
 import type { AllowlistDockerScan, ScannerConfig } from "./typedefs.js";
 
-const convertToCveMap = (localAllowlist: AllowlistDockerScan[], externalAllowlist: AllowlistDockerScan[]) => {
+const convertToCveMap = (localAllowlist: AllowlistDockerScan[], externalAllowlist: AllowlistDockerScan[], centralAllowlist: AllowlistDockerScan[]) => {
 	const cveMap: Map<string, { comment: string; reason: string }> = new Map();
+
+	for (const entry of centralAllowlist) {
+		cveMap.set(entry.cve, { comment: entry.comment, reason: entry.reason });
+	}
 
 	// comment and reason in allowlist is not being used at the moment.
 	// it's available, so we can easily put it into BigQuery.
@@ -20,10 +24,10 @@ const convertToCveMap = (localAllowlist: AllowlistDockerScan[], externalAllowlis
 	return cveMap;
 };
 
-const generateGrypeConfig = (localAllowlist: AllowlistDockerScan[], externalAllowlist: AllowlistDockerScan[]) => {
+const generateGrypeConfig = (localAllowlist: AllowlistDockerScan[], externalAllowlist: AllowlistDockerScan[], centralAllowlist: AllowlistDockerScan[]) => {
 	const GRYPE_CONFIG_FILE = ".grype.yaml";
 
-	const cveMap = convertToCveMap(localAllowlist, externalAllowlist);
+	const cveMap = convertToCveMap(localAllowlist, externalAllowlist, centralAllowlist);
 
 	const grypeIgnoreList = Array.from(cveMap.keys()).map((item) => {
 		return { vulnerability: item };
@@ -37,16 +41,17 @@ const generateGrypeConfig = (localAllowlist: AllowlistDockerScan[], externalAllo
 	fs.writeFileSync(".grype.yaml", yamlGrype);
 };
 
-const dismissDockerScanAlerts = (scannerConfig: ScannerConfig, externalScannerConfig?: ScannerConfig) => {
+const dismissDockerScanAlerts = (scannerConfig: ScannerConfig, externalScannerConfig?: ScannerConfig, centralScannerConfig?: ScannerConfig) => {
 	const localAllowlist = (scannerConfig.spec?.allowlist ?? []) as AllowlistDockerScan[];
 	const externalAllowlist = (externalScannerConfig?.spec?.allowlist ?? []) as AllowlistDockerScan[];
+	const centralAllowlist = (centralScannerConfig?.spec?.allowlist ?? []) as AllowlistDockerScan[];
 
-	if (localAllowlist.length === 0 && externalAllowlist.length === 0) {
+	if (localAllowlist.length === 0 && externalAllowlist.length === 0 && centralAllowlist.length === 0) {
 		core.info("No allowlist found");
 		return;
 	}
 
-	generateGrypeConfig(localAllowlist, externalAllowlist);
+	generateGrypeConfig(localAllowlist, externalAllowlist, centralAllowlist);
 };
 
 export { dismissDockerScanAlerts };

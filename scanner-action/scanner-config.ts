@@ -39,7 +39,7 @@ const fetchExternalConfigContent = async (octokit: Octokit, repository: string, 
 	const hasRepositoryAccess = await hasAccessToRepository(octokit, repository);
 
 	if (!hasRepositoryAccess) {
-		throw Error(`External token do not have access to repository Entur/${repository}`);
+		throw Error(`Token do not have access to repository Entur/${repository}`);
 	}
 
 	const YAML_EXTENSIONS = ["yml", "yaml"];
@@ -71,16 +71,9 @@ const fetchExternalConfigContent = async (octokit: Octokit, repository: string, 
 	return;
 };
 
-const getExternalScannerConfig = async (scannerConfig: ScannerConfig, scanner: string, octokit: Octokit | undefined) => {
+const getExternalScannerConfig = async (externalRepository: string, scanner: string, octokit: Octokit | undefined) => {
 	if (octokit === undefined) {
 		core.info("No external repository token found");
-		return;
-	}
-
-	core.info("Get external scanner config");
-	const externalRepository = scannerConfig.spec?.inherit;
-
-	if (!externalRepository) {
 		return;
 	}
 
@@ -144,6 +137,9 @@ const getScannerConfigSchema = (scanner: string) => {
 				type: ["object", "null"],
 				required: [],
 				properties: {
+					centralAllowlist: {
+						type: "boolean",
+					},
 					inherit: {
 						type: "string",
 						pattern: "^[\\w.-]+$",
@@ -207,30 +203,4 @@ const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) =>
 	}
 };
 
-const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit) => {
-	const scannerConfig = getScannerConfig(scannerType);
-
-	if (!scannerConfig) {
-		core.info("Failed to get scanner config");
-		return null;
-	}
-
-	core.info("Validate scanner config");
-
-	validateScannerConfig(scannerConfig, scannerType);
-
-	const externalScannerConfig = await getExternalScannerConfig(scannerConfig, scannerType, octokitExternal);
-
-	if (!externalScannerConfig) {
-		core.info("No external config found");
-		return { localConfig: scannerConfig, externalConfig: undefined };
-	}
-
-	core.info("Validate external scanner config");
-
-	validateScannerConfig(externalScannerConfig, scannerType);
-
-	return { localConfig: scannerConfig, externalConfig: externalScannerConfig };
-};
-
-export { getScannerConfigs };
+export { getExternalScannerConfig, validateScannerConfig, getScannerConfig };
