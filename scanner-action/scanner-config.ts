@@ -207,6 +207,39 @@ const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) =>
 	}
 };
 
+const getCentralAllowlistConfig = (scannerType: string) => {
+	core.info("Looking for central allowlist config in ./central-allowlist");
+	
+	const YAML_EXTENSIONS = ["yml", "yaml"];
+	const centralAllowlistPaths = YAML_EXTENSIONS.map((extension) => `./central-allowlist/.entur/security/${scannerType}.${extension}`);
+	const existingPaths = centralAllowlistPaths.filter((path) => fs.existsSync(path));
+
+	if (existingPaths.length === 0) {
+		core.info("No central allowlist config found in ./central-allowlist/.entur/security/");
+		return;
+	}
+
+	if (existingPaths.length > 1) {
+		core.warning(`Found multiple central allowlist configs: ${existingPaths.join(", ")}. Using first one.`);
+	}
+
+	const configPath = existingPaths[0];
+	core.info(`Reading central allowlist config from ${configPath}`);
+	
+	try {
+		const content = fs.readFileSync(configPath, "utf8");
+		core.info("Parse central allowlist config");
+		return parseScannerConfig(content);
+	} catch (error) {
+		if (error instanceof Error) {
+			core.warning(`Failed to read central allowlist config: ${error.message}`);
+			return;
+		}
+		core.warning("Failed to read central allowlist config");
+		return;
+	}
+};
+
 const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit) => {
 	const scannerConfig = getScannerConfig(scannerType);
 
@@ -220,17 +253,24 @@ const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit)
 	validateScannerConfig(scannerConfig, scannerType);
 
 	const externalScannerConfig = await getExternalScannerConfig(scannerConfig, scannerType, octokitExternal);
+	const centralScannerConfig = getCentralAllowlistConfig(scannerType);
 
-	if (!externalScannerConfig) {
+	// Validate configs if they exist
+	if (externalScannerConfig) {
+		core.info("Validate external scanner config");
+		validateScannerConfig(externalScannerConfig, scannerType);
+	} else {
 		core.info("No external config found");
-		return { localConfig: scannerConfig, externalConfig: undefined };
 	}
 
-	core.info("Validate external scanner config");
+	if (centralScannerConfig) {
+		core.info("Validate central scanner config");
+		validateScannerConfig(centralScannerConfig, scannerType);
+	} else {
+		core.info("No central config found");
+	}
 
-	validateScannerConfig(externalScannerConfig, scannerType);
-
-	return { localConfig: scannerConfig, externalConfig: externalScannerConfig };
+	return { localConfig: scannerConfig, externalConfig: externalScannerConfig, centralConfig: centralScannerConfig };
 };
 
 export { getScannerConfigs };
