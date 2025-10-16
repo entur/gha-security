@@ -52,7 +52,6 @@ jobs:
           ref: main
           path: central-allowlist
           ssh-key: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
-          github-server-url: 'git@github.com:'
 
       - name: "Download the image artifact"
         uses: actions/download-artifact@v5
