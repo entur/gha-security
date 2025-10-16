@@ -38,14 +38,14 @@ const runNotifications = async (octokitAction: Octokit, scannerType: string, sca
 	setNotificationOutputs(scannerNotifications);
 };
 
-	const runAllowlist = async (scannerConfig: ScannerConfig, scannerType: string, octokitAction: Octokit, externalScannerConfig?: ScannerConfig, centralScannerConfig?: ScannerConfig) => {
+	const runAllowlist = async ( scannerType: string, octokitAction: Octokit, scannerConfig?: ScannerConfig, externalScannerConfig?: ScannerConfig, centralScannerConfig?: ScannerConfig) => {
 		switch (scannerType) {
 			case "dockerscan":
 				dismissDockerScanAlerts(scannerConfig, externalScannerConfig, centralScannerConfig);
 				break;
 
 		case "codescan":
-			await dismissCodeScanAlerts(scannerConfig, octokitAction, externalScannerConfig);
+			await dismissCodeScanAlerts(octokitAction, scannerConfig, externalScannerConfig);
 			break;
 
 		default:
@@ -92,7 +92,7 @@ const main = async () => {
 
 		const { localConfig, externalConfig, centralConfig } = configs;
 
-		await runAllowlist(localConfig, SCANNER_TYPE, octokitAction, externalConfig, centralConfig);
+		await runAllowlist(SCANNER_TYPE, octokitAction,localConfig, externalConfig, centralConfig);
 		await runNotifications(octokitAction, SCANNER_TYPE, localConfig, externalConfig);
 	} catch (error) {
 		if (error instanceof Error) {

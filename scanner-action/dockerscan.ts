@@ -44,8 +44,8 @@ const generateGrypeConfig = (localAllowlist: AllowlistDockerScan[], externalAllo
 	fs.writeFileSync(".grype.yaml", yamlGrype);
 };
 
-const dismissDockerScanAlerts = (scannerConfig: ScannerConfig, externalScannerConfig?: ScannerConfig, centralScannerConfig?: ScannerConfig) => {
-	const localAllowlist = (scannerConfig.spec?.allowlist ?? []) as AllowlistDockerScan[];
+const dismissDockerScanAlerts = (scannerConfig?: ScannerConfig, externalScannerConfig?: ScannerConfig, centralScannerConfig?: ScannerConfig) => {
+	const localAllowlist = (scannerConfig?.spec?.allowlist ?? []) as AllowlistDockerScan[];
 	const externalAllowlist = (externalScannerConfig?.spec?.allowlist ?? []) as AllowlistDockerScan[];
 	const centralAllowlist = (centralScannerConfig?.spec?.allowlist ?? []) as AllowlistDockerScan[];
 
