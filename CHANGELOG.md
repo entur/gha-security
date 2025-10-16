@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.2](https://github.com/entur/gha-security/compare/v2.9.1...v2.9.2) (2025-10-16)
+
+
+### Bug Fixes
+
+* Pinned syft and grype actions to prevent crashes ([#131](https://github.com/entur/gha-security/issues/131)) ([8ffce8f](https://github.com/entur/gha-security/commit/8ffce8f22678c2394a82b007f82f62004994beb8))
+
 ## [2.9.1](https://github.com/entur/gha-security/compare/v2.9.0...v2.9.1) (2025-09-29)
 
 
