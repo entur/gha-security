@@ -87,7 +87,7 @@ jobs:
         
       - name: "Anchore Grype Scan"
         id: anchore-scan
-        uses: anchore/scan-action@9e8428812aebf5a6a5fc3fdd55de39d1c79b8b12 #7
+        uses: anchore/scan-action@9e8428812aebf5a6a5fc3fdd55de39d1c79b8b12 # v7
         with: 
           sbom: ${{ inputs.image_artifact }}.spdx.json
           by-cve: true
