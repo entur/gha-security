@@ -51,7 +51,7 @@ jobs:
           repository: entur/central-allowlist
           ref: main
           path: central-allowlist
-          token: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
+          ssh-key: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
 
       - name: "Download the image artifact"
         uses: actions/download-artifact@v5
