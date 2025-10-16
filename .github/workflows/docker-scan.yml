@@ -49,6 +49,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: entur/central-allowlist
+          ref: main
           path: central-allowlist
           ssh-key: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
 
@@ -59,7 +60,7 @@ jobs:
 
       - name: Scanner Action
         id: scanner-action
-        uses: entur/gha-security/scanner-action@v2
+        uses: entur/gha-security/scanner-action@feature/SIK-1623
         with:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
