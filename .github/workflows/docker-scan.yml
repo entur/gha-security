@@ -75,7 +75,7 @@ jobs:
           fi
       - name: "Anchore Syft Scan"
         id: syft-scan
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@f8bdd1d8ac5e901a77a92f111440fdb1b593736b # v0
         env:
           SYFT_EXCLUDE: ${{ env.DOCKER_WORKDIR }}
         with:
@@ -87,7 +87,7 @@ jobs:
         
       - name: "Anchore Grype Scan"
         id: anchore-scan
-        uses: anchore/scan-action@v7
+        uses: anchore/scan-action@9e8428812aebf5a6a5fc3fdd55de39d1c79b8b12 # v7
         with: 
           sbom: ${{ inputs.image_artifact }}.spdx.json
           by-cve: true
