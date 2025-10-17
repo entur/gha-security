@@ -11,6 +11,9 @@ on:
       external_repository_token:
         description: 'Token to access the external repository mentioned in the dockerscan.yml file. Must have read access to the repository.'
         required: false
+      GHA_SECURITY_CENTRAL_ALLOWLIST:
+        description: 'SSH key to access the central allowlist repository. Must have read access to the entur/central-allowlist repository.'
+        required: false
 
 env:
   GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT: ${{ inputs.image_artifact }}
