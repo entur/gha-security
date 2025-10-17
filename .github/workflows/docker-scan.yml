@@ -47,6 +47,7 @@ jobs:
 
       - name: "Checkout central allowlist repository"
         uses: actions/checkout@v5
+        if: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
         with:
           repository: entur/central-allowlist
           ref: main
