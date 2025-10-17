@@ -8,12 +8,12 @@ const convertToCveMap = (localAllowlist: AllowlistDockerScan[], externalAllowlis
 
 	// comment and reason in allowlist is not being used at the moment.
 	// it's available, so we can easily put it into BigQuery.
-	
+
 	// Central allowlist (lowest priority)
 	for (const entry of centralAllowlist) {
 		cveMap.set(entry.cve, { comment: entry.comment, reason: entry.reason });
 	}
-	
+
 	// External allowlist (medium priority)
 	for (const entry of externalAllowlist) {
 		cveMap.set(entry.cve, { comment: entry.comment, reason: entry.reason });

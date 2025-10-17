@@ -33,6 +33,7 @@ interface Notifications {
 
 interface ScannerSpec {
 	inherit?: string;
+	centralAllowlist?: boolean;
 	allowlist?: AllowlistCodeScan[] | AllowlistDockerScan[];
 	notifications?: Notifications;
 }

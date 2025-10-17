@@ -144,6 +144,9 @@ const getScannerConfigSchema = (scanner: string) => {
 				type: ["object", "null"],
 				required: [],
 				properties: {
+					centralAllowlist: {
+						type: "boolean",
+					},
 					inherit: {
 						type: "string",
 						pattern: "^[\\w.-]+$",
@@ -207,9 +210,14 @@ const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) =>
 	}
 };
 
-const getCentralAllowlistConfig = (scannerType: string) => {
+const getCentralAllowlistConfig = (scannerType: string, fetchAllowlist = true) => {
+	if (!fetchAllowlist) {
+		core.info("Opting out of central allowlist");
+		return;
+	}
+
 	core.info("Looking for central allowlist config in ./central-allowlist");
-	
+
 	const YAML_EXTENSIONS = ["yml", "yaml"];
 	const centralAllowlistPaths = YAML_EXTENSIONS.map((extension) => `./central-allowlist/.entur/security/${scannerType}.${extension}`);
 	const existingPaths = centralAllowlistPaths.filter((path) => fs.existsSync(path));
@@ -225,7 +233,7 @@ const getCentralAllowlistConfig = (scannerType: string) => {
 
 	const configPath = existingPaths[0];
 	core.info(`Reading central allowlist config from ${configPath}`);
-	
+
 	try {
 		const content = fs.readFileSync(configPath, "utf8");
 		core.info("Parse central allowlist config");
@@ -248,19 +256,19 @@ const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit)
 
 		if (!centralScannerConfig) {
 			core.info("No central config found");
-			return undefined
+			return undefined;
 		}
+
 		core.info("Validate central scanner config");
 		validateScannerConfig(centralScannerConfig, scannerType);
-		return { localConfig: undefined, externalConfig: undefined, centralConfig: centralScannerConfig }
-	}	
+		return { localConfig: undefined, externalConfig: undefined, centralConfig: centralScannerConfig };
+	}
 
 	core.info("Validate scanner config");
 
 	validateScannerConfig(scannerConfig, scannerType);
 
 	const externalScannerConfig = await getExternalScannerConfig(scannerConfig, scannerType, octokitExternal);
-	const centralScannerConfig = getCentralAllowlistConfig(scannerType);
 
 	// Validate configs if they exist
 	if (externalScannerConfig) {
@@ -270,10 +278,14 @@ const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit)
 		core.info("No external config found");
 	}
 
+	const fetchCentralAllowlist = scannerConfig.spec?.centralAllowlist ?? externalScannerConfig?.spec?.centralAllowlist ?? true;
+
+	const centralScannerConfig = getCentralAllowlistConfig(scannerType, fetchCentralAllowlist);
+
 	if (centralScannerConfig) {
 		core.info("Validate central scanner config");
 		validateScannerConfig(centralScannerConfig, scannerType);
-	} else {
+	} else if (fetchCentralAllowlist) {
 		core.info("No central config found");
 	}
 
