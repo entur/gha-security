@@ -256,7 +256,7 @@ const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit)
 
 		if (!centralScannerConfig) {
 			core.info("No central config found");
-			return undefined;
+			return null;
 		}
 
 		core.info("Validate central scanner config");
