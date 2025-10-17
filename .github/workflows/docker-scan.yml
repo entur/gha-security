@@ -11,9 +11,6 @@ on:
       external_repository_token:
         description: 'Token to access the external repository mentioned in the dockerscan.yml file. Must have read access to the repository.'
         required: false
-      GHA_SECURITY_CENTRAL_ALLOWLIST:
-        description: 'SSH key to access the central allowlist repository. Must have read access to the entur/central-allowlist repository.'
-        required: false
 
 env:
   GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT: ${{ inputs.image_artifact }}
@@ -49,13 +46,15 @@ jobs:
           persist-credentials: false
 
       - name: "Checkout central allowlist repository"
+        if: env.CENTRAL_ALLOWLIST_SSH_KEY
         uses: actions/checkout@v5
-        if: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
         with:
           repository: entur/central-allowlist
           ref: main
           path: central-allowlist
           ssh-key: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
+        env: 
+          CENTRAL_ALLOWLIST_SSH_KEY: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
 
       - name: "Download the image artifact"
         uses: actions/download-artifact@v5
