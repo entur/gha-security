@@ -79,8 +79,8 @@ const updateCodeScanningAlerts = async (codeScanAlerts: PartialCodeScanningAlert
 	}
 };
 
-const dismissCodeScanAlerts = async (scannerConfig: ScannerConfig, octokit: Octokit, externalScannerConfig?: ScannerConfig) => {
-	const localAllowlist = (scannerConfig.spec?.allowlist ?? []) as AllowlistCodeScan[];
+const dismissCodeScanAlerts = async (octokit: Octokit, scannerConfig?: ScannerConfig, externalScannerConfig?: ScannerConfig) => {
+	const localAllowlist = (scannerConfig?.spec?.allowlist ?? []) as AllowlistCodeScan[];
 	const externalAllowlist = (externalScannerConfig?.spec?.allowlist ?? []) as AllowlistCodeScan[];
 
 	if (localAllowlist.length === 0 && externalAllowlist.length === 0) {

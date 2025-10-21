@@ -45,10 +45,26 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: "Download the image artifact"
-        uses: actions/download-artifact@v5
+      - name: "Checkout central allowlist repository"
+        if: env.CENTRAL_ALLOWLIST_SSH_KEY
+        uses: actions/checkout@v5
         with:
-          name: ${{ env.GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT }}
+          repository: entur/central-allowlist
+          ref: main
+          path: central-allowlist
+          ssh-key: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
+        env: 
+          CENTRAL_ALLOWLIST_SSH_KEY: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
+
+      - name: "Write to workflow job summary if central allowlist is not used"
+        if: env.CENTRAL_ALLOWLIST_SSH_KEY == ''
+        run: |
+          echo "## ⚠️ Central Allowlist not used ⚠️
+          The central allowlist is not being used in this workflow run.  
+          To use it, add 'secrets: inherit' to your workflow call.
+          See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md) for more information." >> $GITHUB_STEP_SUMMARY
+        env: 
+          CENTRAL_ALLOWLIST_SSH_KEY: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
 
       - name: "Download the image artifact"
         uses: actions/download-artifact@v5

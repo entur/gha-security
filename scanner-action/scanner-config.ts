@@ -144,6 +144,9 @@ const getScannerConfigSchema = (scanner: string) => {
 				type: ["object", "null"],
 				required: [],
 				properties: {
+					centralAllowlist: {
+						type: "boolean",
+					},
 					inherit: {
 						type: "string",
 						pattern: "^[\\w.-]+$",
@@ -207,12 +210,58 @@ const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) =>
 	}
 };
 
+const getCentralAllowlistConfig = (scannerType: string, fetchAllowlist = true) => {
+	if (!fetchAllowlist) {
+		core.info("Opting out of central allowlist");
+		return;
+	}
+
+	core.info("Looking for central allowlist config in ./central-allowlist");
+
+	const YAML_EXTENSIONS = ["yml", "yaml"];
+	const centralAllowlistPaths = YAML_EXTENSIONS.map((extension) => `./central-allowlist/.entur/security/${scannerType}.${extension}`);
+	const existingPaths = centralAllowlistPaths.filter((path) => fs.existsSync(path));
+
+	if (existingPaths.length === 0) {
+		core.info("No central allowlist config found in ./central-allowlist/.entur/security/");
+		return;
+	}
+
+	if (existingPaths.length > 1) {
+		core.warning(`Found multiple central allowlist configs: ${existingPaths.join(", ")}. Using first one.`);
+	}
+
+	const configPath = existingPaths[0];
+	core.info(`Reading central allowlist config from ${configPath}`);
+
+	try {
+		const content = fs.readFileSync(configPath, "utf8");
+		core.info("Parse central allowlist config");
+		return parseScannerConfig(content);
+	} catch (error) {
+		if (error instanceof Error) {
+			core.warning(`Failed to read central allowlist config: ${error.message}`);
+			return;
+		}
+		core.warning("Failed to read central allowlist config");
+		return;
+	}
+};
+
 const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit) => {
 	const scannerConfig = getScannerConfig(scannerType);
 
 	if (!scannerConfig) {
-		core.info("Failed to get scanner config");
-		return null;
+		const centralScannerConfig = getCentralAllowlistConfig(scannerType);
+
+		if (!centralScannerConfig) {
+			core.info("No central config found");
+			return null;
+		}
+
+		core.info("Validate central scanner config");
+		validateScannerConfig(centralScannerConfig, scannerType);
+		return { localConfig: undefined, externalConfig: undefined, centralConfig: centralScannerConfig };
 	}
 
 	core.info("Validate scanner config");
@@ -221,16 +270,26 @@ const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit)
 
 	const externalScannerConfig = await getExternalScannerConfig(scannerConfig, scannerType, octokitExternal);
 
-	if (!externalScannerConfig) {
+	// Validate configs if they exist
+	if (externalScannerConfig) {
+		core.info("Validate external scanner config");
+		validateScannerConfig(externalScannerConfig, scannerType);
+	} else {
 		core.info("No external config found");
-		return { localConfig: scannerConfig, externalConfig: undefined };
 	}
 
-	core.info("Validate external scanner config");
+	const fetchCentralAllowlist = scannerConfig.spec?.centralAllowlist ?? externalScannerConfig?.spec?.centralAllowlist ?? true;
 
-	validateScannerConfig(externalScannerConfig, scannerType);
+	const centralScannerConfig = getCentralAllowlistConfig(scannerType, fetchCentralAllowlist);
 
-	return { localConfig: scannerConfig, externalConfig: externalScannerConfig };
+	if (centralScannerConfig) {
+		core.info("Validate central scanner config");
+		validateScannerConfig(centralScannerConfig, scannerType);
+	} else if (fetchCentralAllowlist) {
+		core.info("No central config found");
+	}
+
+	return { localConfig: scannerConfig, externalConfig: externalScannerConfig, centralConfig: centralScannerConfig };
 };
 
 export { getScannerConfigs };
