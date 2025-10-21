@@ -9,12 +9,15 @@ jobs:
   docker-scan:
     name: Docker Scan
     uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
-    secrets: inherit
+    secrets: inherit  # Required for central allowlist access
     with:
         image_artifact: # The name of the image artifact to scan
     
 ```
-or add the Entur Shared Workflow _Docker Build and Push_. This will build, push and scan the Docker image.
+
+**Important:** The `secrets: inherit` declaration is **strongly recommended** as it enables access to Entur's central allowlist. Without it, only local allowlists will be available.
+
+Alternatively, you can add the Entur Shared Workflow _Docker Build and Push_. This will build, push and scan the Docker image.
 Go to the _Actions_ tab in your repository, click on _New workflow_ and select the button _Configure_ on the _Docker Build and Push_ workflow.
 
 
@@ -37,6 +40,9 @@ Go to the _Actions_ tab in your repository, click on _New workflow_ and select t
 | <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   | Token to access the external <br>repository mentioned in the dockerscan.yml <br>file. Must have read access <br>to the repository.  |
 
 <!-- AUTO-DOC-SECRETS:END -->
+
+**Note:** When using `secrets: inherit` (recommended), additional secrets are automatically inherited from your workflow context, including:
+- `GHA_SECURITY_CENTRAL_ALLOWLIST` - SSH key for accessing Entur's central allowlist repository (managed by Team Sikkerhet).
 
 ## Golden Path
 
@@ -114,6 +120,8 @@ jobs:
     with:
         image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
 ```
+### Central allowlisting
+Entur has a central allowlist located in the repository [central-allowlist](https://github.com/entur/central-allowlist), which is owned and maintained by Team Sikkerhet. If you want to use this allowlist in your project, you can do so by specifying `secrets: inherit` when calling the docker-scan reusable-workflow. If you would like to contribute to the central allowlist, please read through the following [documentation](https://github.com/entur/central-allowlist?tab=readme-ov-file#how-to-contribute). If both local and central allowlists are present, the local allowlist entries will override any matching entries from the central allowlist. 
 
 ## Notifications
 
