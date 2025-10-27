@@ -493,7 +493,7 @@ jobs:
           path: "/home/runner/work/${{ env.REPOSITORY_NAME }}/results"
           overwrite: true
 
-  run-scanner-action:
+  scanner-action:
     needs: [codeql-analysis, semgrep-analysis]
     # If needs jobs have not failed or been cancelled,
     # and if at least one of the needs has successful run
@@ -533,10 +533,10 @@ jobs:
           gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "$NOTIFICACTION_MARKDOWN"
 
   slack-notification:
-    needs: [run-scanner-action]
+    needs: [scanner-action]
     uses: entur/gha-slack/.github/workflows/post.yml@v2
-    if: ${{ (!failure() && !cancelled()) && needs.run-scanner-action.outputs.notification_slack_enabled == 'True' && needs.run-scanner-action.outputs.notification_severity_alert_found == 'True' }}
+    if: ${{ (!failure() && !cancelled()) && needs.scanner-action.outputs.notification_slack_enabled == 'True' && needs.scanner-action.outputs.notification_severity_alert_found == 'True' }}
     with:
-      channel_id: ${{ needs.run-scanner-action.outputs.notification_slack_channel_id }}
-      blocks: ${{ needs.run-scanner-action.outputs.notification_slack_block }}
+      channel_id: ${{ needs.scanner-action.outputs.notification_slack_channel_id }}
+      blocks: ${{ needs.scanner-action.outputs.notification_slack_block }}
     secrets: inherit
