@@ -510,7 +510,6 @@ jobs:
       notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
       notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
       notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
-      notification_slack_block: ${{ steps.scanner-action.outputs.notification_slack_block }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v5
@@ -540,24 +539,13 @@ jobs:
           NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
         run: |
           echo "$NOTIFICATION_MARKDOWN" >> $GITHUB_STEP_SUMMARY 
-      # Taken from https://github.com/entur/gha-slack/blob/main/.github/workflows/post.yml@
-      # Blocks are passed as a JSON string, so we need to wrap them in a heredoc using single quotes sice the JSON string may contain double quotes
-      - name: "Prepare Slack block"
-        id: set-env
-        if: ${{ steps.scanner-action.outputs.notification_slack_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-        shell: bash
-        env:
-          SLACK_BLOCK: ${{ steps.scanner-action.outputs.notification_slack_block }}
-        run: |
-          echo 'NOTIFICATION_SLACK_POST_BLOCKS<<EOB' >> $GITHUB_ENV
-          echo '$SLACK_BLOCK' >> $GITHUB_ENV
-          echo 'EOB' >> $GITHUB_ENV
-      # Send slack notif
+      # Taken from https://github.com/entur/gha-slack/blob/main/.github/workflows/post.yml
       - name: "Send slack notification"
         if: ${{ steps.scanner-action.outputs.notification_slack_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
         uses: slackapi/slack-github-action@v1.27.0
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          NOTIFICATION_SLACK_POST_BLOCKS: ${{ steps.scanner-action.outputs.notification_slack_block }}
         with:
           channel-id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
           payload: |
