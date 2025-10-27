@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { ScannerNotifications } from "./notifications.js";
+import type { ScannerNotifications } from "./notifications.js";
 
 const outputBool = (value: boolean) => (value ? "True" : "False");
 
@@ -19,8 +19,8 @@ const toTextList = (object: Record<string, number>) => {
 		.join("\n");
 };
 
-const createMarkdown = (scannerNotifications: ScannerNotifications)  => {
-	const scannerReport = getScannerReport(scannerNotifications)
+const createMarkdown = (scannerNotifications: ScannerNotifications) => {
+	const scannerReport = getScannerReport(scannerNotifications);
 	return `## ${scannerReport.header}
 ### Results
 ${scannerReport.resultsList}  
@@ -28,13 +28,13 @@ ${scannerReport.resultsList}
 ${scannerReport.scannerTypeName} Report can be found [here](${scannerReport.resultsUrl})
 ### Allowlist
 Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
-See the [${scannerReport.scannerTypeName} documentation](${scannerReport.allowListDocumentationUrl}) on how to use allowlist.`
-}
+See the [${scannerReport.scannerTypeName} documentation](${scannerReport.allowListDocumentationUrl}) on how to use allowlist.`;
+};
 
 const getScannerReport = (scannerNotifications: ScannerNotifications) => {
 	const scannerType = scannerNotifications.scannerType;
 	const scannerTypeName = scannerType === "dockerscan" ? "Docker Scan" : "Code Scan";
-	
+
 	const githubRef = github.context.ref;
 	const githubRepository = getGithubRepository();
 
@@ -47,13 +47,12 @@ const getScannerReport = (scannerNotifications: ScannerNotifications) => {
 		resultsList: notificationOverviewList,
 		resultsUrl: githubCodeScanningReportUrl,
 		allowListDocumentationUrl: `https://github.com/entur/gha-security/blob/main/${allowlistReadme}`,
-		scannerTypeName: scannerTypeName
-	}
-
-}
+		scannerTypeName: scannerTypeName,
+	};
+};
 
 const createSlackBlock = (scannerNotifications: ScannerNotifications) => {
-	const scannerReport = getScannerReport(scannerNotifications)
+	const scannerReport = getScannerReport(scannerNotifications);
 	const githubRepository = getGithubRepository();
 
 	return {
