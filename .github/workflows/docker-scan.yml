@@ -75,7 +75,7 @@ jobs:
           external-repository-token: ${{ secrets.external_repository_token }}
 
       - name: "Send pull request notification"
-        if: ${{ github.event_name == 'pull_request' && steps.scanner-action.outputs.notification_pull_request_enabled == 'True' && needs.run-scanner-action.outputs.notification_severity_alert_found == 'True' }}
+        if: ${{ github.event_name == 'pull_request' && steps.scanner-action.outputs.notification_pull_request_enabled == 'True' && steps.run-scanner-action.outputs.notification_severity_alert_found == 'True' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -123,7 +123,7 @@ jobs:
   slack-notification:
     needs: [ docker-scan ]
     uses: entur/gha-slack/.github/workflows/post.yml@v2
-    if: ${{ needs.docker-scan.outputs.notification_severity_alert_found == 'True' && needs.docker-scan.outputs.notification_slack_enabled == 'True' && needs.run-scanner-action.outputs.notification_severity_alert_found == 'True' }}
+    if: ${{ needs.docker-scan.outputs.notification_severity_alert_found == 'True' && needs.docker-scan.outputs.notification_slack_enabled == 'True' && needs.docker-scan.outputs.notification_severity_alert_found == 'True' }}
     with:
       channel_id: ${{ needs.docker-scan.outputs.notification_slack_channel_id }}
       blocks: ${{ needs.docker-scan.outputs.notification_slack_block }}
