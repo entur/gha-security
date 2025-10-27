@@ -528,9 +528,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          NOTIFICACTION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
+          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
         run: |
-          gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "$NOTIFICACTION_MARKDOWN"
+          gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "$NOTIFICATION_MARKDOWN"
+
+      - name: "Send job summary notification"
+        if: ${{ steps.scanner-action.outputs.notification_pull_request_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
+        env:
+          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
+        run: |
+          echo "$NOTIFICATION_MARKDOWN" >> $GITHUB_STEP_SUMMARY 
 
   slack-notification:
     needs: [scanner-action]
