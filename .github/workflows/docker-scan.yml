@@ -40,11 +40,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-
       - name: "Checkout central allowlist repository"
         if: env.CENTRAL_ALLOWLIST_SSH_KEY
         uses: actions/checkout@v5
@@ -73,7 +68,7 @@ jobs:
 
       - name: Scanner Action
         id: scanner-action
-        uses: entur/gha-security/scanner-action@v2
+        uses: entur/gha-security/scanner-action@feature/SIK-1678
         with:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
