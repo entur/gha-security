@@ -504,6 +504,8 @@ jobs:
       security-events: write
       # required to checkout the repository
       contents: read
+      issues: write # required for creating issues, and/or adding issue comments
+      pull-requests: write # required for creating comments on pull requests
     outputs:
       notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
       notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
