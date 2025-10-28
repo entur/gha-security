@@ -63,7 +63,7 @@ jobs:
 
       - name: Scanner Action
         id: scanner-action
-        uses: entur/gha-security/scanner-action@feature/SIK-1678
+        uses: entur/gha-security/scanner-action@v2
         with:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -88,7 +88,7 @@ jobs:
       # Taken from https://github.com/entur/gha-slack/blob/main/.github/workflows/post.yml
       - name: "Send slack notification"
         if: ${{ steps.scanner-action.outputs.notification_slack_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           NOTIFICATION_SLACK_POST_BLOCKS: ${{ steps.scanner-action.outputs.notification_slack_block }}
