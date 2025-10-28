@@ -19,10 +19,6 @@ env:
 
 jobs:
   docker-scan:
-    outputs:
-      notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
-      notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
-      notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
     if: ${{ github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]') }}
