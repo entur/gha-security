@@ -19,16 +19,6 @@ env:
 
 jobs:
   docker-scan:
-    outputs:
-      notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
-      notification_severity_low: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).low }}
-      notification_severity_medium: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).medium }}
-      notification_severity_high: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).high }}
-      notification_severity_critical: ${{ fromJSON(steps.scanner-action.outputs.notification_severity_overview).critical }}
-      notification_severity_threshold: ${{ steps.scanner-action.outputs.notification_severity_threshold }}
-      notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
-      notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
-      notification_pull_request_enabled: ${{ steps.scanner-action.outputs.notification_pull_request_enabled }}
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
     if: ${{ github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]') }}
@@ -79,6 +69,34 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           external-repository-token: ${{ secrets.external_repository_token }}
 
+      - name: "Send pull request notification"
+        if: ${{ github.event_name == 'pull_request' && steps.scanner-action.outputs.notification_pull_request_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
+        run: |
+          gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "$NOTIFICATION_MARKDOWN"
+
+      - name: "Send job summary notification"
+        if: ${{ steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
+        env:
+          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
+        run: |
+          echo "$NOTIFICATION_MARKDOWN" >> $GITHUB_STEP_SUMMARY
+
+      # Taken from https://github.com/entur/gha-slack/blob/main/.github/workflows/post.yml
+      - name: "Send slack notification"
+        if: ${{ steps.scanner-action.outputs.notification_slack_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
+        uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          NOTIFICATION_SLACK_POST_BLOCKS: ${{ steps.scanner-action.outputs.notification_slack_block }}
+        with:
+          channel-id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
+          payload: |
+            ${{ env.NOTIFICATION_SLACK_POST_BLOCKS }}
+
       - name: "Docker workdir extraction"
         id: docker-workdir
         run: |
@@ -116,138 +134,3 @@ jobs:
         with: 
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
           category: 'anchore-grype-scan'
-
-  check-for-critical-alerts:
-    runs-on: ubuntu-24.04
-    if: ${{ always() }}
-    needs: [docker-scan]
-    permissions: 
-      security-events: read # required to read code scan alerts
-      pull-requests: write # required for creating comments on pull requests
-    steps:
-      - name: "Get critical docker scan alerts"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set +e # Do not exit if a command fails
-          alerts="$(gh api \
-            --method GET \
-            -H 'Accept: application/vnd.github+json' \
-            -H 'X-GitHub-Api-Version: 2022-11-28' \
-            /repos/${GITHUB_REPOSITORY}/code-scanning/alerts \
-            -F severity='critical' -F state='open' -F ref='$GIT_REF' -F per_page='100' -F tool_name='Grype' --paginate)"
-            
-          if [ $? != 0 ]; then
-            echo "Failed to get alerts from Github. The previous upload vulnerability report step might have failed to be processed/uploaded. Try running the job again"
-            echo '## Docker Scan - Failed to get alerts.
-            Upload vulnerability report step might have failed to be processed/uploaded.
-            Try running the job again' >> $GITHUB_STEP_SUMMARY
-            exit 1
-          else
-            if [ "$alerts" == "[]" ]; then
-              echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_ALERT_COMMENT='False >> $GITHUB_ENV
-            else
-              echo 'GHA_SECURITY_DOCKER_SCAN_CREATE_ALERT_COMMENT='True >> $GITHUB_ENV
-            fi
-          fi
-      - name: "Print to job summary if critical alerts are found"
-        if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CREATE_ALERT_COMMENT == 'True' }}
-        env:
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          echo '## ⛔ Docker Image Scan - Critical Vulnerabilities ⛔
-          **Docker Image scan found critical vulnerabilities in the image artifact that needs to be addressed.**
-          ### Results
-          The scan results can be found [here](https://github.com/'"$REPOSITORY"'/security/code-scanning?query=is%3Aopen+ref%3A'"$GIT_REF"')
-          ### Allowlist
-          Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
-          See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities) on how to use allowlist.' >> $GITHUB_STEP_SUMMARY
-      - name: "Create comment on pull request if critical alerts are found"
-        if: ${{ env.GHA_SECURITY_DOCKER_SCAN_CREATE_ALERT_COMMENT == 'True' && github.event_name == 'pull_request' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "## ⛔ Docker Image Scan - Critical Vulnerabilities ⛔
-          **Docker Image scan found critical vulnerabilities in the image artifact that needs to be addressed.**
-          ### Results
-          The scan results can be found [here](https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+pr%3A$PR_NUMBER)
-          ### Allowlist
-          Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
-          See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities) on how to use allowlist."
-  notifications:
-    if: ${{ needs.docker-scan.outputs.notification_severity_alert_found == 'True' && (needs.docker-scan.outputs.notification_slack_enabled == 'True' || needs.docker-scan.outputs.notification_pull_request_enabled == 'True') }}
-    needs: [ docker-scan ]
-    runs-on: ubuntu-24.04
-    permissions:
-      security-events: read # required to read code scan alerts
-      pull-requests: write # required for creating comments on pull requests
-    outputs:
-      slack_block: ${{ steps.slack-block.outputs.SLACK_BLOCK }}
-    env:
-      SEVERITY_THRESHOLD: ${{ needs.docker-scan.outputs.notification_severity_threshold }}
-      SEVERITY_LOW: ${{ needs.docker-scan.outputs.notification_severity_low }}
-      SEVERITY_MEDIUM: ${{ needs.docker-scan.outputs.notification_severity_medium }}
-      SEVERITY_HIGH: ${{ needs.docker-scan.outputs.notification_severity_high }}
-      SEVERITY_CRITICAL: ${{ needs.docker-scan.outputs.notification_severity_critical }}
-    steps:
-      - name: "Create Slack block"
-        id: slack-block
-        if: ${{ needs.docker-scan.outputs.notification_slack_enabled == 'True' }}
-        run: |
-          {
-            echo "SLACK_BLOCK<<EOF"
-            echo "
-            {
-              \"blocks\": 
-              [
-                {
-                  \"type\": \"header\",
-                  \"text\": {
-                    \"type\": \"plain_text\",
-                    \"text\": \"Docker Image Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD on $GITHUB_REPOSITORY\"
-                  }
-                },
-                {
-                  \"type\": \"section\",
-                  \"text\": {
-                    \"type\": \"mrkdwn\",
-                    \"text\": \"*Results*\n- critical: $SEVERITY_CRITICAL \n- high: $SEVERITY_HIGH \n- medium: $SEVERITY_MEDIUM \n- low: $SEVERITY_LOW \n Docker Scan Report can be found <https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF+tool:Grype|here>\"
-                  }
-                },
-                {
-                  \"type\": \"section\",
-                  \"text\": {
-                    \"type\": \"mrkdwn\",
-                    \"text\": \"*Allowlist*\n Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. \nSee the <https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities|Docker Scan documentation> on how to use allowlist.\"
-                  }
-                }
-              ]
-            }"
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
-
-      - name: "Send pull request notification"
-        if: ${{ github.event_name == 'pull_request' && needs.docker-scan.outputs.notification_pull_request_enabled == 'True' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "## Docker Image Scan - Alert(s) found with threshold matching severity $SEVERITY_THRESHOLD 
-          ### Results
-          - critical: $SEVERITY_CRITICAL 
-          - high: $SEVERITY_HIGH
-          - medium: $SEVERITY_MEDIUM  
-          - low: $SEVERITY_LOW
-          Docker Image Scan Report can be found [here](https://github.com/$GITHUB_REPOSITORY/security/code-scanning?query=is:open+ref:$GIT_REF+tool:Grype)
-          ### Allowlist
-          Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
-          See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md#allowlisting-vulnerabilities) on how to use allowlist."
-  slack-notification:
-    needs: [ notifications, docker-scan ]
-    uses: entur/gha-slack/.github/workflows/post.yml@v2
-    if: ${{ needs.docker-scan.outputs.notification_severity_alert_found == 'True' && needs.docker-scan.outputs.notification_slack_enabled == 'True' }}
-    with:
-      channel_id: ${{ needs.docker-scan.outputs.notification_slack_channel_id }}
-      blocks: ${{ needs.notifications.outputs.slack_block }}
-    secrets: inherit

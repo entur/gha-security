@@ -23,8 +23,12 @@ outputs:
     description: 'Slack channel id for notifications'
   notification_slack_enabled:
     description: 'Enabled Slack notifications'
+  notification_slack_block:
+    description: 'Notification in Slack Block format'
   notification_pull_request_enabled:
     description: 'Enabled pull request notifications'
+  notification_markdown:
+    description: 'Notification in markdown format'
 runs:
   using: 'node20'
   main: 'dist/index.js'

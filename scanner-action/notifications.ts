@@ -50,10 +50,10 @@ class ScannerNotifications {
 
 	get overview() {
 		const overview = {
-			low: 0,
-			medium: 0,
-			high: 0,
 			critical: 0,
+			high: 0,
+			medium: 0,
+			low: 0,
 		};
 
 		const alertsWithSecurityLevel = this.notificationAlerts
