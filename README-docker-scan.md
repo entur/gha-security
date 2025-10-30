@@ -35,9 +35,11 @@ Go to the _Actions_ tab in your repository, click on _New workflow_ and select t
 
 <!-- AUTO-DOC-SECRETS:START - Do not remove or modify this section -->
 
-|                                                    SECRET                                                     | REQUIRED |                                                             DESCRIPTION                                                             |
-|---------------------------------------------------------------------------------------------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------|
-| <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   | Token to access the external <br>repository mentioned in the dockerscan.yml <br>file. Must have read access <br>to the repository.  |
+|                                                            SECRET                                                            | REQUIRED |                                                                  DESCRIPTION                                                                   |
+|------------------------------------------------------------------------------------------------------------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| <a name="secret_GHA_SECURITY_CENTRAL_ALLOWLIST"></a>[GHA_SECURITY_CENTRAL_ALLOWLIST](#secret_GHA_SECURITY_CENTRAL_ALLOWLIST) |  false   | SSH keys to checkout the <br>central allowlist repository. Secret is <br>fetched from Entur GitHub organization <br>if secrets are inherited.  |
+|                       <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                        |  false   |       Slack bot token is used <br>for notifications. Secret is fetched <br>from Entur GitHub organization if <br>secrets are inherited.        |
+|        <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token)         |  false   |      Token to access the external <br>repository mentioned in the dockerscan.yml <br>file. Must have read access <br>to the repository.        |
 
 <!-- AUTO-DOC-SECRETS:END -->
 
