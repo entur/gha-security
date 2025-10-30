@@ -57,6 +57,18 @@ on:
       external_repository_token:
         description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
         required: false
+      ARTIFACTORY_AUTH_USER:
+        description: 'The username for the Artifactory repository. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        required: false
+      ARTIFACTORY_AUTH_TOKEN:
+        description: 'Token for the Artifactory repository. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        required: false
+      ARTIFACTORY_APIKEY:
+        description: 'The API key for the Artifactory repository.'
+        required: false
+      SLACK_BOT_TOKEN:
+        description: 'Slack bot token is used for notifications. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        required: false   
 env:
   GITHUB_REPOSITORY: ${{ github.repository }}
   GIT_REF: ${{ github.ref }}
@@ -97,9 +109,9 @@ jobs:
           GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REFNAME" = "$GITHUB_DEFAULT_BRANCH" ]; then
-            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=False' >> $GITHUB_ENV
+            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=False' >> "$GITHUB_ENV"
           else
-            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> $GITHUB_ENV
+            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> "$GITHUB_ENV"
           fi
       - name: "Get workflow run ID for matching PR"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
@@ -107,18 +119,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_SHA: ${{ github.sha }}
         run: |
-          HEAD_REF=$(gh pr list --state merged --search "$GITHUB_SHA" --json headRefOid -R $GITHUB_REPOSITORY | jq -r '.[0].headRefOid')
+          HEAD_REF=$(gh pr list --state merged --search "$GITHUB_SHA" --json headRefOid -R "$GITHUB_REPOSITORY" | jq -r '.[0].headRefOid')
           if [ "$HEAD_REF" = "null" ]; then
             echo "::warning ::Failed to fetch closed PRs, defaulting to running a new scan"
-            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> $GITHUB_ENV
+            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> "$GITHUB_ENV"
           else
-            JOB_ID=$(gh run list -s completed -e pull_request -c "$HEAD_REF" --json databaseId -R $GITHUB_REPOSITORY -w ".github/workflows/codeql.yml" | 
+            JOB_ID=$(gh run list -s completed -e pull_request -c "$HEAD_REF" --json databaseId -R "$GITHUB_REPOSITORY" -w ".github/workflows/codeql.yml" | 
               jq -r '.[0].databaseId')
             if [ "$JOB_ID" = "null" ]; then
               echo '::warning ::Failed to find a matching job, defaulting to running a new scan'
-              echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> $GITHUB_ENV
+              echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> "$GITHUB_ENV"
             else
-              echo "GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID=$JOB_ID" >> $GITHUB_ENV
+              echo "GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID=$JOB_ID" >> "$GITHUB_ENV"
             fi
           fi
 
@@ -145,12 +157,12 @@ jobs:
           GITHUB_REF: ${{ github.ref }}
         run: |
           shopt -s globstar nullglob
-          for file in /home/runner/work/$GITHUB_REPOSITORY/results/**/*.json ; do
-            if [ -d $file ] ; then
+          for file in "/home/runner/work/$GITHUB_REPOSITORY/results"/**/*.json ; do
+            if [ -d "$file" ] ; then
               continue
             fi
-            jq ".sha = \"$GITHUB_SHA\" | .ref = \"$GITHUB_REF\"" <$file | 
-              gh api /repos/$GITHUB_REPOSITORY/dependency-graph/snapshots --method POST --input -
+            jq ".sha = \"$GITHUB_SHA\" | .ref = \"$GITHUB_REF\"" < "$file" | 
+              gh api "/repos/$GITHUB_REPOSITORY/dependency-graph/snapshots" --method POST --input -
           done
 
   get-repository-metadata:
@@ -171,10 +183,10 @@ jobs:
         id: find-gradle-build
         run: |
           # Search for the file(s) build.gradle or build.gradle.kt(s) in the repo, and report if any of those are found
-          if [ $(find . -type f -iname build.gradle -o -iname build.gradle.kts -o -iname build.gradle.kt | wc -l) -gt 0 ]; then
-            echo "GHA_SECURITY_CODE_SCAN_FOUND_GRADLE=True" >> $GITHUB_ENV
+          if [ "$(find . -type f -iname build.gradle -o -iname build.gradle.kts -o -iname build.gradle.kt | wc -l)" -gt 0 ]; then
+            echo "GHA_SECURITY_CODE_SCAN_FOUND_GRADLE=True" >> "$GITHUB_ENV"
           else
-            echo "GHA_SECURITY_CODE_SCAN_FOUND_GRADLE=False" >> $GITHUB_ENV
+            echo "GHA_SECURITY_CODE_SCAN_FOUND_GRADLE=False" >> "$GITHUB_ENV"
           fi
 
       - name: "Get repository languages"
@@ -274,7 +286,7 @@ jobs:
   semgrep-analysis:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
-    if: ${{ needs.get-repository-metadata.outputs.semgrep_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
+    if: ${{ needs.get-repository-metadata.outputs.semgrep_languages != '[]' && (github.event_name != 'push' || (github.event_name == 'push' && github.actor != 'dependabot[bot]')) }}
     runs-on:  ${{ startsWith(inputs.job_runner, 'grp-') && fromJSON(format('{{"group":"{0}"}}', inputs.job_runner)) || inputs.job_runner }}
     needs: get-repository-metadata
     permissions:
@@ -293,33 +305,15 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: "Get Setup Java inputs"
-        if: inputs.use_setup_java && matrix.language == 'scala'
-        id: java-inputs
-        uses: actions/github-script@v8
-        env: 
-          JAVA_VERSION: ${{ inputs.java_version }}
-          JAVA_DISTRIBUTION: ${{ inputs.java_distribution }}
-          JAVA_SERVER_ID: ${{ inputs.java_server_id_artifactory }}
-        with:
-          script: |
-            const serverId = process.env.JAVA_SERVER_ID
-            const serverCredentials = { 
-              "server-id": serverId, 
-              "server-username": "ARTIFACTORY_AUTH_USER", 
-              "server-password": "ARTIFACTORY_AUTH_TOKEN" 
-              }
-
-            return {
-              "java-version": process.env.JAVA_VERSION,
-              "distribution": process.env.JAVA_DISTRIBUTION,
-              ...(serverId ? serverCredentials : {}),
-            }
-
       - name: "Setup Java for Scala"
         if: inputs.use_setup_java && (matrix.language == 'scala')
         uses: actions/setup-java@v5
-        with: ${{ fromJson(steps.java-inputs.outputs.result) }}
+        with: 
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.java_distribution }}
+          server-id: ${{ inputs.java_server_id_artifactory }}
+          server-username: "ARTIFACTORY_AUTH_USER"
+          server-password: "ARTIFACTORY_AUTH_TOKEN"
 
       - name: "Gradle Dependency Graph for Scala"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
@@ -382,7 +376,7 @@ jobs:
   codeql-analysis:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
     # If we found a language, and the event is not a push made by dependabot on a PR
-    if: ${{ needs.get-repository-metadata.outputs.codeql_languages != '[]' && (github.event != 'push' || (github.event == 'push' && github.actor != 'dependabot[bot]')) }}
+    if: ${{ needs.get-repository-metadata.outputs.codeql_languages != '[]' && (github.event_name != 'push' || (github.event_name == 'push' && github.actor != 'dependabot[bot]')) }}
     # Runners are selected by labels: (default when you pass a string directly to runs-on) or group: "grp-runner". This snippet of code uses JSON to construct the group: object if the runner name starts with "grp-"
     runs-on:  ${{ startsWith(inputs.job_runner, 'grp-') && fromJSON(format('{{"group":"{0}"}}', inputs.job_runner)) || inputs.job_runner }}
     needs: get-repository-metadata
@@ -401,29 +395,6 @@ jobs:
         uses: actions/checkout@v5
         with:
           persist-credentials: false
-
-      - name: "Get Setup Java inputs"
-        if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java')
-        id: java-inputs
-        uses: actions/github-script@v8
-        env: 
-          JAVA_VERSION: ${{ inputs.java_version }}
-          JAVA_DISTRIBUTION: ${{ inputs.java_distribution }}
-          JAVA_SERVER_ID: ${{ inputs.java_server_id_artifactory }}
-        with:
-          script: |
-            const serverId = process.env.JAVA_SERVER_ID
-            const serverCredentials = { 
-              "server-id": serverId, 
-              "server-username": "ARTIFACTORY_AUTH_USER", 
-              "server-password": "ARTIFACTORY_AUTH_TOKEN" 
-              }
-
-            return {
-              "java-version": process.env.JAVA_VERSION,
-              "distribution": process.env.JAVA_DISTRIBUTION,
-              ...(serverId ? serverCredentials : {}),
-            }
       
       - name: Cache local Maven repository
         uses: actions/cache@v4
@@ -437,7 +408,12 @@ jobs:
       - name: "Setup Java for Java/Kotlin"
         if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java')
         uses: actions/setup-java@v5
-        with: ${{ fromJson(steps.java-inputs.outputs.result) }}
+        with: 
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.java_distribution }}
+          server-id: ${{ inputs.java_server_id_artifactory }}
+          server-username: "ARTIFACTORY_AUTH_USER"
+          server-password: "ARTIFACTORY_AUTH_TOKEN"
 
       - name: "Set up Gradle for Java/Kotlin"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
@@ -484,7 +460,7 @@ jobs:
       - name: "Get repository name"
         run: |
           REPOSITORY_NAME=$(echo "${GITHUB_REPOSITORY}" | cut -d'/' -f2)
-          echo "REPOSITORY_NAME=$REPOSITORY_NAME" >> $GITHUB_ENV
+          echo "REPOSITORY_NAME=$REPOSITORY_NAME" >> "$GITHUB_ENV"
 
       - name: "Upload CodeQL report as artifact"
         uses: actions/upload-artifact@v5
@@ -527,14 +503,14 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
         run: |
-          gh pr comment $PR_NUMBER --repo $GITHUB_REPOSITORY -b "$NOTIFICATION_MARKDOWN"
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" -b "$NOTIFICATION_MARKDOWN"
 
       - name: "Send job summary notification"
         if: ${{ steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
         env:
           NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
         run: |
-          echo "$NOTIFICATION_MARKDOWN" >> $GITHUB_STEP_SUMMARY 
+          echo "$NOTIFICATION_MARKDOWN" >> "$GITHUB_STEP_SUMMARY"
       # Taken from https://github.com/entur/gha-slack/blob/main/.github/workflows/post.yml
       - name: "Send slack notification"
         if: ${{ steps.scanner-action.outputs.notification_slack_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
