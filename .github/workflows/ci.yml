@@ -4,6 +4,17 @@ on:
     pull_request:
 
 jobs:
+    actionlint:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Check workflow files
+          run: |
+            echo "::add-matcher::.github/actionlint-matcher.json"
+            # pin v1.7.7 using hash
+            bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/e7d448ef7507c20fc4c88a95d0c448b848cd6127/scripts/download-actionlint.bash)
+            ./actionlint -color
+          shell: bash
     update-code-scan-doc:
         uses: entur/gha-meta/.github/workflows/auto-doc.yml@v1.6.0
         with: 

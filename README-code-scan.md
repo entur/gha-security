@@ -37,9 +37,13 @@ or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your 
 
 <!-- AUTO-DOC-SECRETS:START - Do not remove or modify this section -->
 
-|                                                    SECRET                                                     | REQUIRED |                                                            DESCRIPTION                                                            |
-|---------------------------------------------------------------------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------|
-| <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   | Token to access the external <br>repository mentioned in the codescan.yml <br>file. Must have read access <br>to the repository.  |
+|                                                    SECRET                                                     | REQUIRED |                                                             DESCRIPTION                                                              |
+|---------------------------------------------------------------------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------|
+|           <a name="secret_ARTIFACTORY_APIKEY"></a>[ARTIFACTORY_APIKEY](#secret_ARTIFACTORY_APIKEY)            |  false   |                                           The API key for the <br>Artifactory repository.                                            |
+|     <a name="secret_ARTIFACTORY_AUTH_TOKEN"></a>[ARTIFACTORY_AUTH_TOKEN](#secret_ARTIFACTORY_AUTH_TOKEN)      |  false   |    Token for the Artifactory repository. <br>Secret is fetched from Entur <br>GitHub organization if secrets are <br>inherited.      |
+|       <a name="secret_ARTIFACTORY_AUTH_USER"></a>[ARTIFACTORY_AUTH_USER](#secret_ARTIFACTORY_AUTH_USER)       |  false   | The username for the Artifactory <br>repository. Secret is fetched from <br>Entur GitHub organization if secrets <br>are inherited.  |
+|                <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                |  false   |  Slack bot token is used <br>for notifications. Secret is fetched <br>from Entur GitHub organization if <br>secrets are inherited.   |
+| <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   |  Token to access the external <br>repository mentioned in the codescan.yml <br>file. Must have read access <br>to the repository.    |
 
 <!-- AUTO-DOC-SECRETS:END -->
 
