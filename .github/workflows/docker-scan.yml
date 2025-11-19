@@ -16,6 +16,7 @@ env:
   GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT: ${{ inputs.image_artifact }}
   GITHUB_REPOSITORY: ${{ github.repository }}
   GIT_REF: ${{ github.ref }}
+  CENTRAL_ALLOWLIST_ENABLED: 'false'
 
 jobs:
   docker-scan:
@@ -36,7 +37,7 @@ jobs:
           persist-credentials: false
 
       - name: "Checkout central allowlist repository"
-        if: env.CENTRAL_ALLOWLIST_SSH_KEY
+        if: ${{ env.CENTRAL_ALLOWLIST_SSH_KEY && env.CENTRAL_ALLOWLIST_ENABLED == 'true'  }}
         uses: actions/checkout@v5
         with:
           repository: entur/central-allowlist
@@ -47,7 +48,7 @@ jobs:
           CENTRAL_ALLOWLIST_SSH_KEY: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
 
       - name: "Write to workflow job summary if central allowlist is not used"
-        if: env.CENTRAL_ALLOWLIST_SSH_KEY == ''
+        if: ${{ env.CENTRAL_ALLOWLIST_SSH_KEY == '' && env.CENTRAL_ALLOWLIST_ENABLED == 'true' }}
         run: |
           echo "## ⚠️ Central Allowlist not used ⚠️
           The central allowlist is not being used in this workflow run.  
