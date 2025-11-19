@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.10.0](https://github.com/entur/gha-security/compare/v2.9.2...v2.10.0) (2025-11-19)
+
+
+### Features
+
+* **scanner-action:** Add centralAllowlist to scanner config ([b14f32a](https://github.com/entur/gha-security/commit/b14f32abe21c783e4b0042dc2b29f00624e25692))
+* Update Docker scan workflow to use main branch for central allowlist and specific scanner action version ([099d59a](https://github.com/entur/gha-security/commit/099d59ae87f602426b7297c30910a6a02d868ae3))
+
+
+### Bug Fixes
+
+* Add conditional checkout for central allowlist repository based on secret ([14b5cf0](https://github.com/entur/gha-security/commit/14b5cf0bf5316c5f88f577381e7b9206ec931b28))
+* Add GHA_SECURITY_CENTRAL_ALLOWLIST in secrets overview ([001e7f7](https://github.com/entur/gha-security/commit/001e7f7903970cdc1a8c37fb6ef811c4c8300b0d))
+* Add github-server-url to Docker scan workflow for central allowlist access ([3e59837](https://github.com/entur/gha-security/commit/3e59837ae5c93d2077c07231244b984491dbefd1))
+* Change central allowlist access from token to ssh-key in Docker scan workflow ([ca0ca54](https://github.com/entur/gha-security/commit/ca0ca546c7aaa8f15b7ec86f839f21f6b8414d19))
+* Change ssh-key to token for central allowlist access in Docker scan workflow ([a5b715d](https://github.com/entur/gha-security/commit/a5b715de3d354fc8c667fe1d6adf8589522e1b24))
+* **docker-scan:** add warning to job summary if central allowlist is not used ([a248d51](https://github.com/entur/gha-security/commit/a248d51b88a0e8cb296ded8f2424f8edc0341da5))
+* **docker-scan:** update scanner-action to use version 2 ([1564a82](https://github.com/entur/gha-security/commit/1564a827a00cd3a5c640daaa84312901a3658143))
+* Remove GHA_SECURITY_CENTRAL_ALLOWLIST input and update checkout step to use environment variable ([633180d](https://github.com/entur/gha-security/commit/633180da18765f1247ebff2efd93c0f8add26060))
+* Remove unnecessary github-server-url from Docker scan workflow ([50a5954](https://github.com/entur/gha-security/commit/50a595466cdd3b4fc368b94a111b09ea0d7ea8e8))
+* **scanner-action:** return null instead of undefined to make notifications run ([e4807e3](https://github.com/entur/gha-security/commit/e4807e34345d4f101b7197fa94bd0ed5c9f7fd9c))
+* temporary disable central allowlist ([#145](https://github.com/entur/gha-security/issues/145)) ([ab18874](https://github.com/entur/gha-security/commit/ab188740fe6aec2dff8929d559bc12714ff7bd0f))
+
 ## [2.9.2](https://github.com/entur/gha-security/compare/v2.9.1...v2.9.2) (2025-10-16)
 
 
