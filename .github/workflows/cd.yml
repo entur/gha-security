@@ -20,4 +20,4 @@ jobs:
     # / needed for status checks pr approvals
     release:
       needs: [update-code-scan-doc, update-docker-scan-doc]
-      uses: entur/gha-meta/.github/workflows/release.yml@v1.6.0
+      uses: entur/gha-meta/.github/workflows/release.yml@v1.6.2
