@@ -38,13 +38,13 @@ jobs:
       actions: read #required for uploading SARIF file to GitHub (workflows in private repositories)
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
       - name: "Checkout central allowlist repository"
         if: ${{ env.CENTRAL_ALLOWLIST_SSH_KEY && env.CENTRAL_ALLOWLIST_ENABLED == 'true'  }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: entur/central-allowlist
           ref: main

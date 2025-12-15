@@ -175,7 +175,7 @@ jobs:
       found_gradle: ${{ env.GHA_SECURITY_CODE_SCAN_FOUND_GRADLE }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -301,7 +301,7 @@ jobs:
         language: ${{ fromJson(needs.get-repository-metadata.outputs.semgrep_languages) }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -392,7 +392,7 @@ jobs:
         language: ${{ fromJson(needs.get-repository-metadata.outputs.codeql_languages) }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       
@@ -484,7 +484,7 @@ jobs:
       pull-requests: write # required for creating comments on pull requests
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       
