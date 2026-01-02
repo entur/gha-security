@@ -265,7 +265,7 @@ jobs:
             
             const ignoreLanguage = process.env.IGNORE_LANGUAGE
               .split(',')
-              .map(f => f.trim())
+              .map(f => f.trim().toLowerCase())
               .filter(e => e !== '');
               
             const globber = await glob.create('**', { matchDirectories: false });
@@ -276,9 +276,14 @@ jobs:
                 .map(f => f.slice(f.lastIndexOf('.') + 1))  // Get the extension
             )];
 
-            const hasJavaScriptOrTypescript = repoFileTypes.some(f => javaScriptTypeScriptMappings.hasOwnProperty(f));
-            const hasHtml = repoFileTypes.some(f => htmlMappings.hasOwnProperty(f));
-            const htmlOnly = !hasJavaScriptOrTypescript && hasHtml;
+            const hasJavascriptFileType = repoFileTypes.some(f => javaScriptTypeScriptMappings.hasOwnProperty(f));
+            const hasHtmlFileType = repoFileTypes.some(f => htmlMappings.hasOwnProperty(f));
+
+            // Ignore language "javascript-typescript" if HTML file type(s) is found and no additional javascript file types is found.
+            // Needed after CodeQL 2.23.5, see issue: https://github.com/github/codeql/issues/21048
+            if (!hasJavascriptFileType && hasHtmlFileType && ignoreLanguage.includes("html")) {
+              ignoreLanguage.push("javascript-typescript")
+            }
             
             const codeqlLanguages = [... new Set(
               repoFileTypes
@@ -295,7 +300,7 @@ jobs:
             
             core.exportVariable("GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_CQ", codeqlLanguages);
             core.exportVariable("GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_SEM", semgrepLanguages);
-            core.exportVariable("GHA_SECURITY_CODE_SCAN_HTML_ONLY_SCAN", htmlOnly ? "True" : "False");
+            core.exportVariable("GHA_SECURITY_CODE_SCAN_HTML_ONLY_SCAN", !hasJavascriptFileType && hasHtmlFileType ? "True" : "False");
 
   semgrep-analysis:
     # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
@@ -474,7 +479,7 @@ jobs:
       - name: "Post message to job summary if scan with HTML only files fail"
         if: ${{ failure() && steps.codeql-analysis.outcome == 'failure' && needs.get-repository-metadata.outputs.html_only_scan == 'True' && matrix.language == 'javascript-typescript' }}
         run: |
-          echo -e "# ❗️ CodeQL analysis failed on HTML file(s)\n CodeQL will fail if no javascript can be extracted from HTML file(s).  \n\n Ignore scanning HTML files by adding "javascript-typescript" to workflow input ignore_language  \n See [CodeQL supported languages and frameworks](https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/#id9) for more information from CodeQL." >> "$GITHUB_STEP_SUMMARY"
+          echo -e "# ❗️ CodeQL analysis failed on HTML file(s) \n CodeQL will fail if no javascript can be extracted from HTML file(s).  \n \n Ignore scanning HTML files by adding 'html' to workflow input ignore_language  \n See [CodeQL supported languages and frameworks](https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/#id9) for more information from CodeQL." >> "$GITHUB_STEP_SUMMARY"
 
 
       - name: "Get repository name"
