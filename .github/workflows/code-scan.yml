@@ -460,7 +460,6 @@ jobs:
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
         uses: github/codeql-action/analyze@v4
-        continue-on-error: ${{ needs.get-repository-metadata.outputs.html_only_scan == 'True' && matrix.language == 'javascript-typescript' }}
         with:
           category: "/language:${{ matrix.language }}"
         env:
@@ -471,6 +470,12 @@ jobs:
           ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
           GRADLE_OPTS: ${{ inputs.gradle_opts }}
           IS_CODEQL_SCAN: true
+
+      - name: "Post message to job summary if scan with HTML only files fail"
+        if: ${{ failure() && steps.codeql-analysis.outcome == 'failure' && needs.get-repository-metadata.outputs.html_only_scan == 'True' && matrix.language == 'javascript-typescript' }}
+        run: |
+          echo -e "# ❗️ CodeQL analysis failed on HTML file(s)\n CodeQL will fail if no javascript can be extracted from HTML file(s).  \n\n Ignore scanning HTML files by adding "javascript-typescript" to workflow input ignore_language  \n See [CodeQL supported languages and frameworks](https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/#id9) for more information from CodeQL." >> "$GITHUB_STEP_SUMMARY"
+
 
       - name: "Get repository name"
         run: |
