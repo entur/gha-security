@@ -385,3 +385,26 @@ The list of options is available in [Confluence](https://enturas.atlassian.net/w
 Gradle build options can also be overridden to increase jvm memory. Input `GRADLE_OPTS`.
 
 When CodeQL is triggered, the environment variable `IS_CODEQL_SCAN` is set to `true` which could be used to skip certain tests during build.
+
+### Code scanning is failing on extracting javascript from project.
+Recent changes to CodeQL will make analysis fail if a project has HTML file(s) without javascript/typescript, and no additional javascript/typescript files is found.
+
+To fix this you can add dummy javascript to a HTML file, or add `html` to workflow input `ignore_language`.
+```yaml
+jobs:
+    code-scan:
+        name: Code Scan
+        uses: entur/gha-security/.github/workflows/code-scan.yml@v2
+        secrets: inherit
+        with:
+          ignore_language: "html"
+```
+
+**Note**
+Following extensions is part of our HTML file extension detection
+* .vue
+* .ejs
+* .htm
+* .html
+* .xhtm
+* .xhtml
