@@ -276,8 +276,8 @@ jobs:
                 .map(f => f.slice(f.lastIndexOf('.') + 1))  // Get the extension
             )];
 
-            const hasJavascriptFileType = repoFileTypes.some(f => javaScriptTypeScriptMappings.hasOwnProperty(f));
-            const hasHtmlFileType = repoFileTypes.some(f => htmlMappings.hasOwnProperty(f));
+            const hasJavascriptFileType = repoFileTypes.some(f => Object.hasOwn(javaScriptTypeScriptMappings, f));
+            const hasHtmlFileType = repoFileTypes.some(f => Object.hasOwn(htmlMappings, f));
 
             // Ignore language "javascript-typescript" if HTML file type(s) is found and no additional javascript file types is found.
             // Needed after CodeQL 2.23.5, see issue: https://github.com/github/codeql/issues/21048
@@ -287,14 +287,14 @@ jobs:
             
             const codeqlLanguages = [... new Set(
               repoFileTypes
-                .filter(f => codeqlMappings.hasOwnProperty(f))
+                .filter(f => Object.hasOwn(codeqlMappings, f))
                 .map(f => codeqlMappings[f])
               ), 'actions']
             .filter(f => !ignoreLanguage.includes(f));
             
             const semgrepLanguages = [... new Set(
               repoFileTypes
-                .filter(f => semgrepMappings.hasOwnProperty(f))
+                .filter(f => Object.hasOwn(semgrepMappings, f))
                 .map(f => semgrepMappings[f])
             )].filter(f => !ignoreLanguage.includes(f));
             
