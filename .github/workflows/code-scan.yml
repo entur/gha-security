@@ -215,9 +215,10 @@ jobs:
               // Javascript
               'js': 'javascript-typescript',
               'jsx': 'javascript-typescript',
+              'cjs': 'javascript-typescript',
               'mjs': 'javascript-typescript',
               'es': 'javascript-typescript',
-              'es6': 'javascript-typescript',
+              'es6': 'javascript-typescript'
             }
 
             const codeqlMappings = {
