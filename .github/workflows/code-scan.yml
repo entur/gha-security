@@ -521,7 +521,7 @@ jobs:
           scanner: 'codescan'
           token: ${{ secrets.GITHUB_TOKEN }}
           external-repository-token: ${{ secrets.external_repository_token }}
-          command: "allowlist, notification"
+          command: "allowlist, notifications"
 
       - name: "Send pull request notification"
         if: ${{ github.event_name == 'pull_request' && steps.scanner-action.outputs.notification_pull_request_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}

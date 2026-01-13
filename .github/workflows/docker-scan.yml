@@ -124,7 +124,7 @@ jobs:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
           external-repository-token: ${{ secrets.external_repository_token }}
-          command: "notification"
+          command: "notifications"
       
       - name: "Send pull request notification"
         if: ${{ github.event_name == 'pull_request' && steps.scanner-action-notification.outputs.notification_pull_request_enabled == 'True' && steps.scanner-action-notification.outputs.notification_severity_alert_found == 'True' }}
