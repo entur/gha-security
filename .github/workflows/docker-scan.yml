@@ -68,41 +68,14 @@ jobs:
         with:
           name: ${{ env.GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT }}
 
-      - name: Scanner Action
-        id: scanner-action
-        uses: entur/gha-security/scanner-action@v2
+      - name: Scanner Action (Allowlist)
+        id: scanner-action-allowlist
+        uses: entur/gha-security/scanner-action@fix/SIK-1814
         with:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
           external-repository-token: ${{ secrets.external_repository_token }}
-
-      - name: "Send pull request notification"
-        if: ${{ github.event_name == 'pull_request' && steps.scanner-action.outputs.notification_pull_request_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
-        run: |
-          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" -b "$NOTIFICATION_MARKDOWN"
-
-      - name: "Send job summary notification"
-        if: ${{ steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-        env:
-          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
-        run: |
-          echo "$NOTIFICATION_MARKDOWN" >> "$GITHUB_STEP_SUMMARY"
-
-      # Taken from https://github.com/entur/gha-slack/blob/main/.github/workflows/post.yml
-      - name: "Send slack notification"
-        if: ${{ steps.scanner-action.outputs.notification_slack_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-        uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          NOTIFICATION_SLACK_POST_BLOCKS: ${{ steps.scanner-action.outputs.notification_slack_block }}
-        with:
-          channel-id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
-          payload: |
-            ${{ env.NOTIFICATION_SLACK_POST_BLOCKS }}
+          command: "allowlist"
 
       - name: "Docker workdir extraction"
         id: docker-workdir
@@ -143,3 +116,40 @@ jobs:
         with: 
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
           category: 'anchore-grype-scan'
+      
+      - name: Scanner Action (Notification)
+        id: scanner-action-notification
+        uses: entur/gha-security/scanner-action@fix/SIK-1814
+        with:
+          scanner: 'dockerscan'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          external-repository-token: ${{ secrets.external_repository_token }}
+          command: "notification"
+      
+      - name: "Send pull request notification"
+        if: ${{ github.event_name == 'pull_request' && steps.scanner-action-notification.outputs.notification_pull_request_enabled == 'True' && steps.scanner-action-notification.outputs.notification_severity_alert_found == 'True' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action-notification.outputs.notification_markdown }}
+        run: |
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" -b "$NOTIFICATION_MARKDOWN"
+
+      - name: "Send job summary notification"
+        if: ${{ steps.scanner-action-notification.outputs.notification_severity_alert_found == 'True' }}
+        env:
+          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action-notification.outputs.notification_markdown }}
+        run: |
+          echo "$NOTIFICATION_MARKDOWN" >> "$GITHUB_STEP_SUMMARY"
+
+      # Taken from https://github.com/entur/gha-slack/blob/main/.github/workflows/post.yml
+      - name: "Send slack notification"
+        if: ${{ steps.scanner-action-notification.outputs.notification_slack_enabled == 'True' && steps.scanner-action-notification.outputs.notification_severity_alert_found == 'True' }}
+        uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          NOTIFICATION_SLACK_POST_BLOCKS: ${{ steps.scanner-action-notification.outputs.notification_slack_block }}
+        with:
+          channel-id: ${{ steps.scanner-action-notification.outputs.notification_slack_channel_id }}
+          payload: |
+            ${{ env.NOTIFICATION_SLACK_POST_BLOCKS }}
