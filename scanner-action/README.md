@@ -16,6 +16,10 @@ Scanner Action is used for dismissing vulnerabilities for DockerScan and CodeSca
 
 **Required** Type of scanner
 
+### `command`
+
+**Required** Comma seperated list of commands. Available commands are: allowlist, notifications
+
 ## Outputs
 
 ### `notification_severity_alert_found`
