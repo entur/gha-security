@@ -70,7 +70,7 @@ jobs:
 
       - name: Scanner Action (Allowlist)
         id: scanner-action-allowlist
-        uses: entur/gha-security/scanner-action@fix/SIK-1814
+        uses: entur/gha-security/scanner-action@v2
         with:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -119,7 +119,7 @@ jobs:
       
       - name: Scanner Action (Notification)
         id: scanner-action-notification
-        uses: entur/gha-security/scanner-action@fix/SIK-1814
+        uses: entur/gha-security/scanner-action@v2
         with:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
