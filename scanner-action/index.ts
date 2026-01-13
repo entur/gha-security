@@ -63,12 +63,21 @@ const main = async () => {
 	try {
 		const TOKEN = core.getInput("token");
 		const SCANNER_TYPE = core.getInput("scanner");
+		const COMMANDS = core
+			.getInput("command")
+			.split(",")
+			.map((t) => t.trim().toLowerCase());
 		const EXTERNAL_REPOSITORY_TOKEN = core.getInput("external-repository-token");
 		const VALID_SCANNERS = ["dockerscan", "codescan"];
 
 		const ThrottledOctokit = Octokit.plugin(throttling);
 
 		let octokitExternal: Octokit | undefined = undefined;
+
+		if (!VALID_SCANNERS.includes(SCANNER_TYPE)) {
+			core.setFailed(`Invalid scanner defined ${SCANNER_TYPE}`);
+			return;
+		}
 
 		if (EXTERNAL_REPOSITORY_TOKEN !== "") {
 			octokitExternal = new ThrottledOctokit({
@@ -82,24 +91,23 @@ const main = async () => {
 			throttle: getOctokitThrottleConfig(),
 		});
 
-		if (!VALID_SCANNERS.includes(SCANNER_TYPE)) {
-			core.setFailed(`Invalid scanner defined ${SCANNER_TYPE}`);
-			return;
-		}
-
 		const configs = await getScannerConfigs(SCANNER_TYPE, octokitExternal);
 
 		if (configs === undefined) return;
 
-		if (configs === null) {
-			await runNotifications(octokitAction, SCANNER_TYPE);
-			return;
+		if (COMMANDS.includes("allowlist")) {
+			if (configs != null) {
+				const { localConfig, externalConfig, centralConfig } = configs;
+				await runAllowlist(SCANNER_TYPE, octokitAction, localConfig, externalConfig, centralConfig);
+			}
 		}
 
-		const { localConfig, externalConfig, centralConfig } = configs;
+		if (COMMANDS.includes("notifications")) {
+			if (configs === null) return await runNotifications(octokitAction, SCANNER_TYPE);
 
-		await runAllowlist(SCANNER_TYPE, octokitAction, localConfig, externalConfig, centralConfig);
-		await runNotifications(octokitAction, SCANNER_TYPE, localConfig, externalConfig);
+			const { localConfig, externalConfig } = configs;
+			await runNotifications(octokitAction, SCANNER_TYPE, localConfig, externalConfig);
+		}
 	} catch (error) {
 		if (error instanceof Error) {
 			core.setFailed(error.message);

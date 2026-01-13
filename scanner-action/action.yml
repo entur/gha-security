@@ -10,6 +10,9 @@ inputs:
   scanner:
     description: "Type of scanner"
     required: true
+  command:
+    description: "Comma seperated list of commands. Available commands are: allowlist, notifications"
+    required: true
 outputs:
   notification_severity_alert_found:
     description: "Alert with specified threshold severity has been found"
