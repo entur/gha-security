@@ -54,6 +54,7 @@ interface ScannerConfig {
 type SeverityLevel = "low" | "medium" | "high" | "critical";
 
 interface PartialCodeScanningAlertRule {
+	id?: string | null;
 	tags?: string[] | null;
 	security_severity_level?: SeverityLevel | null | undefined;
 }
@@ -68,6 +69,13 @@ interface PartialCodeScanningAlert {
 }
 
 interface CweTagValues {
+	comment: string;
+	reason: "false positive" | "won't fix" | "used in tests";
+}
+
+interface AllowlistEntry {
+	rule_id?: string;
+	rule_tag?: string;
 	comment: string;
 	reason: "false positive" | "won't fix" | "used in tests";
 }
@@ -87,4 +95,5 @@ export type {
 	SeverityLevel,
 	GithubRepo,
 	Notifications,
+	AllowlistEntry,
 };

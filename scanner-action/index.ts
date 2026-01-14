@@ -1,31 +1,12 @@
 import * as core from "@actions/core";
-import { type ThrottlingOptions, throttling } from "@octokit/plugin-throttling";
+import { throttling } from "@octokit/plugin-throttling";
 import { Octokit } from "octokit";
-import { dismissCodeScanAlerts } from "./codescan.js";
-import { dismissDockerScanAlerts } from "./dockerscan.js";
+import { runAllowlist } from "./allowlist.js";
 import { ScannerNotifications } from "./notifications.js";
+import { getOctokitThrottleConfig } from "./octokit-throttle.js";
 import { setNotificationOutputs } from "./outputs.js";
 import { getScannerConfigs } from "./scanner-config.js";
 import type { ScannerConfig } from "./typedefs.js";
-
-const getOctokitThrottleConfig = () => {
-	const throttle: ThrottlingOptions = {
-		onRateLimit: (retryAfter, options, octokit, retryCount) => {
-			core.warning(`Request quota exhausted for request ${options.method} ${options.url}`);
-
-			if (retryCount < 1) {
-				// only retries once
-				core.info(`Retrying after ${retryAfter} seconds!`);
-				return true;
-			}
-		},
-		onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
-			// does not retry, only logs a warning
-			core.warning(`SecondaryRateLimit detected for request ${options.method} ${options.url}`);
-		},
-	};
-	return throttle;
-};
 
 const runNotifications = async (octokitAction: Octokit, scannerType: string, scannerConfig?: ScannerConfig, externalScannerConfig?: ScannerConfig) => {
 	const scannerNotifications = new ScannerNotifications(octokitAction, scannerType, scannerConfig?.spec?.notifications, externalScannerConfig?.spec?.notifications);
@@ -38,35 +19,10 @@ const runNotifications = async (octokitAction: Octokit, scannerType: string, sca
 	setNotificationOutputs(scannerNotifications);
 };
 
-const runAllowlist = async (
-	scannerType: string,
-	octokitAction: Octokit,
-	scannerConfig?: ScannerConfig,
-	externalScannerConfig?: ScannerConfig,
-	centralScannerConfig?: ScannerConfig,
-) => {
-	switch (scannerType) {
-		case "dockerscan":
-			dismissDockerScanAlerts(scannerConfig, externalScannerConfig, centralScannerConfig);
-			break;
-
-		case "codescan":
-			await dismissCodeScanAlerts(octokitAction, scannerConfig, externalScannerConfig);
-			break;
-
-		default:
-			break;
-	}
-};
-
 const main = async () => {
 	try {
 		const TOKEN = core.getInput("token");
 		const SCANNER_TYPE = core.getInput("scanner");
-		const COMMANDS = core
-			.getInput("command")
-			.split(",")
-			.map((t) => t.trim().toLowerCase());
 		const EXTERNAL_REPOSITORY_TOKEN = core.getInput("external-repository-token");
 		const VALID_SCANNERS = ["dockerscan", "codescan"];
 
@@ -95,19 +51,15 @@ const main = async () => {
 
 		if (configs === undefined) return;
 
-		if (COMMANDS.includes("allowlist")) {
-			if (configs != null) {
-				const { localConfig, externalConfig, centralConfig } = configs;
-				await runAllowlist(SCANNER_TYPE, octokitAction, localConfig, externalConfig, centralConfig);
-			}
+		if (configs === null) {
+			await runNotifications(octokitAction, SCANNER_TYPE);
+			return;
 		}
 
-		if (COMMANDS.includes("notifications")) {
-			if (configs === null) return await runNotifications(octokitAction, SCANNER_TYPE);
+		const { localConfig, externalConfig, centralConfig } = configs;
 
-			const { localConfig, externalConfig } = configs;
-			await runNotifications(octokitAction, SCANNER_TYPE, localConfig, externalConfig);
-		}
+		await runAllowlist(octokitAction, SCANNER_TYPE, localConfig, externalConfig, centralConfig);
+		await runNotifications(octokitAction, SCANNER_TYPE, localConfig, externalConfig);
 	} catch (error) {
 		if (error instanceof Error) {
 			core.setFailed(error.message);
