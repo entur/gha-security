@@ -46,7 +46,8 @@ const dismissAlerts = async (alerts: PartialCodeScanningAlert[], octokit: Octoki
 	for (const allowlistEntry of allowlistEntries) {
 		const matchingAlerts = alerts.filter((alert) => {
 			if (allowlistEntry.rule_id) {
-				return alert?.rule?.id?.toLowerCase() === allowlistEntry.rule_id.toLowerCase() && !dismissedAlerts.has(alert.number);
+				// Grype scans have CVE-XXXX-XXXXXX-package as rule_id
+				return alert?.rule?.id?.startsWith(allowlistEntry.rule_id) && !dismissedAlerts.has(alert.number);
 			}
 
 			if (allowlistEntry.rule_tag) {
