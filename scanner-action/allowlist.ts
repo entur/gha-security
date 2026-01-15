@@ -32,7 +32,7 @@ const toAllowlistEntry = (allowlist: AllowlistCodeScan | AllowlistDockerScan) =>
 	} as AllowlistEntry;
 };
 
-const toAllowlistEntires = (allowlist: AllowlistCodeScan[] | AllowlistDockerScan[]) => {
+const toAllowlistEntries = (allowlist: AllowlistCodeScan[] | AllowlistDockerScan[]) => {
 	const entries: AllowlistEntry[] = [];
 
 	for (const entry of allowlist) {
@@ -51,11 +51,11 @@ const runAllowlist = async (octokit: Octokit, tool: string, scannerConfig?: Scan
 
 	const allowlistEntries: AllowlistEntry[] = [];
 
-	allowlistEntries.push(...toAllowlistEntires(localAllowlist));
-	allowlistEntries.push(...toAllowlistEntires(externalAllowlist));
+	allowlistEntries.push(...toAllowlistEntries(localAllowlist));
+	allowlistEntries.push(...toAllowlistEntries(externalAllowlist));
 
 	if (tool === "dockerscan") {
-		allowlistEntries.push(...toAllowlistEntires(centralAllowlist));
+		allowlistEntries.push(...toAllowlistEntries(centralAllowlist));
 	}
 
 	if (allowlistEntries.length === 0) {
