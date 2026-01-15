@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 import { type Octokit, RequestError } from "octokit";
-import type { AllowlistEntry, GithubRepo, PartialCodeScanningAlert, PartialCodeScanningAlertResponse } from "./typedefs.js";
+import type { Allowlist } from "./allowlist.js";
+import type { GithubRepo, PartialCodeScanningAlert, PartialCodeScanningAlertResponse } from "./typedefs.js";
 
 const handleAlertError = (error: unknown) => {
 	if (!(error instanceof RequestError)) {
@@ -40,18 +41,24 @@ const getAlerts = async (octokit: Octokit, ref: string, repository: GithubRepo, 
 	}
 };
 
-const dismissAlerts = async (alerts: PartialCodeScanningAlert[], octokit: Octokit, allowlistEntries: AllowlistEntry[], repository: GithubRepo) => {
+const dismissAlerts = async (alerts: PartialCodeScanningAlert[], octokit: Octokit, allowlistEntries: Allowlist[], repository: GithubRepo) => {
 	const dismissedAlerts = new Set();
+
+	const REASON_MAPPING = new Map([
+		["false_positive", "false positive"],
+		["wont_fix", "won't fix"],
+		["test", "used in tests"],
+	]);
 
 	for (const allowlistEntry of allowlistEntries) {
 		const matchingAlerts = alerts.filter((alert) => {
-			if (allowlistEntry.rule_id) {
+			if (allowlistEntry.cve) {
 				// Grype scans have CVE-XXXX-XXXXXX-package as rule_id
-				return alert?.rule?.id?.startsWith(allowlistEntry.rule_id) && !dismissedAlerts.has(alert.number);
+				return alert?.rule?.id?.startsWith(allowlistEntry.cve) && !dismissedAlerts.has(alert.number);
 			}
 
-			if (allowlistEntry.rule_tag) {
-				return alert?.rule?.tags?.includes(allowlistEntry.rule_tag) && !dismissedAlerts.has(alert.number);
+			if (allowlistEntry.cwe) {
+				return alert?.rule?.tags?.includes(`external/cwe/${allowlistEntry.cwe}`) && !dismissedAlerts.has(alert.number);
 			}
 		});
 
@@ -62,7 +69,7 @@ const dismissAlerts = async (alerts: PartialCodeScanningAlert[], octokit: Octoki
 				alert_number: matchingAlert.number,
 				state: "dismissed",
 				dismissed_comment: allowlistEntry.comment,
-				dismissed_reason: allowlistEntry.reason,
+				dismissed_reason: REASON_MAPPING.get(allowlistEntry.reason) as "false positive" | "won't fix" | "used in tests",
 			});
 			dismissedAlerts.add(matchingAlert.number);
 		}

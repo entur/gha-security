@@ -5,17 +5,17 @@ import type { Octokit } from "octokit";
 import * as yaml from "yaml";
 import type { ScannerConfig } from "./typedefs.js";
 
-const parseScannerConfig = (config: string) => {
+const parseYamlConfig = (config: string) => {
 	try {
 		return yaml.parse(config) as ScannerConfig;
 	} catch (error) {
 		if (error instanceof Error) {
 			core.warning(`Failed to parse yaml config: ${error.message}`);
-			return;
+			return null;
 		}
 
 		core.warning("Failed to parse yaml config");
-		return;
+		return null;
 	}
 };
 
@@ -71,28 +71,30 @@ const fetchExternalConfigContent = async (octokit: Octokit, repository: string, 
 	return;
 };
 
-const getExternalScannerConfig = async (scannerConfig: ScannerConfig, scanner: string, octokit: Octokit | undefined) => {
+const getExternalScannerConfig = async (scannerConfig: ScannerConfig | null, scanner: string, octokit: Octokit | undefined) => {
 	if (octokit === undefined) {
 		core.info("No external repository token found");
-		return;
+		return null;
 	}
+
+	if (!scannerConfig) return null;
 
 	core.info("Get external scanner config");
 	const externalRepository = scannerConfig.spec?.inherit;
 
 	if (!externalRepository) {
-		return;
+		return null;
 	}
 
 	core.info(`Fetch external config from ${externalRepository}`);
 	const content = await fetchExternalConfigContent(octokit, externalRepository, scanner);
-	if (!content) return;
+	if (!content) return null;
 
 	core.info(`Parse external config from ${externalRepository}`);
-	return parseScannerConfig(content);
+	return parseYamlConfig(content);
 };
 
-const getScannerContent = (scannerType: string) => {
+const readLocalConfig = (scannerType: string) => {
 	core.info("Get scanner config");
 	const YAML_EXTENSIONS = ["yml", "yaml"];
 	let yamlPaths = YAML_EXTENSIONS.map((extension) => `.entur/security/${scannerType}.${extension}`);
@@ -111,18 +113,18 @@ const getScannerContent = (scannerType: string) => {
 	return fs.readFileSync(yamlPaths[0], "utf8");
 };
 
-const getScannerConfig = (scanner: string) => {
-	const scannerContent = getScannerContent(scanner);
+const getLocalConfig = (scanner: string) => {
+	const localConfig = readLocalConfig(scanner);
 
-	if (scannerContent === null) {
+	if (localConfig === null) {
 		return null;
 	}
 
 	core.info("Parse config file");
-	return parseScannerConfig(scannerContent);
+	return parseYamlConfig(localConfig);
 };
 
-const getScannerConfigSchema = (scanner: string) => {
+const scannerConfigSchema = (scanner: string) => {
 	const vulnerabilityId = scanner === "dockerscan" ? "cve" : "cwe";
 
 	return {
@@ -182,7 +184,8 @@ const getScannerConfigSchema = (scanner: string) => {
 							type: "object",
 							required: [vulnerabilityId, "comment", "reason"],
 							properties: {
-								[vulnerabilityId]: { type: "string" },
+								cve: { type: "string" },
+								cwe: { type: "string" },
 								comment: { type: "string" },
 								reason: { enum: ["false_positive", "wont_fix", "test"] },
 							},
@@ -200,9 +203,9 @@ const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) =>
 		verbose: true,
 	});
 
-	const scannerConfigSchema = getScannerConfigSchema(scanner);
+	const configSchema = scannerConfigSchema(scanner);
 
-	const validate = ajvInstance.compile(scannerConfigSchema);
+	const validate = ajvInstance.compile(configSchema);
 	const isValid = validate(scannerConfig);
 
 	if (!isValid) {
@@ -213,7 +216,7 @@ const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) =>
 const getCentralAllowlistConfig = (scannerType: string, fetchAllowlist = true) => {
 	if (!fetchAllowlist) {
 		core.info("Opting out of central allowlist");
-		return;
+		return null;
 	}
 
 	core.info("Looking for central allowlist config in ./central-allowlist");
@@ -224,7 +227,7 @@ const getCentralAllowlistConfig = (scannerType: string, fetchAllowlist = true) =
 
 	if (existingPaths.length === 0) {
 		core.info("No central allowlist config found in ./central-allowlist/.entur/security/");
-		return;
+		return null;
 	}
 
 	if (existingPaths.length > 1) {
@@ -237,59 +240,67 @@ const getCentralAllowlistConfig = (scannerType: string, fetchAllowlist = true) =
 	try {
 		const content = fs.readFileSync(configPath, "utf8");
 		core.info("Parse central allowlist config");
-		return parseScannerConfig(content);
+		return parseYamlConfig(content);
 	} catch (error) {
 		if (error instanceof Error) {
 			core.warning(`Failed to read central allowlist config: ${error.message}`);
-			return;
-		}
-		core.warning("Failed to read central allowlist config");
-		return;
-	}
-};
-
-const getScannerConfigs = async (scannerType: string, octokitExternal?: Octokit) => {
-	const scannerConfig = getScannerConfig(scannerType);
-
-	if (!scannerConfig) {
-		const centralScannerConfig = getCentralAllowlistConfig(scannerType);
-
-		if (!centralScannerConfig) {
-			core.info("No central config found");
 			return null;
 		}
-
-		core.info("Validate central scanner config");
-		validateScannerConfig(centralScannerConfig, scannerType);
-		return { localConfig: undefined, externalConfig: undefined, centralConfig: centralScannerConfig };
+		core.warning("Failed to read central allowlist config");
+		return null;
 	}
-
-	core.info("Validate scanner config");
-
-	validateScannerConfig(scannerConfig, scannerType);
-
-	const externalScannerConfig = await getExternalScannerConfig(scannerConfig, scannerType, octokitExternal);
-
-	// Validate configs if they exist
-	if (externalScannerConfig) {
-		core.info("Validate external scanner config");
-		validateScannerConfig(externalScannerConfig, scannerType);
-	} else {
-		core.info("No external config found");
-	}
-
-	const fetchCentralAllowlist = scannerConfig.spec?.centralAllowlist ?? externalScannerConfig?.spec?.centralAllowlist ?? true;
-
-	const centralScannerConfig = getCentralAllowlistConfig(scannerType, fetchCentralAllowlist);
-
-	if (centralScannerConfig) {
-		core.info("Validate central scanner config");
-		validateScannerConfig(centralScannerConfig, scannerType);
-	} else if (fetchCentralAllowlist) {
-		core.info("No central config found");
-	}
-
-	return { localConfig: scannerConfig, externalConfig: externalScannerConfig, centralConfig: centralScannerConfig };
 };
 
-export { getScannerConfigs };
+const getAllowlist = (config: ScannerConfig | null) => config?.spec?.allowlist ?? [];
+
+const mergeConfigs = (local: ScannerConfig | null, external: ScannerConfig | null, central: ScannerConfig | null) => {
+	const localOutput = local?.spec?.notifications?.outputs;
+	const externalOutput = external?.spec?.notifications?.outputs;
+
+	return {
+		apiVersion: local?.apiVersion ?? "entur.io/securitytools/v1",
+		kind: local?.kind ?? "",
+		metadata: local?.metadata ?? undefined,
+		spec: {
+			inherit: local?.spec?.inherit ?? undefined,
+			allowlist: [...getAllowlist(local), ...getAllowlist(external), ...getAllowlist(central)],
+			notifications: {
+				severityThreshold: "high",
+				outputs: {
+					slack: {
+						enabled: localOutput?.slack?.enabled ?? externalOutput?.slack?.enabled ?? false,
+						channelId: localOutput?.slack?.channelId ?? externalOutput?.slack?.channelId ?? "",
+					},
+					pullRequest: {
+						enabled: localOutput?.pullRequest?.enabled ?? externalOutput?.pullRequest?.enabled ?? true,
+					},
+				},
+			},
+		},
+	} as ScannerConfig;
+};
+
+const getScannerConfig = async (scannerType: string, octokitExternal?: Octokit) => {
+	const localConfig = getLocalConfig(scannerType);
+	const externalConfig = await getExternalScannerConfig(localConfig, scannerType, octokitExternal);
+
+	if (localConfig) {
+		validateScannerConfig(localConfig, scannerType);
+	}
+
+	if (externalConfig) {
+		core.info("Validate external scanner config");
+		validateScannerConfig(externalConfig, scannerType);
+	}
+
+	const fetchCentralAllowlist = localConfig?.spec?.centralAllowlist ?? externalConfig?.spec?.centralAllowlist ?? true;
+	const centralConfig = getCentralAllowlistConfig(scannerType, fetchCentralAllowlist);
+
+	if (centralConfig) {
+		validateScannerConfig(centralConfig, scannerType);
+	}
+
+	return mergeConfigs(localConfig, externalConfig, centralConfig);
+};
+
+export { getScannerConfig };

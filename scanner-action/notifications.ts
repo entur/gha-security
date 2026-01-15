@@ -19,7 +19,7 @@ class ScannerNotifications {
 	severityList: SeverityLevel[];
 	toolName: string;
 
-	constructor(octokit: Octokit, scannerType: string, local?: Notifications, external?: Notifications) {
+	constructor(octokit: Octokit, scannerType: string, config: Notifications) {
 		this.fetchedNotificationAlerts = false;
 		this.notificationAlerts = [];
 		this.scannerType = scannerType;
@@ -29,14 +29,15 @@ class ScannerNotifications {
 
 		// local notifications values take priority
 		this.slack = {
-			enabled: local?.outputs?.slack?.enabled ?? external?.outputs?.slack?.enabled ?? false,
-			channelId: local?.outputs?.slack?.channelId ?? external?.outputs?.slack?.channelId ?? "",
+			enabled: config.outputs?.slack?.enabled ?? false,
+			channelId: config.outputs?.slack?.channelId ?? "",
 		};
 
 		this.pullRequest = {
-			enabled: local?.outputs?.pullRequest?.enabled ?? external?.outputs?.pullRequest?.enabled ?? true,
+			enabled: config?.outputs?.pullRequest?.enabled ?? true,
 		};
-		this.severityThreshold = local?.severityThreshold ?? external?.severityThreshold ?? "high";
+
+		this.severityThreshold = config.severityThreshold;
 
 		if (this.slack.enabled && this.slack.channelId === "") {
 			throw Error("Missing slack channelId in scanner config");

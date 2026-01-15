@@ -5,11 +5,17 @@ import { runAllowlist } from "./allowlist.js";
 import { ScannerNotifications } from "./notifications.js";
 import { getOctokitThrottleConfig } from "./octokit-throttle.js";
 import { setNotificationOutputs } from "./outputs.js";
-import { getScannerConfigs } from "./scanner-config.js";
+import { getScannerConfig } from "./scanner-config.js";
 import type { ScannerConfig } from "./typedefs.js";
 
-const runNotifications = async (octokitAction: Octokit, scannerType: string, scannerConfig?: ScannerConfig, externalScannerConfig?: ScannerConfig) => {
-	const scannerNotifications = new ScannerNotifications(octokitAction, scannerType, scannerConfig?.spec?.notifications, externalScannerConfig?.spec?.notifications);
+const runNotifications = async (octokitAction: Octokit, scannerType: string, scannerConfig: ScannerConfig) => {
+	const notifications = scannerConfig.spec?.notifications;
+
+	if (!notifications) {
+		throw Error("Notification is undefined, unexpected!");
+	}
+
+	const scannerNotifications = new ScannerNotifications(octokitAction, scannerType, notifications);
 
 	core.info("Fetching notification alerts");
 	const fetchedAlerts = await scannerNotifications.fetchNotificationAlerts();
@@ -47,19 +53,9 @@ const main = async () => {
 			throttle: getOctokitThrottleConfig(),
 		});
 
-		const configs = await getScannerConfigs(SCANNER_TYPE, octokitExternal);
-
-		if (configs === undefined) return;
-
-		if (configs === null) {
-			await runNotifications(octokitAction, SCANNER_TYPE);
-			return;
-		}
-
-		const { localConfig, externalConfig, centralConfig } = configs;
-
-		await runAllowlist(octokitAction, SCANNER_TYPE, localConfig, externalConfig, centralConfig);
-		await runNotifications(octokitAction, SCANNER_TYPE, localConfig, externalConfig);
+		const config = await getScannerConfig(SCANNER_TYPE, octokitExternal);
+		await runAllowlist(octokitAction, SCANNER_TYPE, config);
+		await runNotifications(octokitAction, SCANNER_TYPE, config);
 	} catch (error) {
 		if (error instanceof Error) {
 			core.setFailed(error.message);

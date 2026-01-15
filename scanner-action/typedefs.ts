@@ -1,15 +1,4 @@
-interface AllowlistBase {
-	comment: string;
-	reason: "false_positive" | "wont_fix" | "test";
-}
-
-interface AllowlistDockerScan extends AllowlistBase {
-	cve: string;
-}
-
-interface AllowlistCodeScan extends AllowlistBase {
-	cwe: string;
-}
+import type { Allowlist } from "./allowlist.js";
 
 interface Notification {
 	enabled?: boolean;
@@ -34,7 +23,7 @@ interface Notifications {
 interface ScannerSpec {
 	inherit?: string;
 	centralAllowlist?: boolean;
-	allowlist?: AllowlistCodeScan[] | AllowlistDockerScan[];
+	allowlist?: Allowlist[];
 	notifications?: Notifications;
 }
 
@@ -73,27 +62,9 @@ interface CweTagValues {
 	reason: "false positive" | "won't fix" | "used in tests";
 }
 
-interface AllowlistEntry {
-	rule_id?: string;
-	rule_tag?: string;
-	comment: string;
-	reason: "false positive" | "won't fix" | "used in tests";
-}
-
 interface GithubRepo {
 	owner: string;
 	repo: string;
 }
 
-export type {
-	CweTagValues,
-	PartialCodeScanningAlert,
-	ScannerConfig,
-	AllowlistDockerScan,
-	AllowlistCodeScan,
-	PartialCodeScanningAlertResponse,
-	SeverityLevel,
-	GithubRepo,
-	Notifications,
-	AllowlistEntry,
-};
+export type { CweTagValues, PartialCodeScanningAlert, ScannerConfig, Allowlist, PartialCodeScanningAlertResponse, SeverityLevel, GithubRepo, Notifications, NotificationOutputs };
