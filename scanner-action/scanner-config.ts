@@ -3,7 +3,28 @@ import * as core from "@actions/core";
 import { Ajv } from "ajv";
 import type { Octokit } from "octokit";
 import * as yaml from "yaml";
-import type { ScannerConfig } from "./typedefs.js";
+import type { Allowlist } from "./allowlist.js";
+import type { Notifications } from "./notifications.js";
+
+interface ScannerSpec {
+	inherit?: string;
+	centralAllowlist?: boolean;
+	allowlist?: Allowlist[];
+	notifications?: Notifications;
+}
+
+interface ScannerMetadata {
+	id: string;
+	name?: string;
+	owner?: string;
+}
+
+interface ScannerConfig {
+	apiVersion: string;
+	kind: string;
+	metadata?: ScannerMetadata;
+	spec?: ScannerSpec;
+}
 
 const parseYamlConfig = (config: string) => {
 	try {
@@ -303,4 +324,4 @@ const getScannerConfig = async (scannerType: string, octokitExternal?: Octokit) 
 	return mergeConfigs(localConfig, externalConfig, centralConfig);
 };
 
-export { getScannerConfig };
+export { getScannerConfig, type ScannerConfig };

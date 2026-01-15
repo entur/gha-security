@@ -5,8 +5,7 @@ import { runAllowlist } from "./allowlist.js";
 import { ScannerNotifications } from "./notifications.js";
 import { getOctokitThrottleConfig } from "./octokit-throttle.js";
 import { setNotificationOutputs } from "./outputs.js";
-import { getScannerConfig } from "./scanner-config.js";
-import type { ScannerConfig } from "./typedefs.js";
+import { type ScannerConfig, getScannerConfig } from "./scanner-config.js";
 
 const runNotifications = async (octokitAction: Octokit, scannerType: string, scannerConfig: ScannerConfig) => {
 	const notifications = scannerConfig.spec?.notifications;

@@ -1,8 +1,27 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { type Octokit, RequestError } from "octokit";
-import type { Notifications, PartialCodeScanningAlert, PartialCodeScanningAlertResponse, SeverityLevel } from "./typedefs.js";
-import { getAlerts } from "./github-security.js";
+import { type PartialCodeScanningAlert, type SeverityLevel, getAlerts } from "./github-security.js";
+
+interface Notification {
+	enabled?: boolean;
+}
+
+interface SlackNotification extends Notification {
+	channelId?: string;
+}
+
+interface PullRequestNotification extends Notification {}
+
+interface NotificationOutputs {
+	pullRequest?: PullRequestNotification;
+	slack?: SlackNotification;
+}
+
+interface Notifications {
+	severityThreshold: "low" | "medium" | "high" | "critical";
+	outputs?: NotificationOutputs;
+}
 
 class ScannerNotifications {
 	severityThreshold: SeverityLevel;
@@ -54,8 +73,15 @@ class ScannerNotifications {
 	}
 
 	async fetchNotificationAlerts() {
-		return getAlerts(this.octokit, github.context.ref, github.context.repo, this.toolName)
+		const alerts = await getAlerts(this.octokit, github.context.ref, github.context.repo, this.toolName);
+
+		if (alerts) {
+			this.notificationAlerts = alerts;
+			return true;
+		}
+
+		return false;
 	}
 }
 
-export { ScannerNotifications };
+export { ScannerNotifications, type Notifications };

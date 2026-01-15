@@ -1,7 +1,28 @@
 import * as core from "@actions/core";
 import { type Octokit, RequestError } from "octokit";
 import type { Allowlist } from "./allowlist.js";
-import type { GithubRepo, PartialCodeScanningAlert, PartialCodeScanningAlertResponse } from "./typedefs.js";
+
+type SeverityLevel = "low" | "medium" | "high" | "critical";
+
+interface GithubRepo {
+	owner: string;
+	repo: string;
+}
+
+interface PartialCodeScanningAlertRule {
+	id?: string | null;
+	tags?: string[] | null;
+	security_severity_level?: SeverityLevel | null | undefined;
+}
+
+interface PartialCodeScanningAlertResponse {
+	data: PartialCodeScanningAlert[];
+}
+
+interface PartialCodeScanningAlert {
+	number: number;
+	rule: PartialCodeScanningAlertRule;
+}
 
 const handleAlertError = (error: unknown) => {
 	if (!(error instanceof RequestError)) {
@@ -76,4 +97,4 @@ const dismissAlerts = async (alerts: PartialCodeScanningAlert[], octokit: Octoki
 	}
 };
 
-export { getAlerts, dismissAlerts };
+export { getAlerts, dismissAlerts, type SeverityLevel, type PartialCodeScanningAlert };

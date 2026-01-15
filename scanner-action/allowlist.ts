@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import type { Octokit } from "octokit";
 import { dismissAlerts, getAlerts } from "./github-security.js";
-import type { ScannerConfig } from "./typedefs.js";
+import type { ScannerConfig } from "./scanner-config.js";
 
 interface Allowlist {
 	cve?: string;
