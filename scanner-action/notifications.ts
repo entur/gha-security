@@ -1,17 +1,15 @@
-import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { type Octokit, RequestError } from "octokit";
+import type { Octokit } from "octokit";
 import { type PartialCodeScanningAlert, type SeverityLevel, getAlerts } from "./github-security.js";
 
-interface Notification {
+interface SlackNotification {
 	enabled?: boolean;
-}
-
-interface SlackNotification extends Notification {
 	channelId?: string;
 }
 
-interface PullRequestNotification extends Notification {}
+interface PullRequestNotification {
+	enabled?: boolean;
+}
 
 interface NotificationOutputs {
 	pullRequest?: PullRequestNotification;
@@ -19,7 +17,7 @@ interface NotificationOutputs {
 }
 
 interface Notifications {
-	severityThreshold: "low" | "medium" | "high" | "critical";
+	severityThreshold: SeverityLevel;
 	outputs?: NotificationOutputs;
 }
 

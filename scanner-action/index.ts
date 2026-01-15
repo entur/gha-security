@@ -2,8 +2,8 @@ import * as core from "@actions/core";
 import { throttling } from "@octokit/plugin-throttling";
 import { Octokit } from "octokit";
 import { runAllowlist } from "./allowlist.js";
+import { getOctokitThrottleConfig } from "./config.js";
 import { ScannerNotifications } from "./notifications.js";
-import { getOctokitThrottleConfig } from "./octokit-throttle.js";
 import { setNotificationOutputs } from "./outputs.js";
 import { type ScannerConfig, getScannerConfig } from "./scanner-config.js";
 
