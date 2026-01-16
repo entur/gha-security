@@ -3,26 +3,8 @@ import { throttling } from "@octokit/plugin-throttling";
 import { Octokit } from "octokit";
 import { runAllowlist } from "./allowlist.js";
 import { getOctokitThrottleConfig } from "./config.js";
-import { ScannerNotifications } from "./notifications.js";
-import { setNotificationOutputs } from "./outputs.js";
-import { type ScannerConfig, getScannerConfig } from "./scanner-config.js";
-
-const runNotifications = async (octokitAction: Octokit, scannerType: string, scannerConfig: ScannerConfig) => {
-	const notifications = scannerConfig.spec?.notifications;
-
-	if (!notifications) {
-		throw Error("Notification is undefined, unexpected!");
-	}
-
-	const scannerNotifications = new ScannerNotifications(octokitAction, scannerType, notifications);
-
-	core.info("Fetching notification alerts");
-	const fetchedAlerts = await scannerNotifications.fetchNotificationAlerts();
-	if (!fetchedAlerts) return;
-
-	core.info("Setting notification outputs");
-	setNotificationOutputs(scannerNotifications);
-};
+import { runNotifications } from "./notifications.js";
+import { getScannerConfig } from "./scanner-config.js";
 
 const main = async () => {
 	try {

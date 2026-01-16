@@ -1,6 +1,9 @@
+import * as core from "@actions/core";
 import * as github from "@actions/github";
 import type { Octokit } from "octokit";
 import { type PartialCodeScanningAlert, type SeverityLevel, getAlerts } from "./github-security.js";
+import { setNotificationOutputs } from "./outputs.js";
+import type { ScannerConfig } from "./scanner-config.js";
 
 interface SlackNotification {
 	enabled?: boolean;
@@ -82,4 +85,21 @@ class ScannerNotifications {
 	}
 }
 
-export { ScannerNotifications, type Notifications };
+const runNotifications = async (octokitAction: Octokit, scannerType: string, scannerConfig: ScannerConfig) => {
+	const notifications = scannerConfig.spec?.notifications;
+
+	if (!notifications) {
+		throw Error("Notification is undefined, unexpected!");
+	}
+
+	const scannerNotifications = new ScannerNotifications(octokitAction, scannerType, notifications);
+
+	core.info("Fetching notification alerts");
+	const fetchedAlerts = await scannerNotifications.fetchNotificationAlerts();
+	if (!fetchedAlerts) return;
+
+	core.info("Setting notification outputs");
+	setNotificationOutputs(scannerNotifications);
+};
+
+export { ScannerNotifications, runNotifications, type Notifications };
