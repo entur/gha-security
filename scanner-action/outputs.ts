@@ -79,7 +79,7 @@ ${scannerReport.scannerTypeName} Report can be found <${scannerReport.resultsUrl
 					type: "mrkdwn",
 					text: `*Allowlist*
 Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. 
-See the <${scannerReport.allowListDocumentationUrl}|${scannerReport.scannerTypeName} documentation> on how to use allowlist."`,
+See the <${scannerReport.allowListDocumentationUrl}|${scannerReport.scannerTypeName} documentation> on how to use allowlist.`,
 				},
 			},
 		],
