@@ -136,7 +136,7 @@ jobs:
 
       - name: "Download existing cached results from previous job (pr)"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           run-id: ${{ env.GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
