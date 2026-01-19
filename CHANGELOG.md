@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.10.1](https://github.com/entur/gha-security/compare/v2.10.0...v2.10.1) (2026-01-19)
+
+
+### Bug Fixes
+
+* add support for html as ignore_language workflow input value. ([#150](https://github.com/entur/gha-security/issues/150)) ([398c119](https://github.com/entur/gha-security/commit/398c11935754aed0f190023103ad46af16a7bf11))
+* assign severityThreshold in mergeConfigs ([#156](https://github.com/entur/gha-security/issues/156)) ([75d2537](https://github.com/entur/gha-security/commit/75d2537741c6b9a347398754c6e60e65b13c3ffa))
+* Update docker-scan notifications to run after vulnerability report ([#153](https://github.com/entur/gha-security/issues/153)) ([102e795](https://github.com/entur/gha-security/commit/102e7959f6babe846d7a52410bd46ee7bb6aa3b5))
+
 ## [2.10.0](https://github.com/entur/gha-security/compare/v2.9.2...v2.10.0) (2025-11-19)
 
 
