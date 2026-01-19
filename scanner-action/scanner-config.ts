@@ -286,7 +286,7 @@ const mergeConfigs = (local: ScannerConfig | null, external: ScannerConfig | nul
 			inherit: local?.spec?.inherit ?? undefined,
 			allowlist: [...getAllowlist(local), ...getAllowlist(external), ...getAllowlist(central)],
 			notifications: {
-				severityThreshold: "high",
+				severityThreshold: local?.spec?.notifications?.severityThreshold ?? external?.spec?.notifications?.severityThreshold ?? "high",
 				outputs: {
 					slack: {
 						enabled: localOutput?.slack?.enabled ?? externalOutput?.slack?.enabled ?? false,
