@@ -327,7 +327,7 @@ jobs:
 
       - name: "Setup Java for Scala"
         if: inputs.use_setup_java && (matrix.language == 'scala')
-        uses: entur/gha-security/.github/actions/setup-java-code-scan@fix/SIK-1842
+        uses: entur/gha-security/.github/actions/setup-java-code-scan@v2
         with:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
@@ -416,7 +416,7 @@ jobs:
       
       - name: "Setup Java for Java/Kotlin"
         if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java')
-        uses: entur/gha-security/.github/actions/setup-java-code-scan@fix/SIK-1842
+        uses: entur/gha-security/.github/actions/setup-java-code-scan@v2
         with:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
