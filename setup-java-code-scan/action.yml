@@ -1,0 +1,44 @@
+name: 'Setup Java Code Scan'
+description: ''
+inputs:
+  java-version:
+    description: 'Java version for "actions/setup-java" to use'
+    required: true
+  distribution:
+    description: 'Java distribution for "actions/setup-java" to use'
+    required: true
+  server-id:
+    description: 'Server id for "actions/setup-java" to use'
+    required: false
+  use_maven_cache:
+    description: 'Uses "actions/cache" to cache local maven repository, and can speed up autobuild times for CodeQL'
+    required: false
+    default: false
+runs:
+  using: "composite"
+  steps:
+    - name: Cache local Maven repository
+      uses: actions/cache@v5
+      if: ${{ inputs.use_maven_cache == 'true' }}
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+
+    - name: "Setup Java"
+      if: ${{ inputs.server-id == '' }}
+      uses: actions/setup-java@v5
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.distribution }}
+    
+    - name: "Setup Java with server credentials"
+      if: ${{ inputs.server-id != '' }}
+      uses: actions/setup-java@v5
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.distribution }}
+        server-id: ${{ inputs.server-id }}
+        server-username: "ARTIFACTORY_AUTH_USER"
+        server-password: "ARTIFACTORY_AUTH_TOKEN"

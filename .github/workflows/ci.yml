@@ -11,8 +11,8 @@ jobs:
         - name: Check workflow files
           run: |
             echo "::add-matcher::.github/actionlint-matcher.json"
-            # pin v1.7.7 using hash
-            bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/e7d448ef7507c20fc4c88a95d0c448b848cd6127/scripts/download-actionlint.bash)
+            # pin v1.7.10 using hash
+            bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/452672a2ffc7ed15b25ae7931226e9105a9ad61c/scripts/download-actionlint.bash)
             ./actionlint -color
           shell: bash
     update-code-scan-doc:
