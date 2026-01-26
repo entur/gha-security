@@ -327,13 +327,11 @@ jobs:
 
       - name: "Setup Java for Scala"
         if: inputs.use_setup_java && (matrix.language == 'scala')
-        uses: actions/setup-java@v5
-        with: 
+        uses: entur/gha-security/.github/actions/setup-java-code-scan@v2
+        with:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
           server-id: ${{ inputs.java_server_id_artifactory }}
-          server-username: "ARTIFACTORY_AUTH_USER"
-          server-password: "ARTIFACTORY_AUTH_TOKEN"
 
       - name: "Gradle Dependency Graph for Scala"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
@@ -416,24 +414,14 @@ jobs:
         with:
           persist-credentials: false
       
-      - name: Cache local Maven repository
-        uses: actions/cache@v5
-        if: inputs.use_maven_cache && (matrix.language == 'kotlin' || matrix.language == 'java')
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
       - name: "Setup Java for Java/Kotlin"
         if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java')
-        uses: actions/setup-java@v5
-        with: 
+        uses: entur/gha-security/.github/actions/setup-java-code-scan@v2
+        with:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
           server-id: ${{ inputs.java_server_id_artifactory }}
-          server-username: "ARTIFACTORY_AUTH_USER"
-          server-password: "ARTIFACTORY_AUTH_TOKEN"
+          use_maven_cache: ${{ inputs.use_maven_cache }}
 
       - name: "Set up Gradle for Java/Kotlin"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
