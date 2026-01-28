@@ -337,11 +337,11 @@ jobs:
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
         uses: gradle/actions/dependency-submission@v5
         env:
+          SOFTPAY_NEXUS_USERNAME: ${{ secrets.SOFTPAY_NEXUS_USERNAME }}
+          SOFTPAY_NEXUS_PASSWORD: ${{ secrets.SOFTPAY_NEXUS_PASSWORD }}
           ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
-          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }} # Kept for backwards compatability
           ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
           ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
-          ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
         with:
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
@@ -457,11 +457,11 @@ jobs:
         with:
           category: "/language:${{ matrix.language }}"
         env:
+          SOFTPAY_NEXUS_USERNAME: ${{ secrets.SOFTPAY_NEXUS_USERNAME }}
+          SOFTPAY_NEXUS_PASSWORD: ${{ secrets.SOFTPAY_NEXUS_PASSWORD }}
           ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
-          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }} # Kept for backwards compatability
           ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
           ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
-          ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
           GRADLE_OPTS: ${{ inputs.gradle_opts }}
           IS_CODEQL_SCAN: true
 
