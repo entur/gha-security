@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.10.2](https://github.com/entur/gha-security/compare/v2.10.1...v2.10.2) (2026-01-28)
+
+
+### Bug Fixes
+
+* code-scan failing to compile maven with use_setup_java without server credentials set.  ([#159](https://github.com/entur/gha-security/issues/159)) ([87761d3](https://github.com/entur/gha-security/commit/87761d33ac6bc1ba35bd20038c51a8ee70f6a67f))
+* Removed deprecated artifactory variables and added softpay secrets ([#161](https://github.com/entur/gha-security/issues/161)) ([e15640b](https://github.com/entur/gha-security/commit/e15640b163b9bcdd04a6c72501a5c39845512687))
+
 ## [2.10.1](https://github.com/entur/gha-security/compare/v2.10.0...v2.10.1) (2026-01-19)
 
 
