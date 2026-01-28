@@ -57,14 +57,17 @@ on:
       external_repository_token:
         description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
         required: false
+      SOFTPAY_NEXUS_USERNAME:
+        description: 'The username for Softpay. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        required: false
+      SOFTPAY_NEXUS_PASSWORD:
+        description: 'The password for Softpay. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        required: false
       ARTIFACTORY_AUTH_USER:
         description: 'The username for the Artifactory repository. Secret is fetched from Entur GitHub organization if secrets are inherited.'
         required: false
       ARTIFACTORY_AUTH_TOKEN:
         description: 'Token for the Artifactory repository. Secret is fetched from Entur GitHub organization if secrets are inherited.'
-        required: false
-      ARTIFACTORY_APIKEY:
-        description: 'The API key for the Artifactory repository.'
         required: false
       SLACK_BOT_TOKEN:
         description: 'Slack bot token is used for notifications. Secret is fetched from Entur GitHub organization if secrets are inherited.'
@@ -337,11 +340,11 @@ jobs:
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
         uses: gradle/actions/dependency-submission@v5
         env:
+          SOFTPAY_NEXUS_USERNAME: ${{ secrets.SOFTPAY_NEXUS_USERNAME }}
+          SOFTPAY_NEXUS_PASSWORD: ${{ secrets.SOFTPAY_NEXUS_PASSWORD }}
           ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
-          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }} # Kept for backwards compatability
           ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
           ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
-          ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
         with:
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
@@ -457,11 +460,11 @@ jobs:
         with:
           category: "/language:${{ matrix.language }}"
         env:
+          SOFTPAY_NEXUS_USERNAME: ${{ secrets.SOFTPAY_NEXUS_USERNAME }}
+          SOFTPAY_NEXUS_PASSWORD: ${{ secrets.SOFTPAY_NEXUS_PASSWORD }}
           ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
-          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }} # Kept for backwards compatability
           ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
           ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
-          ARTIFACTORY_APIKEY: ${{ secrets.ARTIFACTORY_APIKEY }}
           GRADLE_OPTS: ${{ inputs.gradle_opts }}
           IS_CODEQL_SCAN: true
 
