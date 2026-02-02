@@ -388,7 +388,7 @@ jobs:
           category: 'semgrep-scan'
 
       - name: "Upload Semgrep report as artifact"
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: semgrep-${{ matrix.language }}-sarif
           path: semgrep.sarif
@@ -480,7 +480,7 @@ jobs:
           echo "REPOSITORY_NAME=$REPOSITORY_NAME" >> "$GITHUB_ENV"
 
       - name: "Upload CodeQL report as artifact"
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: codeql-${{ matrix.language }}-sarif
           path: "/home/runner/work/${{ env.REPOSITORY_NAME }}/results"
