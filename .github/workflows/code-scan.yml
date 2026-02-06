@@ -53,11 +53,6 @@ on:
         default: "-Dorg.gradle.jvmargs=-Xmx4g"
         required: false
         type: string
-      use_codeql_tools_linked:
-        description: 'Add input "tools: linked" to action "github/codeql-action/init" which uses the version of the CodeQL tools that the Action has been bundled with. If CodeQL tools version is not in the runner cache, it will download version specified in Action.'
-        default: false
-        required: false
-        type: boolean
     secrets:
       external_repository_token:
         description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
@@ -440,39 +435,17 @@ jobs:
           dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
 
       - name: "Initialize CodeQL for Java/Kotlin"
-        if: ${{ !inputs.use_codeql_tools_linked && (matrix.language == 'kotlin' || matrix.language == 'java') }}
+        if: matrix.language == 'kotlin' || matrix.language == 'java'
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           build-mode: autobuild
           queries: ${{ inputs.codeql_queries }}
-
-      - name: "Initialize CodeQL for Java/Kotlin with linked CodeQL tools"
-        if: ${{ inputs.use_codeql_tools_linked && (matrix.language == 'kotlin' || matrix.language == 'java') }}
-        uses: github/codeql-action/init@v4
-        with:
-          languages: ${{ matrix.language }}
-          build-mode: autobuild
-          queries: ${{ inputs.codeql_queries }}
-          tools: linked
 
       - name: "Initialize CodeQL"
-        if: ${{ !inputs.use_codeql_tools_linked && matrix.language != 'java' && matrix.language != 'kotlin' }}
+        if: matrix.language != 'java' && matrix.language != 'kotlin'
         uses: github/codeql-action/init@v4
         with:
-          languages: ${{ matrix.language }}
-          queries: ${{ inputs.codeql_queries }}
-          # CWE-275 is generating a lot of spam on Action scanning despite teams following golden path. Ignore for now.
-          config: |
-            query-filters:
-              - exclude:
-                  id: actions/missing-workflow-permissions
-
-      - name: "Initialize CodeQL with linked CodeQL tools"
-        if: ${{ inputs.use_codeql_tools_linked && matrix.language != 'java' && matrix.language != 'kotlin' }}
-        uses: github/codeql-action/init@v4
-        with:
-          tools: linked
           languages: ${{ matrix.language }}
           queries: ${{ inputs.codeql_queries }}
           # CWE-275 is generating a lot of spam on Action scanning despite teams following golden path. Ignore for now.
