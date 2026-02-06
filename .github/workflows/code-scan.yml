@@ -440,7 +440,7 @@ jobs:
           dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
 
       - name: "Initialize CodeQL for Java/Kotlin"
-        if: matrix.language == 'kotlin' || matrix.language == 'java'
+        if: ${{ !inputs.use_codeql_tools_linked && (matrix.language == 'kotlin' || matrix.language == 'java') }}
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
@@ -448,7 +448,7 @@ jobs:
           queries: ${{ inputs.codeql_queries }}
 
       - name: "Initialize CodeQL for Java/Kotlin with linked CodeQL tools"
-        if: inputs.use_codeql_tools_linked && (matrix.language == 'kotlin' || matrix.language == 'java')
+        if: ${{ inputs.use_codeql_tools_linked && (matrix.language == 'kotlin' || matrix.language == 'java') }}
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
@@ -457,7 +457,7 @@ jobs:
           tools: linked
 
       - name: "Initialize CodeQL"
-        if: matrix.language != 'java' && matrix.language != 'kotlin'
+        if: ${{ !inputs.use_codeql_tools_linked && matrix.language != 'java' && matrix.language != 'kotlin' }}
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
@@ -469,7 +469,7 @@ jobs:
                   id: actions/missing-workflow-permissions
 
       - name: "Initialize CodeQL with linked CodeQL tools"
-        if: inputs.use_codeql_tools_linked && matrix.language != 'java' && matrix.language != 'kotlin'
+        if: ${{ inputs.use_codeql_tools_linked && matrix.language != 'java' && matrix.language != 'kotlin' }}
         uses: github/codeql-action/init@v4
         with:
           tools: linked
