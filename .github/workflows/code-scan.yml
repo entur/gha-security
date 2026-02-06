@@ -438,6 +438,7 @@ jobs:
         if: matrix.language == 'kotlin' || matrix.language == 'java'
         uses: github/codeql-action/init@v4
         with:
+          tools: linked
           languages: ${{ matrix.language }}
           build-mode: autobuild
           queries: ${{ inputs.codeql_queries }}
@@ -446,6 +447,7 @@ jobs:
         if: matrix.language != 'java' && matrix.language != 'kotlin'
         uses: github/codeql-action/init@v4
         with:
+          tools: linked
           languages: ${{ matrix.language }}
           queries: ${{ inputs.codeql_queries }}
           # CWE-275 is generating a lot of spam on Action scanning despite teams following golden path. Ignore for now.
