@@ -8,3 +8,20 @@ updates:
       timezone: "Europe/Oslo"
       day: "monday"
     open-pull-requests-limit: 2 # default is 5
+  - package-ecosystem: "npm"
+    directory: "/scanner-action"
+    schedule:
+      interval: "weekly"
+      time: "09:00"
+      timezone: "Europe/Oslo"
+      day: "monday"
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+        - "minor"
+        - "patch"
+      major-updates:
+        applies-to: version-updates
+        update-types:
+        - "major"
