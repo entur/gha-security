@@ -54,7 +54,7 @@ To build a new distribution run
 ```
 cd scanner-action
 yarn # installs packages
-yarn dlx @vercel/ncc build index.ts --license licenses.txt
+yarn build
 ```
 
 This will update the javascript files in `/dist` if there are no typescript errors.
