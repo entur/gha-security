@@ -32443,8 +32443,7 @@ var require_anchors = __commonJS({
       return {
         onAnchor: (source) => {
           aliasObjects.push(source);
-          if (!prevAnchors)
-            prevAnchors = anchorNames(doc);
+          prevAnchors ?? (prevAnchors = anchorNames(doc));
           const anchor = findNewAnchor(prefix, prevAnchors);
           prevAnchors.add(anchor);
           return anchor;
@@ -32620,23 +32619,35 @@ var require_Alias = __commonJS({
        * Resolve the value of this alias within `doc`, finding the last
        * instance of the `source` anchor before this node.
        */
-      resolve(doc) {
+      resolve(doc, ctx) {
+        let nodes;
+        if (ctx?.aliasResolveCache) {
+          nodes = ctx.aliasResolveCache;
+        } else {
+          nodes = [];
+          visit.visit(doc, {
+            Node: (_key, node) => {
+              if (identity.isAlias(node) || identity.hasAnchor(node))
+                nodes.push(node);
+            }
+          });
+          if (ctx)
+            ctx.aliasResolveCache = nodes;
+        }
         let found = void 0;
-        visit.visit(doc, {
-          Node: (_key, node) => {
-            if (node === this)
-              return visit.visit.BREAK;
-            if (node.anchor === this.source)
-              found = node;
-          }
-        });
+        for (const node of nodes) {
+          if (node === this)
+            break;
+          if (node.anchor === this.source)
+            found = node;
+        }
         return found;
       }
       toJSON(_arg, ctx) {
         if (!ctx)
           return { source: this.source };
         const { anchors: anchors2, doc, maxAliasCount } = ctx;
-        const source = this.resolve(doc);
+        const source = this.resolve(doc, ctx);
         if (!source) {
           const msg = `Unresolved alias (the anchor must be set before the alias): ${this.source}`;
           throw new ReferenceError(msg);
@@ -32646,7 +32657,7 @@ var require_Alias = __commonJS({
           toJS.toJS(source, null, ctx);
           data = anchors2.get(source);
         }
-        if (!data || data.res === void 0) {
+        if (data?.res === void 0) {
           const msg = "This should not happen: Alias anchor was not resolved?";
           throw new ReferenceError(msg);
         }
@@ -32765,8 +32776,7 @@ var require_createNode = __commonJS({
       if (aliasDuplicateObjects && value && typeof value === "object") {
         ref = sourceObjects.get(value);
         if (ref) {
-          if (!ref.anchor)
-            ref.anchor = onAnchor(value);
+          ref.anchor ?? (ref.anchor = onAnchor(value));
           return new Alias.Alias(ref.anchor);
         } else {
           ref = { anchor: null, node: null };
@@ -33244,7 +33254,7 @@ ${indent}`) + "'";
     }
     function blockString({ comment, type, value }, ctx, onComment, onChompKeep) {
       const { blockQuote, commentString, lineWidth } = ctx.options;
-      if (!blockQuote || /\n[\t ]+$/.test(value) || /^\s*$/.test(value)) {
+      if (!blockQuote || /\n[\t ]+$/.test(value)) {
         return quotedString(value, ctx);
       }
       const indent = ctx.indent || (ctx.forceBlockIndent || containsDocumentMarker(value) ? "  " : "");
@@ -33323,7 +33333,7 @@ ${indent}${start}${value}${end}`;
       if (implicitKey && value.includes("\n") || inFlow && /[[\]{},]/.test(value)) {
         return quotedString(value, ctx);
       }
-      if (!value || /^[\n\t ,[\]{}#&*!|>'"%@`]|^[?-]$|^[?-][ \t]|[\n:][ \t]|[ \t]\n|[\n\t ]#|[\n\t :]$/.test(value)) {
+      if (/^[\n\t ,[\]{}#&*!|>'"%@`]|^[?-]$|^[?-][ \t]|[\n:][ \t]|[ \t]\n|[\n\t ]#|[\n\t :]$/.test(value)) {
         return implicitKey || inFlow || !value.includes("\n") ? quotedString(value, ctx) : blockString(item, ctx, onComment, onChompKeep);
       }
       if (!implicitKey && !inFlow && type !== Scalar.Scalar.PLAIN && value.includes("\n")) {
@@ -33455,7 +33465,7 @@ var require_stringify = __commonJS({
         tagObj = tags.find((t) => t.nodeClass && obj instanceof t.nodeClass);
       }
       if (!tagObj) {
-        const name = obj?.constructor?.name ?? typeof obj;
+        const name = obj?.constructor?.name ?? (obj === null ? "null" : typeof obj);
         throw new Error(`Tag not resolved for ${name} value`);
       }
       return tagObj;
@@ -33469,7 +33479,7 @@ var require_stringify = __commonJS({
         anchors$1.add(anchor);
         props.push(`&${anchor}`);
       }
-      const tag = node.tag ? node.tag : tagObj.default ? null : tagObj.tag;
+      const tag = node.tag ?? (tagObj.default ? null : tagObj.tag);
       if (tag)
         props.push(doc.directives.tagString(tag));
       return props.join(" ");
@@ -33492,8 +33502,7 @@ var require_stringify = __commonJS({
       }
       let tagObj = void 0;
       const node = identity.isNode(item) ? item : ctx.doc.createNode(item, { onTagObj: (o) => tagObj = o });
-      if (!tagObj)
-        tagObj = getTagObject(ctx.doc.schema.tags, node);
+      tagObj ?? (tagObj = getTagObject(ctx.doc.schema.tags, node));
       const props = stringifyProps(node, tagObj, ctx);
       if (props.length > 0)
         ctx.indentAtStart = (ctx.indentAtStart ?? 0) + props.length + 1;
@@ -33598,7 +33607,7 @@ ${indent}:`;
 ${stringifyComment.indentComment(cs, ctx.indent)}`;
         }
         if (valueStr === "" && !ctx.inFlow) {
-          if (ws === "\n")
+          if (ws === "\n" && valueComment)
             ws = "\n\n";
         } else {
           ws += `
@@ -33645,7 +33654,7 @@ ${ctx.indent}`;
 var require_log = __commonJS({
   "node_modules/yaml/dist/log.js"(exports2) {
     "use strict";
-    var node_process = require("node:process");
+    var node_process = require("process");
     function debug(logLevel, ...messages) {
       if (logLevel === "debug")
         console.log(...messages);
@@ -34343,7 +34352,7 @@ var require_stringifyNumber = __commonJS({
       const num = typeof value === "number" ? value : Number(value);
       if (!isFinite(num))
         return isNaN(num) ? ".nan" : num < 0 ? "-.inf" : ".inf";
-      let n = JSON.stringify(value);
+      let n = Object.is(value, -0) ? "-0" : JSON.stringify(value);
       if (!format && minFractionDigits && (!tag || tag === "tag:yaml.org,2002:float") && /^\d/.test(n)) {
         let i = n.indexOf(".");
         if (i < 0) {
@@ -34550,7 +34559,7 @@ var require_schema2 = __commonJS({
 var require_binary = __commonJS({
   "node_modules/yaml/dist/schema/yaml-1.1/binary.js"(exports2) {
     "use strict";
-    var node_buffer = require("node:buffer");
+    var node_buffer = require("buffer");
     var Scalar = require_Scalar();
     var stringifyString = require_stringifyString();
     var binary = {
@@ -34595,8 +34604,7 @@ var require_binary = __commonJS({
         } else {
           throw new Error("This environment does not support writing binary tags; either Buffer or btoa is required");
         }
-        if (!type)
-          type = Scalar.Scalar.BLOCK_LITERAL;
+        type ?? (type = Scalar.Scalar.BLOCK_LITERAL);
         if (type !== Scalar.Scalar.QUOTE_DOUBLE) {
           const lineWidth = Math.max(ctx.options.lineWidth - ctx.indent.length, ctx.options.minContentWidth);
           const n = Math.ceil(str.length / lineWidth);
@@ -35712,7 +35720,7 @@ var require_errors3 = __commonJS({
       if (/[^ ]/.test(lineStr)) {
         let count = 1;
         const end = error.linePos[1];
-        if (end && end.line === line && end.col > col) {
+        if (end?.line === line && end.col > col) {
           count = Math.max(1, Math.min(end.col - col, 80 - ci));
         }
         const pointer = " ".repeat(ci) + "^".repeat(count);
@@ -35800,8 +35808,7 @@ var require_resolve_props = __commonJS({
             if (token.source.endsWith(":"))
               onError(token.offset + token.source.length - 1, "BAD_ALIAS", "Anchor ending in : is ambiguous", true);
             anchor = token;
-            if (start === null)
-              start = token.offset;
+            start ?? (start = token.offset);
             atNewline = false;
             hasSpace = false;
             reqSpace = true;
@@ -35810,8 +35817,7 @@ var require_resolve_props = __commonJS({
             if (tag)
               onError(token, "MULTIPLE_TAGS", "A node can have at most one tag");
             tag = token;
-            if (start === null)
-              start = token.offset;
+            start ?? (start = token.offset);
             atNewline = false;
             hasSpace = false;
             reqSpace = true;
@@ -36077,7 +36083,7 @@ var require_resolve_block_seq = __commonJS({
         });
         if (!props.found) {
           if (props.anchor || props.tag || value) {
-            if (value && value.type === "block-seq")
+            if (value?.type === "block-seq")
               onError(props.end, "BAD_INDENT", "All sequence items must start at the same column");
             else
               onError(offset, "MISSING_CHAR", "Sequence item without - indicator");
@@ -36274,7 +36280,7 @@ var require_resolve_flow_collection = __commonJS({
                 onError(valueProps.found, "KEY_OVER_1024_CHARS", "The : indicator must be at most 1024 chars after the start of an implicit flow sequence key");
             }
           } else if (value) {
-            if ("source" in value && value.source && value.source[0] === ":")
+            if ("source" in value && value.source?.[0] === ":")
               onError(value, "MISSING_CHAR", `Missing space after : in ${fcName}`);
             else
               onError(valueProps.start, "MISSING_CHAR", `Missing , or : between ${fcName} items`);
@@ -36311,7 +36317,7 @@ var require_resolve_flow_collection = __commonJS({
       const expectedEnd = isMap ? "}" : "]";
       const [ce, ...ee] = fc.end;
       let cePos = offset;
-      if (ce && ce.source === expectedEnd)
+      if (ce?.source === expectedEnd)
         cePos = ce.offset + ce.source.length;
       else {
         const name = fcName[0].toUpperCase() + fcName.substring(1);
@@ -36378,7 +36384,7 @@ var require_compose_collection = __commonJS({
       let tag = ctx.schema.tags.find((t) => t.tag === tagName && t.collection === expType);
       if (!tag) {
         const kt = ctx.schema.knownTags[tagName];
-        if (kt && kt.collection === expType) {
+        if (kt?.collection === expType) {
           ctx.schema.tags.push(Object.assign({}, kt, { default: false }));
           tag = kt;
         } else {
@@ -36892,8 +36898,7 @@ var require_util_empty_scalar_position = __commonJS({
     "use strict";
     function emptyScalarPosition(offset, before, pos) {
       if (before) {
-        if (pos === null)
-          pos = before.length;
+        pos ?? (pos = before.length);
         for (let i = pos - 1; i >= 0; --i) {
           let st = before[i];
           switch (st.type) {
@@ -37065,7 +37070,7 @@ var require_compose_doc = __commonJS({
 var require_composer = __commonJS({
   "node_modules/yaml/dist/compose/composer.js"(exports2) {
     "use strict";
-    var node_process = require("node:process");
+    var node_process = require("process");
     var directives = require_directives();
     var Document = require_Document();
     var errors = require_errors3();
@@ -38291,7 +38296,7 @@ var require_line_counter = __commonJS({
 var require_parser = __commonJS({
   "node_modules/yaml/dist/parse/parser.js"(exports2) {
     "use strict";
-    var node_process = require("node:process");
+    var node_process = require("process");
     var cst = require_cst();
     var lexer = require_lexer();
     function includesToken(list, type) {
@@ -38477,7 +38482,7 @@ var require_parser = __commonJS({
       }
       *step() {
         const top = this.peek(1);
-        if (this.type === "doc-end" && (!top || top.type !== "doc-end")) {
+        if (this.type === "doc-end" && top?.type !== "doc-end") {
           while (this.stack.length > 0)
             yield* this.pop();
           this.stack.push({
@@ -38955,7 +38960,7 @@ var require_parser = __commonJS({
           do {
             yield* this.pop();
             top = this.peek(1);
-          } while (top && top.type === "flow-collection");
+          } while (top?.type === "flow-collection");
         } else if (fc.end.length === 0) {
           switch (this.type) {
             case "comma":
