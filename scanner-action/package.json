@@ -4,7 +4,7 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"build": "tsc",
+		"build": "tsc -noEmit && yarn esbuild index.ts --bundle --outdir=dist --out-extension:.js=.cjs --platform=node --target=node20.0.0 --packages=bundle",
 		"check": "biome check .",
 		"check-fix": "biome check --write ."
 	},
@@ -25,6 +25,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@types/node": "^22.15.18",
+		"esbuild": "0.27.3",
 		"typescript": "^5.9.3"
 	},
 	"engines": {
