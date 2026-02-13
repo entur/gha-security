@@ -507,7 +507,7 @@ jobs:
       
       - name: Scanner Action
         id: scanner-action
-        uses: entur/gha-security/scanner-action@v2
+        uses: entur/gha-security/scanner-action@dependabot/npm_and_yarn/scanner-action/major-updates-161f55e855
         with:
           scanner: 'codescan'
           token: ${{ secrets.GITHUB_TOKEN }}
