@@ -151,6 +151,7 @@ jobs:
         with:
           sarif_file: "/home/runner/work/${{ env.GITHUB_REPOSITORY }}/results"
           category: 'scan-results'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Upload dependency graph"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
@@ -350,6 +351,7 @@ jobs:
           add-job-summary: 'on-failure'
           dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
           dependency-graph-continue-on-failure: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Set up Semgrep"
         run: |
@@ -386,6 +388,7 @@ jobs:
         with: 
           sarif_file: semgrep.sarif
           category: 'semgrep-scan'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Upload Semgrep report as artifact"
         uses: actions/upload-artifact@v6
@@ -433,6 +436,7 @@ jobs:
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
           dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
@@ -441,6 +445,7 @@ jobs:
           languages: ${{ matrix.language }}
           build-mode: autobuild
           queries: ${{ inputs.codeql_queries }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Initialize CodeQL"
         if: matrix.language != 'java' && matrix.language != 'kotlin'
@@ -453,12 +458,14 @@ jobs:
             query-filters:
               - exclude:
                   id: actions/missing-workflow-permissions
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
         env:
           SOFTPAY_NEXUS_USERNAME: ${{ secrets.SOFTPAY_NEXUS_USERNAME }}
           SOFTPAY_NEXUS_PASSWORD: ${{ secrets.SOFTPAY_NEXUS_PASSWORD }}
