@@ -480,17 +480,11 @@ jobs:
         run: |
           echo -e "# ❗️ CodeQL analysis failed on HTML file(s) \n CodeQL will fail if no javascript can be extracted from HTML file(s).  \n \n Ignore scanning HTML files by adding 'html' to workflow input ignore_language  \n See [CodeQL supported languages and frameworks](https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/#id9) for more information from CodeQL." >> "$GITHUB_STEP_SUMMARY"
 
-
-      - name: "Get repository name"
-        run: |
-          REPOSITORY_NAME=$(echo "${GITHUB_REPOSITORY}" | cut -d'/' -f2)
-          echo "REPOSITORY_NAME=$REPOSITORY_NAME" >> "$GITHUB_ENV"
-
       - name: "Upload CodeQL report as artifact"
         uses: actions/upload-artifact@v6
         with:
           name: codeql-${{ matrix.language }}-sarif
-          path: "/home/runner/work/${{ env.REPOSITORY_NAME }}/results"
+          path: "/home/runner/work/${{ github.event.repository.name }}/results"
           overwrite: true
 
   scanner-action:
