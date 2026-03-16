@@ -318,7 +318,7 @@ jobs:
       security-events: write
       # Semgrep - only required for workflows in private repositories
       actions: read
-      contents: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -349,7 +349,7 @@ jobs:
         with:
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
-          dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
+          dependency-graph: 'generate-and-upload'
           dependency-graph-continue-on-failure: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -409,7 +409,7 @@ jobs:
       security-events: write
       # CodeQL - only required for workflows in private repositories
       actions: read
-      contents: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -435,7 +435,7 @@ jobs:
         with: 
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
-          dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
+          dependency-graph: 'generate-and-upload'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Initialize CodeQL for Java/Kotlin"
@@ -540,3 +540,24 @@ jobs:
           channel-id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
           payload: |
             ${{ env.NOTIFICATION_SLACK_POST_BLOCKS }}
+
+  # fallback if no dependency-graph artifactory exists from a pull request, and CodeQL was running under default branch
+  upload-dependency-graph:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # required to upload dependency graph
+    needs: [get-repository-metadata, codeql-analysis, semgrep-analysis]
+    if: (!failure() && !cancelled()) && (needs.codeql-analysis.result == 'success' || needs.semgrep-analysis.result == 'success') && github.ref_name == github.event.repository.default_branch
+    steps:
+      - name: "Upload dependency graph"
+        if:  >- 
+          ${{ 
+            needs.get-repository-metadata.outputs.found_gradle == 'True' &&
+            (
+              contains('java', needs.get-repository-metadata.outputs.codeql_languages) || 
+              contains('scala', needs.get-repository-metadata.outputs.codeql_languages)
+            ) 
+          }}
+        uses: gradle/actions/dependency-submission@v5
+        with:
+          dependency-graph: download-and-submit # Download saved dependency-graph and submit
