@@ -541,7 +541,7 @@ jobs:
           payload: |
             ${{ env.NOTIFICATION_SLACK_POST_BLOCKS }}
 
-  # fallback if no dependency-graph artifactory exists from a pull request, and CodeQL was running under default branch
+  # fallback if no dependency-graph artifactory exists from a pull request, and CodeQL/Semgrep analysis was running under default branch
   upload-dependency-graph:
     runs-on: ubuntu-24.04
     permissions:
