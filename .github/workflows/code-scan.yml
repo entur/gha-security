@@ -71,11 +71,7 @@ on:
         required: false
       SLACK_BOT_TOKEN:
         description: 'Slack bot token is used for notifications. Secret is fetched from Entur GitHub organization if secrets are inherited.'
-        required: false   
-env:
-  GITHUB_REPOSITORY: ${{ github.repository }}
-  GIT_REF: ${{ github.ref }}
-
+        required: false
 jobs:
   input-validation:
     runs-on: ubuntu-24.04
@@ -119,8 +115,9 @@ jobs:
       - name: "Get workflow run ID for matching PR"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by gh cli
           GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }} # repository string in format <repository_owner>/<repository_name>
         run: |
           HEAD_REF=$(gh pr list --state merged --search "$GITHUB_SHA" --json headRefOid -R "$GITHUB_REPOSITORY" | jq -r '.[0].headRefOid')
           if [ "$HEAD_REF" = "null" ]; then
@@ -143,25 +140,27 @@ jobs:
         with:
           run-id: ${{ env.GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: "/home/runner/work/${{ env.GITHUB_REPOSITORY }}/results"
+          path: "/home/runner/work/${{ github.event.repository.name }}/results"
 
       - name: "Upload scan results"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: "/home/runner/work/${{ env.GITHUB_REPOSITORY }}/results"
+          sarif_file: "/home/runner/work/${{ github.event.repository.name }}/results"
           category: 'scan-results'
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Upload dependency graph"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by gh cli
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REF: ${{ github.ref }}
+          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
+          GITHUB_REPOSITORY: ${{ github.repository }} # repository string in format <repository_owner>/<repository_name>
         run: |
           shopt -s globstar nullglob
-          for file in "/home/runner/work/$GITHUB_REPOSITORY/results"/**/*.json ; do
+          for file in "/home/runner/work/$GITHUB_REPOSITORY_NAME/results"/**/*.json ; do
             if [ -d "$file" ] ; then
               continue
             fi
@@ -517,7 +516,7 @@ jobs:
       - name: "Send pull request notification"
         if: ${{ github.event_name == 'pull_request' && steps.scanner-action.outputs.notification_pull_request_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by gh cli
           PR_NUMBER: ${{ github.event.pull_request.number }}
           NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
         run: |
