@@ -71,11 +71,7 @@ on:
         required: false
       SLACK_BOT_TOKEN:
         description: 'Slack bot token is used for notifications. Secret is fetched from Entur GitHub organization if secrets are inherited.'
-        required: false   
-env:
-  GITHUB_REPOSITORY: ${{ github.repository }}
-  GIT_REF: ${{ github.ref }}
-
+        required: false
 jobs:
   input-validation:
     runs-on: ubuntu-24.04
@@ -119,8 +115,9 @@ jobs:
       - name: "Get workflow run ID for matching PR"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by gh cli
           GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }} # repository string in format <repository_owner>/<repository_name>
         run: |
           HEAD_REF=$(gh pr list --state merged --search "$GITHUB_SHA" --json headRefOid -R "$GITHUB_REPOSITORY" | jq -r '.[0].headRefOid')
           if [ "$HEAD_REF" = "null" ]; then
@@ -143,24 +140,27 @@ jobs:
         with:
           run-id: ${{ env.GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: "/home/runner/work/${{ env.GITHUB_REPOSITORY }}/results"
+          path: "/home/runner/work/${{ github.event.repository.name }}/results"
 
       - name: "Upload scan results"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: "/home/runner/work/${{ env.GITHUB_REPOSITORY }}/results"
+          sarif_file: "/home/runner/work/${{ github.event.repository.name }}/results"
           category: 'scan-results'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Upload dependency graph"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by gh cli
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REF: ${{ github.ref }}
+          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
+          GITHUB_REPOSITORY: ${{ github.repository }} # repository string in format <repository_owner>/<repository_name>
         run: |
           shopt -s globstar nullglob
-          for file in "/home/runner/work/$GITHUB_REPOSITORY/results"/**/*.json ; do
+          for file in "/home/runner/work/$GITHUB_REPOSITORY_NAME/results"/**/*.json ; do
             if [ -d "$file" ] ; then
               continue
             fi
@@ -317,7 +317,7 @@ jobs:
       security-events: write
       # Semgrep - only required for workflows in private repositories
       actions: read
-      contents: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -348,8 +348,9 @@ jobs:
         with:
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
-          dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
+          dependency-graph: 'generate-and-upload'
           dependency-graph-continue-on-failure: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Set up Semgrep"
         run: |
@@ -386,6 +387,7 @@ jobs:
         with: 
           sarif_file: semgrep.sarif
           category: 'semgrep-scan'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Upload Semgrep report as artifact"
         uses: actions/upload-artifact@v6
@@ -401,12 +403,14 @@ jobs:
     # Runners are selected by labels: (default when you pass a string directly to runs-on) or group: "grp-runner". This snippet of code uses JSON to construct the group: object if the runner name starts with "grp-"
     runs-on:  ${{ startsWith(inputs.job_runner, 'grp-') && fromJSON(format('{{"group":"{0}"}}', inputs.job_runner)) || inputs.job_runner }}
     needs: get-repository-metadata
+    env:
+      CODEQL_ACTION_FILE_COVERAGE_ON_PRS: 'true'
     permissions:
       # CodeQL - required for all workflows
       security-events: write
       # CodeQL - only required for workflows in private repositories
       actions: read
-      contents: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -432,7 +436,8 @@ jobs:
         with: 
           cache-read-only: true  # Force read only, even in main
           add-job-summary: 'on-failure'
-          dependency-graph: ${{ github.ref_name == github.event.repository.default_branch && 'generate-submit-and-upload' || 'generate-and-upload' }}
+          dependency-graph: 'generate-and-upload'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
@@ -441,6 +446,7 @@ jobs:
           languages: ${{ matrix.language }}
           build-mode: autobuild
           queries: ${{ inputs.codeql_queries }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Initialize CodeQL"
         if: matrix.language != 'java' && matrix.language != 'kotlin'
@@ -453,12 +459,14 @@ jobs:
             query-filters:
               - exclude:
                   id: actions/missing-workflow-permissions
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
         env:
           SOFTPAY_NEXUS_USERNAME: ${{ secrets.SOFTPAY_NEXUS_USERNAME }}
           SOFTPAY_NEXUS_PASSWORD: ${{ secrets.SOFTPAY_NEXUS_PASSWORD }}
@@ -473,17 +481,11 @@ jobs:
         run: |
           echo -e "# ❗️ CodeQL analysis failed on HTML file(s) \n CodeQL will fail if no javascript can be extracted from HTML file(s).  \n \n Ignore scanning HTML files by adding 'html' to workflow input ignore_language  \n See [CodeQL supported languages and frameworks](https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/#id9) for more information from CodeQL." >> "$GITHUB_STEP_SUMMARY"
 
-
-      - name: "Get repository name"
-        run: |
-          REPOSITORY_NAME=$(echo "${GITHUB_REPOSITORY}" | cut -d'/' -f2)
-          echo "REPOSITORY_NAME=$REPOSITORY_NAME" >> "$GITHUB_ENV"
-
       - name: "Upload CodeQL report as artifact"
         uses: actions/upload-artifact@v6
         with:
           name: codeql-${{ matrix.language }}-sarif
-          path: "/home/runner/work/${{ env.REPOSITORY_NAME }}/results"
+          path: "/home/runner/work/${{ github.event.repository.name }}/results"
           overwrite: true
 
   scanner-action:
@@ -516,7 +518,7 @@ jobs:
       - name: "Send pull request notification"
         if: ${{ github.event_name == 'pull_request' && steps.scanner-action.outputs.notification_pull_request_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by gh cli
           PR_NUMBER: ${{ github.event.pull_request.number }}
           NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
         run: |
@@ -539,3 +541,24 @@ jobs:
           channel-id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
           payload: |
             ${{ env.NOTIFICATION_SLACK_POST_BLOCKS }}
+
+  # fallback if no dependency-graph artifactory exists from a pull request, and CodeQL/Semgrep analysis was running under default branch
+  upload-dependency-graph:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # required to upload dependency graph
+    needs: [get-repository-metadata, codeql-analysis, semgrep-analysis]
+    if: (!failure() && !cancelled()) && (needs.codeql-analysis.result == 'success' || needs.semgrep-analysis.result == 'success') && github.ref_name == github.event.repository.default_branch
+    steps:
+      - name: "Upload dependency graph"
+        if:  >- 
+          ${{ 
+            needs.get-repository-metadata.outputs.found_gradle == 'True' &&
+            (
+              contains('java', needs.get-repository-metadata.outputs.codeql_languages) || 
+              contains('scala', needs.get-repository-metadata.outputs.codeql_languages)
+            ) 
+          }}
+        uses: gradle/actions/dependency-submission@v5
+        with:
+          dependency-graph: download-and-submit # Download saved dependency-graph and submit
