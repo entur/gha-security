@@ -403,6 +403,8 @@ jobs:
     # Runners are selected by labels: (default when you pass a string directly to runs-on) or group: "grp-runner". This snippet of code uses JSON to construct the group: object if the runner name starts with "grp-"
     runs-on:  ${{ startsWith(inputs.job_runner, 'grp-') && fromJSON(format('{{"group":"{0}"}}', inputs.job_runner)) || inputs.job_runner }}
     needs: get-repository-metadata
+    env:
+      CODEQL_ACTION_FILE_COVERAGE_ON_PRS: 'true'
     permissions:
       # CodeQL - required for all workflows
       security-events: write
