@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.11.0](https://github.com/entur/gha-security/compare/v2.10.2...v2.11.0) (2026-03-19)
+
+
+### Features
+
+* use contents read permission for CodeQL and semgrep analysis jobs. ([#182](https://github.com/entur/gha-security/issues/182)) ([adeb7be](https://github.com/entur/gha-security/commit/adeb7beac337805a62fa9270a2ed7cc6ae5d1973))
+
 ## [2.10.2](https://github.com/entur/gha-security/compare/v2.10.1...v2.10.2) (2026-01-28)
 
 
