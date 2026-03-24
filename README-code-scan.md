@@ -122,11 +122,6 @@ jobs:
 
 Code vulnerability scans of Java and Kotlin are done by running autobuild, which runs any identified build systems, like Gradle.
 
-If the project uses the [gradle/actions/setup-gradle](https://github.com/gradle/actions/?tab=readme-ov-file#the-setup-gradle-action) action, you can set code scanning to utilize any available cache from the 'main' branch. This potentially speeds up code analysis jobs.
-
-
-**Gradle Caching is detected by default.**
-
 ## Allowlists
 The reusable workflow uses [CodeQL](https://codeql.github.com/) to scan the codebase for vulnerabilities. Any discovered vulnerabilities will be published in the _Security_ tab for the repository, under the _Code Scanning_ section. If you believe a finding is a false positive or otherwise not relevant, you can either manually dimiss the alert, or create a scanner config file (YAML-file) with allowlist spec that dismisses all alerts that matches a vulnerability ID. This list is then used in the current repo, but can also be shared and used with other repos.
 
