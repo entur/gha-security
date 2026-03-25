@@ -166,7 +166,7 @@ jobs:
             if [ -d "$file" ] ; then
               continue
             fi
-            echo "Uploading dependency graph $file"
+            echo "Uploading cached dependency graph $file"
             jq ".sha = \"$GITHUB_SHA\" | .ref = \"$GITHUB_REF\"" < "$file" | gh api "/repos/$GITHUB_REPOSITORY/dependency-graph/snapshots" --method POST --input - || true
           done
 
