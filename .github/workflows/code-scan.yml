@@ -136,11 +136,13 @@ jobs:
 
       - name: "Download existing cached results from previous job (pr)"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           run-id: ${{ env.GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: "/home/runner/work/${{ github.event.repository.name }}/results"
+          pattern: dependency-graph_*
+          merge-multiple: true
 
       - name: "Upload scan results"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
@@ -164,8 +166,8 @@ jobs:
             if [ -d "$file" ] ; then
               continue
             fi
-            jq ".sha = \"$GITHUB_SHA\" | .ref = \"$GITHUB_REF\"" < "$file" | 
-              gh api "/repos/$GITHUB_REPOSITORY/dependency-graph/snapshots" --method POST --input -
+            echo "Uploading dependency graph $file"
+            jq ".sha = \"$GITHUB_SHA\" | .ref = \"$GITHUB_REF\"" < "$file" | gh api "/repos/$GITHUB_REPOSITORY/dependency-graph/snapshots" --method POST --input - || true
           done
 
   get-repository-metadata:
