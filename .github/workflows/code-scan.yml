@@ -136,11 +136,13 @@ jobs:
 
       - name: "Download existing cached results from previous job (pr)"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           run-id: ${{ env.GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: "/home/runner/work/${{ github.event.repository.name }}/results"
+          pattern: dependency-graph_*
+          merge-multiple: true
 
       - name: "Upload scan results"
         if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
@@ -164,8 +166,8 @@ jobs:
             if [ -d "$file" ] ; then
               continue
             fi
-            jq ".sha = \"$GITHUB_SHA\" | .ref = \"$GITHUB_REF\"" < "$file" | 
-              gh api "/repos/$GITHUB_REPOSITORY/dependency-graph/snapshots" --method POST --input -
+            echo "Uploading cached dependency graph $file"
+            jq ".sha = \"$GITHUB_SHA\" | .ref = \"$GITHUB_REF\"" < "$file" | gh api "/repos/$GITHUB_REPOSITORY/dependency-graph/snapshots" --method POST --input - || true
           done
 
   get-repository-metadata:
@@ -390,7 +392,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Upload Semgrep report as artifact"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: semgrep-${{ matrix.language }}-sarif
           path: semgrep.sarif
@@ -482,7 +484,7 @@ jobs:
           echo -e "# ❗️ CodeQL analysis failed on HTML file(s) \n CodeQL will fail if no javascript can be extracted from HTML file(s).  \n \n Ignore scanning HTML files by adding 'html' to workflow input ignore_language  \n See [CodeQL supported languages and frameworks](https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/#id9) for more information from CodeQL." >> "$GITHUB_STEP_SUMMARY"
 
       - name: "Upload CodeQL report as artifact"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: codeql-${{ matrix.language }}-sarif
           path: "/home/runner/work/${{ github.event.repository.name }}/results"
