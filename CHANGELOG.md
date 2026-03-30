@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.12.0](https://github.com/entur/gha-security/compare/v2.11.0...v2.12.0) (2026-03-30)
+
+
+### Features
+
+* disable gradle-action cache to prepare for v6 changes ([#187](https://github.com/entur/gha-security/issues/187)) ([a2d2d0f](https://github.com/entur/gha-security/commit/a2d2d0fce7c4d7c9dcc9df4e80652210a0077ef6))
+
+
+### Bug Fixes
+
+* Fixed failing dependency graph uploads ([#189](https://github.com/entur/gha-security/issues/189)) ([63df1a8](https://github.com/entur/gha-security/commit/63df1a8769798e7936aae558e8f49a4636a2f10f))
+
 ## [2.11.0](https://github.com/entur/gha-security/compare/v2.10.2...v2.11.0) (2026-03-19)
 
 
