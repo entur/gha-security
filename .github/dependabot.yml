@@ -8,6 +8,8 @@ updates:
       timezone: "Europe/Oslo"
       day: "monday"
     open-pull-requests-limit: 2 # default is 5
+    cooldown:
+      default-days: 7
   - package-ecosystem: "npm"
     directory: "/scanner-action"
     schedule:
@@ -15,6 +17,8 @@ updates:
       time: "09:00"
       timezone: "Europe/Oslo"
       day: "monday"
+    cooldown:
+      default-days: 7
     groups:
       minor-and-patch:
         applies-to: version-updates
