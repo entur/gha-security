@@ -31,7 +31,7 @@ jobs:
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.actor != 'dependabot[bot]') }}
     runs-on: ubuntu-24.04
     permissions:
-      contents: write # required for checking out the repository and creating files
+      contents: read # required for checking out the repository
       issues: write # required for creating issues, and/or adding issue comments
       pull-requests: write # required for creating comments on pull requests
       security-events: write # required for uploading SARIF file to GitHub 
@@ -81,7 +81,7 @@ jobs:
           fi
       - name: "Anchore Syft Scan"
         id: syft-scan
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0
+        uses: LillieEntur/sbom-action@f6d2f16f68e4c4f81166614851f62874a052c6e0 # v0
         env:
           SYFT_EXCLUDE: ${{ env.DOCKER_WORKDIR }}
         with:
@@ -89,8 +89,15 @@ jobs:
           image: ${{ inputs.image_artifact }}.tar
           output-file: ${{ inputs.image_artifact }}.spdx.json
           artifact-name: ${{ inputs.image_artifact }}.spdx.json
-          dependency-snapshot: ${{ github.ref_name == github.event.repository.default_branch }}
+          dependency-snapshot-output-file: dependency-snapshot.github.sbom.json
+          github_token: ${{ secrets.GITHUB_TOKEN }}
         
+      - name: "Upload dependency snapshot"
+        uses: actions/upload-artifact@v7
+        with:
+          path: dependency-snapshot.github.sbom.json
+          archive: false
+
       - name: "Anchore Grype Scan"
         id: anchore-scan
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7
@@ -104,6 +111,7 @@ jobs:
         id: upload-vulnerability-report
         uses: github/codeql-action/upload-sarif@v4
         with: 
+          token: ${{ secrets.GITHUB_TOKEN }}
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
           category: 'anchore-grype-scan'
       
@@ -142,3 +150,19 @@ jobs:
           channel-id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
           payload: |
             ${{ env.NOTIFICATION_SLACK_POST_BLOCKS }}
+  upload-snapshot:
+    if: ${{ github.ref_name == github.event.repository.default_branch }}
+    runs-on: ubuntu-24.04
+    needs: [docker-scan]
+    permissions:
+      contents: write # required for uploading dependency snapshot file to GitHub
+    steps:
+      - name: "Download dependency snapshot"
+        uses: actions/download-artifact@v8
+        with:
+          name: dependency-snapshot.github.sbom.json
+      - name: "Upload dependency snapshot"
+        uses: LillieEntur/sbom-action/upload-github-snapshot@f6d2f16f68e4c4f81166614851f62874a052c6e0
+        with:
+          dependency-snapshot-input-file: dependency-snapshot.github.sbom.json
+          github_token: ${{ secrets.GITHUB_TOKEN }}
