@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.1](https://github.com/entur/gha-security/compare/v2.12.0...v2.12.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* Fixed retrieval of cached results ([#198](https://github.com/entur/gha-security/issues/198)) ([3e0e607](https://github.com/entur/gha-security/commit/3e0e60711313c1e008ea44234aeffe14db3e44b9))
+
 ## [2.12.0](https://github.com/entur/gha-security/compare/v2.11.0...v2.12.0) (2026-04-15)
 
 
