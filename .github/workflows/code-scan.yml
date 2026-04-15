@@ -141,7 +141,6 @@ jobs:
           run-id: ${{ env.GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: "/home/runner/work/${{ github.event.repository.name }}/results"
-          pattern: dependency-graph_*
           merge-multiple: true
 
       - name: "Upload scan results"
@@ -161,14 +160,16 @@ jobs:
           GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
           GITHUB_REPOSITORY: ${{ github.repository }} # repository string in format <repository_owner>/<repository_name>
         run: |
-          shopt -s globstar nullglob
-          for file in "/home/runner/work/$GITHUB_REPOSITORY_NAME/results"/**/*.json ; do
-            if [ -d "$file" ] ; then
-              continue
-            fi
-            echo "Uploading cached dependency graph $file"
-            jq ".sha = \"$GITHUB_SHA\" | .ref = \"$GITHUB_REF\"" < "$file" | gh api "/repos/$GITHUB_REPOSITORY/dependency-graph/snapshots" --method POST --input - || true
-          done
+          if [ -d "/home/runner/work/$GITHUB_REPOSITORY_NAME/results" ]; then
+            shopt -s globstar nullglob
+            for file in "/home/runner/work/$GITHUB_REPOSITORY_NAME/results"/**/*.json ; do
+              if [ -d "$file" ] ; then
+                continue
+              fi
+              echo "Uploading cached dependency graph $file"
+              jq ".sha = \"$GITHUB_SHA\" | .ref = \"$GITHUB_REF\"" < "$file" | gh api "/repos/$GITHUB_REPOSITORY/dependency-graph/snapshots" --method POST --input - || true
+            done
+          fi
 
   get-repository-metadata:
     if: ${{ failure() || needs.upload-cached-results.outputs.skip_job_and_continue_scan == 'True' }}
