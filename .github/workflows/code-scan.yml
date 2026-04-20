@@ -341,7 +341,7 @@ jobs:
 
       - name: "Gradle Dependency Graph for Scala"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
-        uses: gradle/actions/dependency-submission@v5
+        uses: gradle/actions/dependency-submission@v6
         env:
           SOFTPAY_NEXUS_USERNAME: ${{ secrets.SOFTPAY_NEXUS_USERNAME }}
           SOFTPAY_NEXUS_PASSWORD: ${{ secrets.SOFTPAY_NEXUS_PASSWORD }}
@@ -435,7 +435,7 @@ jobs:
 
       - name: "Set up Gradle for Java/Kotlin"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
         with: 
           cache-disabled: true
           add-job-summary: 'on-failure'
@@ -562,7 +562,7 @@ jobs:
               contains('scala', needs.get-repository-metadata.outputs.codeql_languages)
             ) 
           }}
-        uses: gradle/actions/dependency-submission@v5
+        uses: gradle/actions/dependency-submission@v6
         with:
           cache-disabled: true
           dependency-graph: download-and-submit # Download saved dependency-graph and submit
