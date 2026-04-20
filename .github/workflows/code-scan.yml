@@ -198,7 +198,7 @@ jobs:
 
       - name: "Get repository languages"
         id: get-repository-languages
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           IGNORE_LANGUAGE: ${{ inputs.ignore_language }}
         with:
