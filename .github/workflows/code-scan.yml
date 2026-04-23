@@ -476,8 +476,9 @@ jobs:
           ${{ 
             needs.get-repository-metadata.outputs.found_gradle == 'True' &&
             (
-              contains('java', needs.get-repository-metadata.outputs.codeql_languages) || 
-              contains('scala', needs.get-repository-metadata.outputs.codeql_languages)
+              contains(needs.get-repository-metadata.outputs.codeql_languages, 'java') || 
+              contains(needs.get-repository-metadata.outputs.codeql_languages, 'scala') ||
+              contains(needs.get-repository-metadata.outputs.codeql_languages, 'kotlin')
             ) 
           }}
         uses: gradle/actions/dependency-submission@v5
