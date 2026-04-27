@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.2](https://github.com/entur/gha-security/compare/v2.12.1...v2.12.2) (2026-04-27)
+
+
+### Bug Fixes
+
+* Gradle dependency graph not uploading ([#202](https://github.com/entur/gha-security/issues/202)) ([afb84fe](https://github.com/entur/gha-security/commit/afb84fe6d2214f8ff53f23fb7a0f3b181dca8a36))
+
 ## [2.12.1](https://github.com/entur/gha-security/compare/v2.12.0...v2.12.1) (2026-04-15)
 
 
