@@ -90,91 +90,9 @@ jobs:
             exit(1)
           
           os.system('echo Validation passed')"
-  upload-cached-results:
-    runs-on:  ubuntu-24.04
-    needs: input-validation
-    outputs:
-      skip_job_and_continue_scan: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN }}
-    permissions:
-      pull-requests: read
-      actions: read
-      security-events: write
-      contents: write 
-    steps:
-      - name: "Skip job if not triggered by a push to main/master"
-        env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_REFNAME: ${{ github.ref_name }}
-          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-        run: |
-          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REFNAME" = "$GITHUB_DEFAULT_BRANCH" ]; then
-            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=False' >> "$GITHUB_ENV"
-          else
-            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> "$GITHUB_ENV"
-          fi
-      - name: "Get workflow run ID for matching PR"
-        if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by gh cli
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_REPOSITORY: ${{ github.repository }} # repository string in format <repository_owner>/<repository_name>
-        run: |
-          HEAD_REF=$(gh pr list --state merged --search "$GITHUB_SHA" --json headRefOid -R "$GITHUB_REPOSITORY" | jq -r '.[0].headRefOid')
-          if [ "$HEAD_REF" = "null" ]; then
-            echo "::warning ::Failed to fetch closed PRs, defaulting to running a new scan"
-            echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> "$GITHUB_ENV"
-          else
-            JOB_ID=$(gh run list -s completed -e pull_request -c "$HEAD_REF" --json databaseId -R "$GITHUB_REPOSITORY" -w ".github/workflows/codeql.yml" | 
-              jq -r '.[0].databaseId')
-            if [ "$JOB_ID" = "null" ]; then
-              echo '::warning ::Failed to find a matching job, defaulting to running a new scan'
-              echo 'GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN=True' >> "$GITHUB_ENV"
-            else
-              echo "GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID=$JOB_ID" >> "$GITHUB_ENV"
-            fi
-          fi
-
-      - name: "Download existing cached results from previous job (pr)"
-        if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
-        uses: actions/download-artifact@v8
-        with:
-          run-id: ${{ env.GHA_SECURITY_CODE_SCAN_WORKFLOW_RUN_ID }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: "/home/runner/work/${{ github.event.repository.name }}/results"
-          merge-multiple: true
-
-      - name: "Upload scan results"
-        if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: "/home/runner/work/${{ github.event.repository.name }}/results"
-          category: 'scan-results'
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: "Upload dependency graph"
-        if: ${{ env.GHA_SECURITY_CODE_SCAN_SKIP_JOB_AND_CONTINUE_SCAN == 'False' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by gh cli
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_REF: ${{ github.ref }}
-          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
-          GITHUB_REPOSITORY: ${{ github.repository }} # repository string in format <repository_owner>/<repository_name>
-        run: |
-          if [ -d "/home/runner/work/$GITHUB_REPOSITORY_NAME/results" ]; then
-            shopt -s globstar nullglob
-            for file in "/home/runner/work/$GITHUB_REPOSITORY_NAME/results"/**/*.json ; do
-              if [ -d "$file" ] ; then
-                continue
-              fi
-              echo "Uploading cached dependency graph $file"
-              jq ".sha = \"$GITHUB_SHA\" | .ref = \"$GITHUB_REF\"" < "$file" | gh api "/repos/$GITHUB_REPOSITORY/dependency-graph/snapshots" --method POST --input - || true
-            done
-          fi
-
   get-repository-metadata:
-    if: ${{ failure() || needs.upload-cached-results.outputs.skip_job_and_continue_scan == 'True' }}
     runs-on: ubuntu-24.04
-    needs: upload-cached-results
+    needs: input-validation
     outputs: 
       codeql_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_CQ }}
       semgrep_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_SEM }} 
@@ -558,8 +476,9 @@ jobs:
           ${{ 
             needs.get-repository-metadata.outputs.found_gradle == 'True' &&
             (
-              contains('java', needs.get-repository-metadata.outputs.codeql_languages) || 
-              contains('scala', needs.get-repository-metadata.outputs.codeql_languages)
+              contains(needs.get-repository-metadata.outputs.codeql_languages, 'java') || 
+              contains(needs.get-repository-metadata.outputs.codeql_languages, 'scala') ||
+              contains(needs.get-repository-metadata.outputs.codeql_languages, 'kotlin')
             ) 
           }}
         uses: gradle/actions/dependency-submission@v5
