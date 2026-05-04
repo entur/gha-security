@@ -304,7 +304,7 @@ jobs:
 
       - name: "Upload Semgrep report"
         id: upload-semgrep-report
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v4.35.2
         with: 
           sarif_file: semgrep.sarif
           category: 'semgrep-scan'
@@ -362,7 +362,7 @@ jobs:
 
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@v4.35.2
         with:
           languages: ${{ matrix.language }}
           build-mode: autobuild
@@ -371,7 +371,7 @@ jobs:
 
       - name: "Initialize CodeQL"
         if: matrix.language != 'java' && matrix.language != 'kotlin'
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@v4.35.2
         with:
           languages: ${{ matrix.language }}
           queries: ${{ inputs.codeql_queries }}
@@ -384,7 +384,7 @@ jobs:
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@v4.35.2
         with:
           category: "/language:${{ matrix.language }}"
           token: ${{ secrets.GITHUB_TOKEN }}
