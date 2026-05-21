@@ -405,3 +405,22 @@ Following extensions is part of our HTML file extension detection
 * .html
 * .xhtm
 * .xhtml
+
+### CodeQL/Semgrep is not able to download dependencies from Github packages for build step.
+
+Enable `expose_github_token_and_actor` to expose `GITHUB_TOKEN` and `GITHUB_ACTOR` in CodeQL/Semgrep steps.
+
+These variables can be used to authenticate to Github, so the build process can download required dependencies from Github Packages.
+
+
+```yaml
+jobs:
+    code-scan:
+        name: Code Scan
+        uses: entur/gha-security/.github/workflows/code-scan.yml@v2
+        secrets: inherit
+        with:
+          expose_github_token_and_actor: true
+          ...
+
+```
