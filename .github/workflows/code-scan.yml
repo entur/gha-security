@@ -53,6 +53,12 @@ on:
         default: "-Dorg.gradle.jvmargs=-Xmx4g"
         required: false
         type: string
+      expose_github_token_and_actor:
+        description: 'Expose GITHUB_TOKEN and GITHUB_ACTOR to support Github packages for CodeQL and Semgrep'
+        required: false
+        default: false
+        type: boolean
+
     secrets:
       external_repository_token:
         description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
@@ -234,6 +240,8 @@ jobs:
     runs-on:  ${{ startsWith(inputs.job_runner, 'grp-') && fromJSON(format('{{"group":"{0}"}}', inputs.job_runner)) || inputs.job_runner }}
     needs: get-repository-metadata
     permissions:
+      # Semgrep - required for downloading from Github Packages
+      packages: read
       # Semgrep - required for all workflows
       security-events: write
       # Semgrep - only required for workflows in private repositories
@@ -257,6 +265,16 @@ jobs:
           distribution: ${{ inputs.java_distribution }}
           server-id: ${{ inputs.java_server_id_artifactory }}
 
+      - name: "Expose github token and github actor"
+        if: inputs.expose_github_token_and_actor
+        id: expose-github-token-actor
+        env:
+          GITHUB_ACTOR: ${{github.actor}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> "$GITHUB_ENV"
+          echo "GITHUB_ACTOR=$GITHUB_ACTOR" >> "$GITHUB_ENV"
+        
       - name: "Gradle Dependency Graph for Scala"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
         uses: gradle/actions/dependency-submission@v5
@@ -327,6 +345,8 @@ jobs:
     env:
       CODEQL_ACTION_FILE_COVERAGE_ON_PRS: 'true'
     permissions:
+      # CodeQL - required to fetch Maven package from Github Registry
+      packages: read
       # CodeQL - required for all workflows
       security-events: write
       # CodeQL - only required for workflows in private repositories
@@ -381,6 +401,15 @@ jobs:
               - exclude:
                   id: actions/missing-workflow-permissions
           token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: "Expose github token and github actor"
+        if: inputs.expose_github_token_and_actor
+        env:
+          GITHUB_ACTOR: ${{github.actor}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> "$GITHUB_ENV"
+          echo "GITHUB_ACTOR=$GITHUB_ACTOR" >> "$GITHUB_ENV"
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
