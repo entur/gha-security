@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.0](https://github.com/entur/gha-security/compare/v2.12.2...v2.13.0) (2026-05-22)
+
+
+### Features
+
+* Support Github Packages during CodeQL and Semgrep steps ([#212](https://github.com/entur/gha-security/issues/212)) ([afff87d](https://github.com/entur/gha-security/commit/afff87dbd77e984639db3b7841b8619f2f1e19e0))
+
 ## [2.12.2](https://github.com/entur/gha-security/compare/v2.12.1...v2.12.2) (2026-04-27)
 
 
