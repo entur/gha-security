@@ -259,7 +259,7 @@ jobs:
 
       - name: "Setup Java for Scala"
         if: inputs.use_setup_java && (matrix.language == 'scala')
-        uses: entur/gha-security/.github/actions/setup-java-code-scan@aeebe7ddac5952b3ef9f14380e2d5884b42a6c2e # v2.13.0
+        uses: entur/gha-security/.github/actions/setup-java-code-scan@v2
         with:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
@@ -355,7 +355,7 @@ jobs:
       
       - name: "Setup Java for Java/Kotlin"
         if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java')
-        uses: entur/gha-security/.github/actions/setup-java-code-scan@aeebe7ddac5952b3ef9f14380e2d5884b42a6c2e # v2.13.0
+        uses: entur/gha-security/.github/actions/setup-java-code-scan@v2
         with:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
@@ -442,7 +442,7 @@ jobs:
       
       - name: Scanner Action
         id: scanner-action
-        uses: entur/gha-security/scanner-action@aeebe7ddac5952b3ef9f14380e2d5884b42a6c2e # v2.13.0
+        uses: entur/gha-security/scanner-action@v2
         with:
           scanner: 'codescan'
           token: ${{ secrets.GITHUB_TOKEN }}

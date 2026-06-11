@@ -109,7 +109,7 @@ jobs:
       
       - name: Scanner Action
         id: scanner-action
-        uses: entur/gha-security/scanner-action@aeebe7ddac5952b3ef9f14380e2d5884b42a6c2e # v2.13.0
+        uses: entur/gha-security/scanner-action@v2
         with:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
