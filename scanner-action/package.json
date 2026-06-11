@@ -13,20 +13,21 @@
 	"license": "ISC",
 	"description": "",
 	"dependencies": {
-		"@actions/core": "^3.0.1",
-		"@actions/github": "^9.1.1",
-		"@octokit/plugin-throttling": "^11.0.3",
-		"ajv": "^8.20.0",
-		"octokit": "^5.0.5",
-		"yaml": "^2.9.0"
+		"@actions/core": "3.0.1",
+		"@actions/github": "9.1.1",
+		"@octokit/core": "7.0.6",
+		"@octokit/plugin-throttling": "11.0.3",
+		"ajv": "8.20.0",
+		"octokit": "5.0.5",
+		"yaml": "2.9.0"
 	},
 	"type": "module",
-	"packageManager": "yarn@4.9.1",
+	"packageManager": "yarn@4.16.0",
 	"devDependencies": {
 		"@biomejs/biome": "2.4.16",
-		"@types/node": "^25.9.1",
+		"@types/node": "25.9.1",
 		"esbuild": "0.28.0",
-		"typescript": "^6.0.3"
+		"typescript": "6.0.3"
 	},
 	"engines": {
 		"node": ">=24"
