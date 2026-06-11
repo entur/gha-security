@@ -38,13 +38,13 @@ jobs:
       actions: read #required for uploading SARIF file to GitHub (workflows in private repositories)
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
         with:
           persist-credentials: false
 
       - name: "Checkout central allowlist repository"
         if: ${{ env.CENTRAL_ALLOWLIST_SSH_KEY && env.CENTRAL_ALLOWLIST_ENABLED == 'true'  }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
         with:
           repository: entur/central-allowlist
           ref: main
@@ -64,7 +64,7 @@ jobs:
           CENTRAL_ALLOWLIST_SSH_KEY: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}
 
       - name: "Download the image artifact"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ env.GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT }}
       - name: "Docker workdir extraction"
@@ -102,14 +102,14 @@ jobs:
 
       - name: "Upload vulnerability report"
         id: upload-vulnerability-report
-        uses: github/codeql-action/upload-sarif@v4.35.2
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
         with: 
           sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
           category: 'anchore-grype-scan'
       
       - name: Scanner Action
         id: scanner-action
-        uses: entur/gha-security/scanner-action@v2
+        uses: entur/gha-security/scanner-action@aeebe7ddac5952b3ef9f14380e2d5884b42a6c2e # v2.13.0
         with:
           scanner: 'dockerscan'
           token: ${{ secrets.GITHUB_TOKEN }}
