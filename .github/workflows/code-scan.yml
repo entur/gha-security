@@ -264,16 +264,6 @@ jobs:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
           server-id: ${{ inputs.java_server_id_artifactory }}
-
-      - name: "Expose github token and github actor"
-        if: inputs.expose_github_token_and_actor
-        id: expose-github-token-actor
-        env:
-          GITHUB_ACTOR: ${{github.actor}}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> "$GITHUB_ENV"
-          echo "GITHUB_ACTOR=$GITHUB_ACTOR" >> "$GITHUB_ENV"
         
       - name: "Gradle Dependency Graph for Scala"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
@@ -284,6 +274,7 @@ jobs:
           ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
           ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
           ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
+          GITHUB_TOKEN: ${{ inputs.expose_github_token_and_actor && github.token || '' }}
         with:
           cache-disabled: true
           add-job-summary: 'on-failure'
@@ -401,15 +392,6 @@ jobs:
               - exclude:
                   id: actions/missing-workflow-permissions
           token: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: "Expose github token and github actor"
-        if: inputs.expose_github_token_and_actor
-        env:
-          GITHUB_ACTOR: ${{github.actor}}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> "$GITHUB_ENV"
-          echo "GITHUB_ACTOR=$GITHUB_ACTOR" >> "$GITHUB_ENV"
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
@@ -424,6 +406,7 @@ jobs:
           ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
           ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
           GRADLE_OPTS: ${{ inputs.gradle_opts }}
+          GITHUB_TOKEN: ${{ inputs.expose_github_token_and_actor && github.token || '' }}
           IS_CODEQL_SCAN: true
 
       - name: "Post message to job summary if scan with HTML only files fail"
