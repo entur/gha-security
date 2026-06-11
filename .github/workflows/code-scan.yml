@@ -106,7 +106,7 @@ jobs:
       html_only_scan: ${{env.GHA_SECURITY_CODE_SCAN_HTML_ONLY_SCAN }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
         with:
           persist-credentials: false
 
@@ -122,7 +122,7 @@ jobs:
 
       - name: "Get repository languages"
         id: get-repository-languages
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           IGNORE_LANGUAGE: ${{ inputs.ignore_language }}
         with:
@@ -253,7 +253,7 @@ jobs:
         language: ${{ fromJson(needs.get-repository-metadata.outputs.semgrep_languages) }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
         with:
           persist-credentials: false
 
@@ -267,7 +267,7 @@ jobs:
         
       - name: "Gradle Dependency Graph for Scala"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
-        uses: gradle/actions/dependency-submission@v5
+        uses: gradle/actions/dependency-submission@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
         env:
           SOFTPAY_NEXUS_USERNAME: ${{ secrets.SOFTPAY_NEXUS_USERNAME }}
           SOFTPAY_NEXUS_PASSWORD: ${{ secrets.SOFTPAY_NEXUS_PASSWORD }}
@@ -313,14 +313,14 @@ jobs:
 
       - name: "Upload Semgrep report"
         id: upload-semgrep-report
-        uses: github/codeql-action/upload-sarif@v4.35.2
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
         with: 
           sarif_file: semgrep.sarif
           category: 'semgrep-scan'
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Upload Semgrep report as artifact"
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: semgrep-${{ matrix.language }}-sarif
           path: semgrep.sarif
@@ -349,7 +349,7 @@ jobs:
         language: ${{ fromJson(needs.get-repository-metadata.outputs.codeql_languages) }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
         with:
           persist-credentials: false
       
@@ -364,7 +364,7 @@ jobs:
 
       - name: "Set up Gradle for Java/Kotlin"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
         with: 
           cache-disabled: true
           add-job-summary: 'on-failure'
@@ -373,7 +373,7 @@ jobs:
 
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
-        uses: github/codeql-action/init@v4.35.2
+        uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
         with:
           languages: ${{ matrix.language }}
           build-mode: autobuild
@@ -382,7 +382,7 @@ jobs:
 
       - name: "Initialize CodeQL"
         if: matrix.language != 'java' && matrix.language != 'kotlin'
-        uses: github/codeql-action/init@v4.35.2
+        uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
         with:
           languages: ${{ matrix.language }}
           queries: ${{ inputs.codeql_queries }}
@@ -395,7 +395,7 @@ jobs:
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
-        uses: github/codeql-action/analyze@v4.35.2
+        uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
         with:
           category: "/language:${{ matrix.language }}"
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -415,7 +415,7 @@ jobs:
           echo -e "# ❗️ CodeQL analysis failed on HTML file(s) \n CodeQL will fail if no javascript can be extracted from HTML file(s).  \n \n Ignore scanning HTML files by adding 'html' to workflow input ignore_language  \n See [CodeQL supported languages and frameworks](https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/#id9) for more information from CodeQL." >> "$GITHUB_STEP_SUMMARY"
 
       - name: "Upload CodeQL report as artifact"
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: codeql-${{ matrix.language }}-sarif
           path: "/home/runner/work/${{ github.event.repository.name }}/results"
@@ -436,7 +436,7 @@ jobs:
       pull-requests: write # required for creating comments on pull requests
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
         with:
           persist-credentials: false
       
@@ -493,7 +493,7 @@ jobs:
               contains(needs.get-repository-metadata.outputs.codeql_languages, 'kotlin')
             ) 
           }}
-        uses: gradle/actions/dependency-submission@v5
+        uses: gradle/actions/dependency-submission@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
         with:
           cache-disabled: true
           dependency-graph: download-and-submit # Download saved dependency-graph and submit
