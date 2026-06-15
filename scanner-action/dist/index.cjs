@@ -42055,7 +42055,7 @@ var sendIssueComment = async (issue2, body, octokit) => {
     });
   } catch (error2) {
     if (!(error2 instanceof RequestError)) {
-      throw Error(`Failed to create pull request comment for issue: ${issue2.issue_number}`);
+      throw Error(`Failed to create pull request comment for issue: ${issue2.issue_number}`, { cause: error2 });
     }
     if (error2.status === 403) {
       warning(`Not allowed to create comment for issue: ${issue2.issue_number}`);
@@ -42076,7 +42076,7 @@ var fetchIssueComments = async (issue2, octokit) => {
     return response;
   } catch (error2) {
     if (!(error2 instanceof RequestError)) {
-      throw Error(`Failed to fetch issue comments for issue: ${issue2.issue_number}`);
+      throw Error(`Failed to fetch issue comments for issue: ${issue2.issue_number}`, { cause: error2 });
     }
     if (error2.status === 404) {
       warning(`No comments found for issue: ${issue2.issue_number}`);
@@ -42094,7 +42094,7 @@ var removeIssueComment = async (issue2, subtext, octokit) => {
     if (isActionComment === false) continue;
     if (commentContainsSubtext === false) continue;
     try {
-      octokit.rest.issues.deleteComment({
+      await octokit.rest.issues.deleteComment({
         ...issue2,
         comment_id: comment.id
       });
@@ -42121,7 +42121,8 @@ ${scannerReport.resultsList}
 ${scannerReport.scannerTypeName} Report can be found [here](${scannerReport.resultsUrl})
 ### Allowlist
 Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
-See the [${scannerReport.scannerTypeName} documentation](${scannerReport.allowListDocumentationUrl}) on how to use allowlist.`;
+See the [${scannerReport.scannerTypeName} documentation](${scannerReport.allowListDocumentationUrl}) on how to use allowlist.
+<!-- gha-security:${scannerNotifications.scannerType} -->`;
 };
 var getScannerReport = (scannerNotifications) => {
   const scannerType = scannerNotifications.scannerType;
@@ -42251,9 +42252,8 @@ var sendPullRequestNotification = async (scannerNotifications, octokit) => {
   const sendNotification = isPullRequestEnabled === true && context2.eventName === "pull_request" && scannerNotifications.alertsFound;
   if (!sendNotification) return;
   const notificationOutput = createMarkdown(scannerNotifications);
-  const scannerTypeName = scannerNotifications.scannerType === "dockerscan" ? "Docker Scan" : "Code Scan";
   const issue2 = { issue_number: context2.issue.number, owner: context2.issue.owner, repo: context2.issue.repo };
-  await removeIssueComment(issue2, `${scannerTypeName} - Alert(s) found with threshold`, octokit);
+  await removeIssueComment(issue2, `<!-- gha-security:${scannerNotifications.scannerType} -->`, octokit);
   await sendIssueComment(issue2, notificationOutput, octokit);
 };
 

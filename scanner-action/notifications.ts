@@ -114,11 +114,10 @@ const sendPullRequestNotification = async (scannerNotifications: ScannerNotifica
 	if (!sendNotification) return;
 
 	const notificationOutput = createMarkdown(scannerNotifications);
-	const scannerTypeName = scannerNotifications.scannerType === "dockerscan" ? "Docker Scan" : "Code Scan";
 
 	const issue = { issue_number: github.context.issue.number, owner: github.context.issue.owner, repo: github.context.issue.repo };
 
-	await removeIssueComment(issue, `${scannerTypeName} - Alert(s) found with threshold`, octokit);
+	await removeIssueComment(issue, `<!-- gha-security:${scannerNotifications.scannerType} -->`, octokit);
 	await sendIssueComment(issue, notificationOutput, octokit);
 };
 

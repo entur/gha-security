@@ -28,7 +28,8 @@ ${scannerReport.resultsList}
 ${scannerReport.scannerTypeName} Report can be found [here](${scannerReport.resultsUrl})
 ### Allowlist
 Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
-See the [${scannerReport.scannerTypeName} documentation](${scannerReport.allowListDocumentationUrl}) on how to use allowlist.`;
+See the [${scannerReport.scannerTypeName} documentation](${scannerReport.allowListDocumentationUrl}) on how to use allowlist.
+<!-- gha-security:${scannerNotifications.scannerType} -->`;
 };
 
 const getScannerReport = (scannerNotifications: ScannerNotifications) => {
