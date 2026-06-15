@@ -15,7 +15,7 @@ const sendIssueComment = async (issue: GithubIssue, body: string, octokit: Octok
 		});
 	} catch (error) {
 		if (!(error instanceof RequestError)) {
-			throw Error(`Failed to create pull request comment for issue: ${issue.issue_number}`);
+			throw Error(`Failed to create pull request comment for issue: ${issue.issue_number}`, { cause: error });
 		}
 
 		if (error.status === 403) {
@@ -39,7 +39,7 @@ const fetchIssueComments = async (issue: GithubIssue, octokit: Octokit) => {
 		return response;
 	} catch (error) {
 		if (!(error instanceof RequestError)) {
-			throw Error(`Failed to fetch issue comments for issue: ${issue.issue_number}`);
+			throw Error(`Failed to fetch issue comments for issue: ${issue.issue_number}`, { cause: error });
 		}
 
 		if (error.status === 404) {
