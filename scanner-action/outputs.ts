@@ -94,8 +94,7 @@ const setNotificationOutputs = (scannerNotifications: ScannerNotifications) => {
 	core.setOutput("notification_slack_channel_id", scannerNotifications.config.outputs?.slack?.channelId ?? "");
 	core.setOutput("notification_slack_enabled", outputBool(scannerNotifications.config.outputs?.slack?.enabled ?? false));
 	core.setOutput("notification_slack_block", createSlackBlock(scannerNotifications));
-	core.setOutput("notification_pull_request_enabled", outputBool(scannerNotifications.config.outputs?.pullRequest?.enabled ?? true));
 	core.setOutput("notification_markdown", createMarkdown(scannerNotifications));
 };
 
-export { setNotificationOutputs };
+export { setNotificationOutputs, createMarkdown };

@@ -42046,6 +42046,64 @@ var getOctokitThrottleConfig = () => {
   return throttle;
 };
 
+// github-issues.ts
+var sendIssueComment = async (issue2, body, octokit) => {
+  try {
+    await octokit.rest.issues.createComment({
+      ...issue2,
+      body
+    });
+  } catch (error2) {
+    if (!(error2 instanceof RequestError)) {
+      throw Error(`Failed to create pull request comment for issue: ${issue2.issue_number}`);
+    }
+    if (error2.status === 403) {
+      warning(`Not allowed to create comment for issue: ${issue2.issue_number}`);
+    } else {
+      warning(`Failed to create pull request comment for issue: ${issue2.issue_number}`);
+    }
+  }
+};
+var fetchIssueComments = async (issue2, octokit) => {
+  try {
+    const response = await octokit.paginate(
+      octokit.rest.issues.listComments,
+      {
+        ...issue2
+      },
+      (response2) => response2.data
+    );
+    return response;
+  } catch (error2) {
+    if (!(error2 instanceof RequestError)) {
+      throw Error(`Failed to fetch issue comments for issue: ${issue2.issue_number}`);
+    }
+    if (error2.status === 404) {
+      warning(`No comments found for issue: ${issue2.issue_number}`);
+      return null;
+    }
+  }
+  return null;
+};
+var removeIssueComment = async (issue2, subtext, octokit) => {
+  const comments = await fetchIssueComments(issue2, octokit);
+  if (comments === null) return;
+  for (const comment of comments) {
+    const isActionComment = comment.user?.login === "github-actions[bot]";
+    const commentContainsSubtext = comment.body?.includes(subtext);
+    if (isActionComment === false) continue;
+    if (commentContainsSubtext === false) continue;
+    try {
+      octokit.rest.issues.deleteComment({
+        ...issue2,
+        comment_id: comment.id
+      });
+    } catch (error2) {
+      warning(`Failed to remove comment ${comment.id} for issue: ${issue2.issue_number} with subtext ${subtext}`);
+    }
+  }
+};
+
 // outputs.ts
 var outputBool = (value) => value ? "True" : "False";
 var getGithubRepository = () => {
@@ -42122,7 +42180,6 @@ var setNotificationOutputs = (scannerNotifications) => {
   setOutput("notification_slack_channel_id", scannerNotifications.config.outputs?.slack?.channelId ?? "");
   setOutput("notification_slack_enabled", outputBool(scannerNotifications.config.outputs?.slack?.enabled ?? false));
   setOutput("notification_slack_block", createSlackBlock(scannerNotifications));
-  setOutput("notification_pull_request_enabled", outputBool(scannerNotifications.config.outputs?.pullRequest?.enabled ?? true));
   setOutput("notification_markdown", createMarkdown(scannerNotifications));
 };
 
@@ -42186,6 +42243,18 @@ var runNotifications = async (octokitAction, scannerType, scannerConfig) => {
   if (!fetchedAlerts) return;
   info("Setting notification outputs");
   setNotificationOutputs(scannerNotifications);
+  info("Sending pull request notification");
+  await sendPullRequestNotification(scannerNotifications, octokitAction);
+};
+var sendPullRequestNotification = async (scannerNotifications, octokit) => {
+  const isPullRequestEnabled = scannerNotifications.config.outputs?.pullRequest?.enabled ?? true;
+  const sendNotification = isPullRequestEnabled === true && context2.eventName === "pull_request" && scannerNotifications.alertsFound;
+  if (!sendNotification) return;
+  const notificationOutput = createMarkdown(scannerNotifications);
+  const scannerTypeName = scannerNotifications.scannerType === "dockerscan" ? "Docker Scan" : "Code Scan";
+  const issue2 = { issue_number: context2.issue.number, owner: context2.issue.owner, repo: context2.issue.repo };
+  await removeIssueComment(issue2, `${scannerTypeName} - Alert(s) found with threshold`, octokit);
+  await sendIssueComment(issue2, notificationOutput, octokit);
 };
 
 // scanner-config.ts
