@@ -219,7 +219,7 @@ The OPTIONAL `inherit` field MUST be the name of containing repository where con
 
 The OPTIONAL `allowlist` field MUST be a list of vulnerabilities that you want to dismiss/allow. For each vulnerability you want to dismiss, you MUST add a new item to the list. Each item is an object and MUST contain the following fields: `cwe`, `comment`, and `reason`.
 - The `cwe` field corresponds to the CWE-ID of the vulnerability you want to dismiss,
-- The `comment` field is a comment explaining why the vulnerability is dismissed.
+- The `comment` field is a comment explaining why the vulnerability is dismissed. Comments longer than 280 characters will be truncated.
 - The `reason` field MUST be one of the following types:
    - `false_positive` This alert is not valid
    - `wont_fix` This alert is not relevant
