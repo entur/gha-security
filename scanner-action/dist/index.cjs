@@ -42427,6 +42427,19 @@ var scannerConfigSchema = (scanner) => {
     required: ["apiVersion", "kind", "metadata", "spec"]
   };
 };
+var validateAllowlist = (allowList) => {
+  const GITHUB_DISMISSED_COMMENT_MAX_LENGTH = 280;
+  const OVERFLOW_TEXT_LENGTH = 3;
+  for (const entry of allowList) {
+    if (entry.comment.length <= GITHUB_DISMISSED_COMMENT_MAX_LENGTH)
+      continue;
+    let alertType = entry.cve ? `cve: ${entry.cve}` : `cwe: ${entry.cwe}`;
+    warning(`allowlist comment for ${alertType} is over 280 characters. 
+ Truncating comment!`);
+    const truncateLength = GITHUB_DISMISSED_COMMENT_MAX_LENGTH - OVERFLOW_TEXT_LENGTH;
+    entry.comment = entry.comment.substring(0, truncateLength) + "...";
+  }
+};
 var validateScannerConfig = (scannerConfig, scanner) => {
   const ajvInstance = new import_ajv.Ajv({
     verbose: true
@@ -42438,6 +42451,7 @@ var validateScannerConfig = (scannerConfig, scanner) => {
     throw Error(`Failed to validate ${scannerConfig.kind}
  ${JSON.stringify(validate.errors, null, 2)}`);
   }
+  if (scannerConfig.spec?.allowlist) validateAllowlist(scannerConfig.spec?.allowlist);
 };
 var getCentralAllowlistConfig = (scannerType, fetchAllowlist = true) => {
   if (!fetchAllowlist) {

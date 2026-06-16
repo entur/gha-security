@@ -219,6 +219,24 @@ const scannerConfigSchema = (scanner: string) => {
 	};
 };
 
+const validateAllowlist = (allowList: Allowlist[]) => {
+	const GITHUB_DISMISSED_COMMENT_MAX_LENGTH = 280;
+	const OVERFLOW_TEXT_LENGTH = 3;
+
+	for (const entry of allowList) {
+		if (entry.comment.length <= GITHUB_DISMISSED_COMMENT_MAX_LENGTH)
+			continue;
+		
+		let alertType = entry.cve ? `cve: ${entry.cve}` : `cwe: ${entry.cwe}`;
+
+		// Feedback loop can be long for external allowlist, so warn instead of error
+		core.warning(`allowlist comment for ${alertType} is over 280 characters. \n Truncating comment!`);
+		
+		const truncateLength = GITHUB_DISMISSED_COMMENT_MAX_LENGTH - OVERFLOW_TEXT_LENGTH;
+		entry.comment = entry.comment.substring(0, truncateLength) + "...";
+	}
+}
+
 const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) => {
 	const ajvInstance = new Ajv({
 		verbose: true,
@@ -232,6 +250,8 @@ const validateScannerConfig = (scannerConfig: ScannerConfig, scanner: string) =>
 	if (!isValid) {
 		throw Error(`Failed to validate ${scannerConfig.kind}\n ${JSON.stringify(validate.errors, null, 2)}`);
 	}
+
+	if (scannerConfig.spec?.allowlist) validateAllowlist(scannerConfig.spec?.allowlist);
 };
 
 const getCentralAllowlistConfig = (scannerType: string, fetchAllowlist = true) => {
