@@ -25,9 +25,10 @@ Go to the _Actions_ tab in your repository, click on _New workflow_ and select t
 
 <!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
 
-|                                   INPUT                                    |  TYPE  | REQUIRED | DEFAULT |      DESCRIPTION       |
-|----------------------------------------------------------------------------|--------|----------|---------|------------------------|
-| <a name="input_image_artifact"></a>[image_artifact](#input_image_artifact) | string |   true   |         | Image artifact to scan |
+|                                               INPUT                                                |  TYPE   | REQUIRED | DEFAULT |                                                          DESCRIPTION                                                          |
+|----------------------------------------------------------------------------------------------------|---------|----------|---------|-------------------------------------------------------------------------------------------------------------------------------|
+|             <a name="input_image_artifact"></a>[image_artifact](#input_image_artifact)             | string  |   true   |         |                                                    Image artifact to scan                                                     |
+| <a name="input_include_docker_workdir"></a>[include_docker_workdir](#input_include_docker_workdir) | boolean |  false   | `false` | Include docker workdir for scanning. <br>By default set to false <br>to reduce duplicate vulnerabilities from <br>Dependabot  |
 
 <!-- AUTO-DOC-INPUT:END -->
 
