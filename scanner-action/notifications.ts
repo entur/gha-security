@@ -109,9 +109,9 @@ const runNotifications = async (octokitAction: Octokit, scannerType: string, sca
 const sendPullRequestNotification = async (scannerNotifications: ScannerNotifications, octokit: Octokit) => {
 	const isPullRequestEnabled = scannerNotifications.config.outputs?.pullRequest?.enabled ?? true;
 
-	const sendNotification = isPullRequestEnabled === true && github.context.eventName === "pull_request" && scannerNotifications.alertsFound;
+	const skipNotification = !isPullRequestEnabled || github.context.eventName !== "pull_request" || !scannerNotifications.alertsFound;
 
-	if (!sendNotification) return;
+	if (skipNotification) return;
 
 	const notificationOutput = createMarkdown(scannerNotifications);
 

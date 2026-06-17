@@ -59,9 +59,9 @@ const removeIssueComment = async (issue: GithubIssue, subtext: string, octokit: 
 	for (const comment of comments) {
 		const isActionComment = comment.user?.login === "github-actions[bot]";
 		const commentContainsSubtext = comment.body?.includes(subtext);
-
-		if (isActionComment === false) continue;
-		if (commentContainsSubtext === false) continue;
+		const skipComment = !isActionComment || !commentContainsSubtext;
+	
+		if (skipComment) return;
 
 		try {
 			await octokit.rest.issues.deleteComment({
