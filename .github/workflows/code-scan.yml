@@ -448,15 +448,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           external-repository-token: ${{ secrets.external_repository_token }}
 
-      - name: "Send pull request notification"
-        if: ${{ github.event_name == 'pull_request' && steps.scanner-action.outputs.notification_pull_request_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by gh cli
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
-        run: |
-          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" -b "$NOTIFICATION_MARKDOWN"
-
       - name: "Send job summary notification"
         if: ${{ steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
         env:

@@ -1,8 +1,9 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import type { Octokit } from "octokit";
+import { removeIssueComment, sendIssueComment } from "./github-issues.js";
 import { type PartialCodeScanningAlert, type SeverityLevel, getAlerts } from "./github-security.js";
-import { setNotificationOutputs } from "./outputs.js";
+import { createMarkdown, setNotificationOutputs } from "./outputs.js";
 import type { ScannerConfig } from "./scanner-config.js";
 
 interface SlackNotification {
@@ -100,6 +101,24 @@ const runNotifications = async (octokitAction: Octokit, scannerType: string, sca
 
 	core.info("Setting notification outputs");
 	setNotificationOutputs(scannerNotifications);
+
+	core.info("Sending pull request notification");
+	await sendPullRequestNotification(scannerNotifications, octokitAction);
+};
+
+const sendPullRequestNotification = async (scannerNotifications: ScannerNotifications, octokit: Octokit) => {
+	const isPullRequestEnabled = scannerNotifications.config.outputs?.pullRequest?.enabled ?? true;
+
+	const skipNotification = !isPullRequestEnabled || github.context.eventName !== "pull_request" || !scannerNotifications.alertsFound;
+
+	if (skipNotification) return;
+
+	const notificationOutput = createMarkdown(scannerNotifications);
+
+	const issue = { issue_number: github.context.issue.number, owner: github.context.issue.owner, repo: github.context.issue.repo };
+
+	await removeIssueComment(issue, `<!-- gha-security:${scannerNotifications.scannerType} -->`, octokit);
+	await sendIssueComment(issue, notificationOutput, octokit);
 };
 
 export { ScannerNotifications, runNotifications, type Notifications };

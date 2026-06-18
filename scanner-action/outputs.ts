@@ -28,7 +28,8 @@ ${scannerReport.resultsList}
 ${scannerReport.scannerTypeName} Report can be found [here](${scannerReport.resultsUrl})
 ### Allowlist
 Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
-See the [${scannerReport.scannerTypeName} documentation](${scannerReport.allowListDocumentationUrl}) on how to use allowlist.`;
+See the [${scannerReport.scannerTypeName} documentation](${scannerReport.allowListDocumentationUrl}) on how to use allowlist.
+<!-- gha-security:${scannerNotifications.scannerType} -->`;
 };
 
 const getScannerReport = (scannerNotifications: ScannerNotifications) => {
@@ -94,8 +95,7 @@ const setNotificationOutputs = (scannerNotifications: ScannerNotifications) => {
 	core.setOutput("notification_slack_channel_id", scannerNotifications.config.outputs?.slack?.channelId ?? "");
 	core.setOutput("notification_slack_enabled", outputBool(scannerNotifications.config.outputs?.slack?.enabled ?? false));
 	core.setOutput("notification_slack_block", createSlackBlock(scannerNotifications));
-	core.setOutput("notification_pull_request_enabled", outputBool(scannerNotifications.config.outputs?.pullRequest?.enabled ?? true));
 	core.setOutput("notification_markdown", createMarkdown(scannerNotifications));
 };
 
-export { setNotificationOutputs };
+export { setNotificationOutputs, createMarkdown };

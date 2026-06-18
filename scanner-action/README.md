@@ -42,10 +42,6 @@ Slack channel id for notifications
 
 Enabled Slack notifications
 
-### `notification_pull_request_enabled`
-
-Enabled pull request notifications
-
 ## Setup
 
 Action uses Yarn 4.9.1 and Typescript.

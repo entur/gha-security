@@ -25,8 +25,6 @@ outputs:
     description: 'Enabled Slack notifications'
   notification_slack_block:
     description: 'Notification in Slack Block format'
-  notification_pull_request_enabled:
-    description: 'Enabled pull request notifications'
   notification_markdown:
     description: 'Notification in markdown format'
 runs:
