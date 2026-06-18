@@ -81,6 +81,7 @@ const dismissAlerts = async (alerts: PartialCodeScanningAlert[], octokit: Octoki
 			if (allowlistEntry.cwe) {
 				return alert?.rule?.tags?.includes(`external/cwe/${allowlistEntry.cwe}`) && !dismissedAlerts.has(alert.number);
 			}
+			return false;
 		});
 
 		for (const matchingAlert of matchingAlerts) {
@@ -97,4 +98,4 @@ const dismissAlerts = async (alerts: PartialCodeScanningAlert[], octokit: Octoki
 	}
 };
 
-export { getAlerts, dismissAlerts, type SeverityLevel, type PartialCodeScanningAlert };
+export { dismissAlerts, getAlerts, type PartialCodeScanningAlert, type SeverityLevel };

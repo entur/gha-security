@@ -98,4 +98,4 @@ const setNotificationOutputs = (scannerNotifications: ScannerNotifications) => {
 	core.setOutput("notification_markdown", createMarkdown(scannerNotifications));
 };
 
-export { setNotificationOutputs, createMarkdown };
+export { createMarkdown, setNotificationOutputs };

@@ -28,4 +28,4 @@ const runAllowlist = async (octokit: Octokit, tool: string, scannerConfig: Scann
 	await dismissAlerts(alerts, octokit, scannerConfig.spec?.allowlist ?? [], repository);
 };
 
-export { runAllowlist, type Allowlist };
+export { type Allowlist, runAllowlist };

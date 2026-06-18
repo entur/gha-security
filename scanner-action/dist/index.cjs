@@ -42000,6 +42000,7 @@ var dismissAlerts = async (alerts, octokit, allowlistEntries, repository) => {
       if (allowlistEntry.cwe) {
         return alert?.rule?.tags?.includes(`external/cwe/${allowlistEntry.cwe}`) && !dismissedAlerts.has(alert.number);
       }
+      return false;
     });
     for (const matchingAlert of matchingAlerts) {
       await octokit.rest.codeScanning.updateAlert({
@@ -42032,14 +42033,14 @@ var runAllowlist = async (octokit, tool, scannerConfig) => {
 // config.ts
 var getOctokitThrottleConfig = () => {
   const throttle = {
-    onRateLimit: (retryAfter, options, octokit, retryCount) => {
+    onRateLimit: (retryAfter, options, _octokit, retryCount) => {
       warning(`Request quota exhausted for request ${options.method} ${options.url}`);
       if (retryCount < 1) {
         info(`Retrying after ${retryAfter} seconds!`);
         return true;
       }
     },
-    onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
+    onSecondaryRateLimit: (_retryAfter, options, _octokit, _retryCount) => {
       warning(`SecondaryRateLimit detected for request ${options.method} ${options.url}`);
     }
   };
@@ -42098,7 +42099,7 @@ var removeIssueComment = async (issue2, subtext, octokit) => {
         ...issue2,
         comment_id: comment.id
       });
-    } catch (error2) {
+    } catch (_error) {
       warning(`Failed to remove comment ${comment.id} for issue: ${issue2.issue_number} with subtext ${subtext}`);
     }
   }
@@ -42427,6 +42428,19 @@ var scannerConfigSchema = (scanner) => {
     required: ["apiVersion", "kind", "metadata", "spec"]
   };
 };
+var validateAllowlist = (allowList) => {
+  const GITHUB_DISMISSED_COMMENT_MAX_LENGTH = 280;
+  const OVERFLOW_TEXT_LENGTH = 3;
+  for (const entry of allowList) {
+    if (entry.comment.length <= GITHUB_DISMISSED_COMMENT_MAX_LENGTH) continue;
+    const alertType = entry.cve ? `cve: ${entry.cve}` : `cwe: ${entry.cwe}`;
+    warning(`allowlist comment for ${alertType} is over 280 characters. 
+ Truncating comment!`);
+    const truncateLength = GITHUB_DISMISSED_COMMENT_MAX_LENGTH - OVERFLOW_TEXT_LENGTH;
+    const truncatedComment = entry.comment.substring(0, truncateLength);
+    entry.comment = `${truncatedComment}...`;
+  }
+};
 var validateScannerConfig = (scannerConfig, scanner) => {
   const ajvInstance = new import_ajv.Ajv({
     verbose: true
@@ -42438,6 +42452,7 @@ var validateScannerConfig = (scannerConfig, scanner) => {
     throw Error(`Failed to validate ${scannerConfig.kind}
  ${JSON.stringify(validate.errors, null, 2)}`);
   }
+  if (scannerConfig.spec?.allowlist) validateAllowlist(scannerConfig.spec?.allowlist);
 };
 var getCentralAllowlistConfig = (scannerType, fetchAllowlist = true) => {
   if (!fetchAllowlist) {
@@ -42522,7 +42537,7 @@ var main = async () => {
     const EXTERNAL_REPOSITORY_TOKEN = getInput("external-repository-token");
     const VALID_SCANNERS = ["dockerscan", "codescan"];
     const ThrottledOctokit = Octokit2.plugin(throttling);
-    let octokitExternal = void 0;
+    let octokitExternal;
     if (!VALID_SCANNERS.includes(SCANNER_TYPE)) {
       setFailed(`Invalid scanner defined ${SCANNER_TYPE}`);
       return;

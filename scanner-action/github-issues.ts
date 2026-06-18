@@ -68,10 +68,10 @@ const removeIssueComment = async (issue: GithubIssue, subtext: string, octokit: 
 				...issue,
 				comment_id: comment.id,
 			});
-		} catch (error) {
+		} catch (_error) {
 			core.warning(`Failed to remove comment ${comment.id} for issue: ${issue.issue_number} with subtext ${subtext}`);
 		}
 	}
 };
 
-export { sendIssueComment, removeIssueComment };
+export { removeIssueComment, sendIssueComment };

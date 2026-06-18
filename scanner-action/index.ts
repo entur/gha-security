@@ -15,7 +15,7 @@ const main = async () => {
 
 		const ThrottledOctokit = Octokit.plugin(throttling);
 
-		let octokitExternal: Octokit | undefined = undefined;
+		let octokitExternal: Octokit | undefined;
 
 		if (!VALID_SCANNERS.includes(SCANNER_TYPE)) {
 			core.setFailed(`Invalid scanner defined ${SCANNER_TYPE}`);
