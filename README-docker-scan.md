@@ -25,9 +25,10 @@ Go to the _Actions_ tab in your repository, click on _New workflow_ and select t
 
 <!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
 
-|                                   INPUT                                    |  TYPE  | REQUIRED | DEFAULT |      DESCRIPTION       |
-|----------------------------------------------------------------------------|--------|----------|---------|------------------------|
-| <a name="input_image_artifact"></a>[image_artifact](#input_image_artifact) | string |   true   |         | Image artifact to scan |
+|                                               INPUT                                                |  TYPE   | REQUIRED | DEFAULT |                                                          DESCRIPTION                                                          |
+|----------------------------------------------------------------------------------------------------|---------|----------|---------|-------------------------------------------------------------------------------------------------------------------------------|
+|             <a name="input_image_artifact"></a>[image_artifact](#input_image_artifact)             | string  |   true   |         |                                                    Image artifact to scan                                                     |
+| <a name="input_include_docker_workdir"></a>[include_docker_workdir](#input_include_docker_workdir) | boolean |  false   | `false` | Include docker workdir for scanning. <br>By default set to false <br>to reduce duplicate vulnerabilities from <br>Dependabot  |
 
 <!-- AUTO-DOC-INPUT:END -->
 
@@ -157,8 +158,26 @@ Pull request notifications (comments) are enabled by default, but can be disable
 
 The format and location of the config can be found [in the section below](#docker-scan-config).
 
-### Known issues
-* Notifications fetches alerts before allowlist changes happen for Docker Scan.
+## Docker image working directory
+By default, Docker Scan excludes the Docker image's working directory, which is
+where application code is usually copied to.
+
+We exclude this because the goal of Docker Scan is to find vulnerabilities in the base image,  
+not the application. Code Scanning and Dependabot are used to find vulnerabilities in application code.
+
+There are edge cases where the application code is shipped inside the Docker image itself.  
+To scan these images fully, you can configure Docker Scan to include the working directory:
+
+```yaml
+jobs:
+  docker-scan:
+    needs: ...
+    uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
+    secrets: inherit
+    with:
+        image_artifact: ...
+        include_docker_workdir: true
+```
 
 ## Docker Scan config
 

@@ -7,6 +7,11 @@ on:
         description: 'Image artifact to scan'
         type: string
         required: true
+      include_docker_workdir:
+        description: 'Include docker workdir for scanning. By default set to false to reduce duplicate vulnerabilities from Dependabot'
+        type: boolean
+        default: false
+        required: false
     secrets:
       external_repository_token:
         description: 'Token to access the external repository mentioned in the dockerscan.yml file. Must have read access to the repository.'
@@ -69,6 +74,7 @@ jobs:
           name: ${{ env.GHA_SECURITY_DOCKER_SCAN_IMAGE_ARTIFACT }}
       - name: "Docker workdir extraction"
         id: docker-workdir
+        if: ${{ !inputs.include_docker_workdir }}
         env:
           IMAGE_ARTIFACT: ${{ inputs.image_artifact }}
         run: |
@@ -83,7 +89,7 @@ jobs:
         id: syft-scan
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         env:
-          SYFT_EXCLUDE: ${{ env.DOCKER_WORKDIR }}
+          SYFT_EXCLUDE: ${{ !inputs.include_docker_workdir && env.DOCKER_WORKDIR  || '' }}
         with:
           format: spdx-json
           image: ${{ inputs.image_artifact }}.tar
