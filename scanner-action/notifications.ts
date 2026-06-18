@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import type { Octokit } from "octokit";
 import { removeIssueComment, sendIssueComment } from "./github-issues.js";
-import { type PartialCodeScanningAlert, type SeverityLevel, getAlerts } from "./github-security.js";
+import { getAlerts, type PartialCodeScanningAlert, type SeverityLevel } from "./github-security.js";
 import { createMarkdown, setNotificationOutputs } from "./outputs.js";
 import type { ScannerConfig } from "./scanner-config.js";
 
@@ -121,4 +121,4 @@ const sendPullRequestNotification = async (scannerNotifications: ScannerNotifica
 	await sendIssueComment(issue, notificationOutput, octokit);
 };
 
-export { ScannerNotifications, runNotifications, type Notifications };
+export { type Notifications, runNotifications, ScannerNotifications };

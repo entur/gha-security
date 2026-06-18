@@ -3,7 +3,7 @@ import type { ThrottlingOptions } from "@octokit/plugin-throttling";
 
 const getOctokitThrottleConfig = () => {
 	const throttle: ThrottlingOptions = {
-		onRateLimit: (retryAfter, options, octokit, retryCount) => {
+		onRateLimit: (retryAfter, options, _octokit, retryCount) => {
 			core.warning(`Request quota exhausted for request ${options.method} ${options.url}`);
 
 			if (retryCount < 1) {
@@ -12,7 +12,7 @@ const getOctokitThrottleConfig = () => {
 				return true;
 			}
 		},
-		onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
+		onSecondaryRateLimit: (_retryAfter, options, _octokit, _retryCount) => {
 			// does not retry, only logs a warning
 			core.warning(`SecondaryRateLimit detected for request ${options.method} ${options.url}`);
 		},
