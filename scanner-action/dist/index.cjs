@@ -42091,8 +42091,8 @@ var removeIssueComment = async (issue2, subtext, octokit) => {
   for (const comment of comments) {
     const isActionComment = comment.user?.login === "github-actions[bot]";
     const commentContainsSubtext = comment.body?.includes(subtext);
-    if (isActionComment === false) continue;
-    if (commentContainsSubtext === false) continue;
+    const skipComment = !isActionComment || !commentContainsSubtext;
+    if (skipComment) return;
     try {
       await octokit.rest.issues.deleteComment({
         ...issue2,
@@ -42249,8 +42249,8 @@ var runNotifications = async (octokitAction, scannerType, scannerConfig) => {
 };
 var sendPullRequestNotification = async (scannerNotifications, octokit) => {
   const isPullRequestEnabled = scannerNotifications.config.outputs?.pullRequest?.enabled ?? true;
-  const sendNotification = isPullRequestEnabled === true && context2.eventName === "pull_request" && scannerNotifications.alertsFound;
-  if (!sendNotification) return;
+  const skipNotification = !isPullRequestEnabled || context2.eventName !== "pull_request" || !scannerNotifications.alertsFound;
+  if (skipNotification) return;
   const notificationOutput = createMarkdown(scannerNotifications);
   const issue2 = { issue_number: context2.issue.number, owner: context2.issue.owner, repo: context2.issue.repo };
   await removeIssueComment(issue2, `<!-- gha-security:${scannerNotifications.scannerType} -->`, octokit);
