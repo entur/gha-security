@@ -158,9 +158,6 @@ Pull request notifications (comments) are enabled by default, but can be disable
 
 The format and location of the config can be found [in the section below](#docker-scan-config).
 
-### Known issues
-* Notifications fetches alerts before allowlist changes happen for Docker Scan.
-
 ## Docker image working directory
 By default, Docker Scan excludes the Docker image's working directory, which is
 where application code is usually copied to.
