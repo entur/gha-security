@@ -61,7 +61,7 @@ const removeIssueComment = async (issue: GithubIssue, subtext: string, octokit: 
 		const commentContainsSubtext = comment.body?.includes(subtext);
 		const skipComment = !isActionComment || !commentContainsSubtext;
 
-		if (skipComment) return;
+		if (skipComment) continue;
 
 		try {
 			await octokit.rest.issues.deleteComment({

@@ -42093,7 +42093,7 @@ var removeIssueComment = async (issue2, subtext, octokit) => {
     const isActionComment = comment.user?.login === "github-actions[bot]";
     const commentContainsSubtext = comment.body?.includes(subtext);
     const skipComment = !isActionComment || !commentContainsSubtext;
-    if (skipComment) return;
+    if (skipComment) continue;
     try {
       await octokit.rest.issues.deleteComment({
         ...issue2,
