@@ -32,9 +32,9 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v6
             - name: Setup Biome
-              uses: biomejs/setup-biome@v2
+              uses: biomejs/setup-biome@4c91541eaada48f67d7dbd7833600ce162b68f51 # v2.7.1
               with:
-                version: 2.4.16
+                version: 2.5.0
                 working-dir: ./scanner-action
             - name: Run Biome
               working-directory: ./scanner-action
