@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.14.0](https://github.com/entur/gha-security/compare/v2.13.0...v2.14.0) (2026-06-19)
+
+
+### Features
+
+* add input include_docker_workdir to docker-scan ([#223](https://github.com/entur/gha-security/issues/223)) ([22a6e95](https://github.com/entur/gha-security/commit/22a6e95e7190c0ab640a1b60ff39e4a2e4b1b3a3))
+* improve pull request comment handling ([#221](https://github.com/entur/gha-security/issues/221)) ([e433894](https://github.com/entur/gha-security/commit/e433894b61b6dff96ec732977086cd9ff79f0530))
+* improve security hardening ([#218](https://github.com/entur/gha-security/issues/218)) ([71679a5](https://github.com/entur/gha-security/commit/71679a5131c52962d34363093acc1ffcca49951e))
+
+
+### Bug Fixes
+
+* check scala in semgrep_languages than codeql_languages ([#224](https://github.com/entur/gha-security/issues/224)) ([b201195](https://github.com/entur/gha-security/commit/b201195bdb475bd6bb9fa2d9c3d6c49b6df21321))
+* reduce scope where github token is exposed under env ([#216](https://github.com/entur/gha-security/issues/216)) ([7b76d13](https://github.com/entur/gha-security/commit/7b76d1373426dfbebff557f48e338218996bf151))
+* truncate allowlist comment if longer than 280 characters. ([#222](https://github.com/entur/gha-security/issues/222)) ([d3c49ee](https://github.com/entur/gha-security/commit/d3c49eec0ddbce7bc7834786bb680fff09e035f4))
+
 ## [2.13.0](https://github.com/entur/gha-security/compare/v2.12.2...v2.13.0) (2026-05-22)
 
 
