@@ -13,6 +13,11 @@ on:
         default: "security-extended"
         required: false
         type: string
+      additional_build_secrets:
+        description: 'Comma-separated list of secrets for CodeQL autobuild / Semgrep Dependency Graph generation'
+        default: ""
+        required: false
+        type: string
       ignore_language:
         description: 'Comma-separated list of languages for CodeQL or Semgrep to ignore. See [CodeQL Languages](https://github.com/github/codeql-action/blob/main/src/languages.ts) or "scala" for Semgrep'
         default: ""
@@ -264,6 +269,15 @@ jobs:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
           server-id: ${{ inputs.java_server_id_artifactory }}
+
+
+      - name: "Export build secrets"
+        if: inputs.additional_build_secrets != ''
+        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2
+        with:
+          mode: export
+          export-secrets: ${{ inputs.additional_build_secrets }}
+          secrets: ${{ toJSON(secrets) }}
         
       - name: "Gradle Dependency Graph for Scala"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'scala')
@@ -281,6 +295,13 @@ jobs:
           dependency-graph: 'generate-and-upload'
           dependency-graph-continue-on-failure: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Clear build secrets"
+        if: inputs.additional_build_secrets != ''
+        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2
+        with:
+          mode: clear
+          export-secrets: ${{ inputs.additional_build_secrets }}
 
       - name: "Set up Semgrep"
         run: |
@@ -393,6 +414,14 @@ jobs:
                   id: actions/missing-workflow-permissions
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: "Export build secrets"
+        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2
+        if: inputs.additional_build_secrets != ''
+        with:
+          mode: export
+          export-secrets: ${{ inputs.additional_build_secrets }}
+          secrets: ${{ toJSON(secrets) }}
+
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
         uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
@@ -400,14 +429,19 @@ jobs:
           category: "/language:${{ matrix.language }}"
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
-          SOFTPAY_NEXUS_USERNAME: ${{ secrets.SOFTPAY_NEXUS_USERNAME }}
-          SOFTPAY_NEXUS_PASSWORD: ${{ secrets.SOFTPAY_NEXUS_PASSWORD }}
           ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
           ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
           ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
           GRADLE_OPTS: ${{ inputs.gradle_opts }}
           GITHUB_TOKEN: ${{ inputs.expose_github_token_and_actor && github.token || '' }}
           IS_CODEQL_SCAN: true
+
+      - name: "Clear build secrets"
+        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2
+        if: inputs.additional_build_secrets != ''
+        with:
+          mode: clear
+          export-secrets: ${{ inputs.additional_build_secrets }}
 
       - name: "Post message to job summary if scan with HTML only files fail"
         if: ${{ failure() && steps.codeql-analysis.outcome == 'failure' && needs.get-repository-metadata.outputs.html_only_scan == 'True' && matrix.language == 'javascript-typescript' }}
