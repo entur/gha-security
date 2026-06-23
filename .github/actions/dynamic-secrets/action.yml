@@ -1,0 +1,43 @@
+name: 'Dynamic Secrets'
+description: 'Handle exporting and clearing secrets from environment variables'
+inputs:
+  export-secrets:
+    description: 'Comma-separated list of SECRETS to export'
+    required: true
+  secrets:
+    description: 'JSON object containing all secrets'
+    required: false
+  mode:
+    description: "Mode to either export or clear secrets"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: "Run mode: ${{ inputs.mode }}"
+      id: add-secrets
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        EXPORT_SECRETS: ${{ inputs.export-secrets }}
+        SECRETS: ${{ inputs.mode == 'export' && inputs.secrets || '' }}
+        MODE: ${{ inputs.mode }}
+      with:
+        script: |
+          const exportSecrets = process.env.EXPORT_SECRETS.split(",");
+          const mode = process.env.MODE;
+
+          if (mode == "export") {
+            const secrets = JSON.parse(process.env.SECRETS);
+            
+            for (const exportSecret of exportSecrets) {
+              if (!Object.keys(secrets).includes(exportSecret))
+                continue;
+
+              core.exportVariable(exportSecret, secrets[exportSecret]);
+            }
+          }
+
+          if (mode == "clear") {
+            for (const exportSecret of exportSecrets) {
+                core.exportVariable(exportSecret, "");
+            }
+          }
