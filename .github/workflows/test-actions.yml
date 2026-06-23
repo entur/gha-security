@@ -1,0 +1,59 @@
+name: 'Entur/Security/Test Actions'
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+    test-dynamic-secrets:
+      runs-on: ubuntu-24.04
+      name: ${{ matrix.test.title }}
+      strategy:
+          matrix:
+              test:
+                - title: "Should export and clear single secret"
+                  export-secrets: "DUMMY_SECRET_FOR_TEST"
+                - title: "Should export and clear multiple secrets from comma seperated list"
+                  export-secrets: "DUMMY_SECRET_FOR_TEST,DUMMY_SECRET_FOR_TEST_2"
+      steps:
+        - name: "Checkout repository"
+          uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
+        - name: "Export build secrets"
+          uses: ./.github/actions/dynamic-secrets
+          with:
+            mode: export
+            export-secrets: ${{ matrix.test.export-secrets }}
+            secrets: ${{ toJSON(secrets) }}
+        - name: "Assert export"
+          uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+          env:
+            EXPORT_SECRETS: ${{ matrix.test.export-secrets }}
+            SECRETS: ${{ toJSON(secrets) }}
+          with: 
+            script: |
+              const exportSecrets = process.env.EXPORT_SECRETS.split(",");
+              
+              for (const exportSecret of exportSecrets) {
+                const secrets = JSON.parse(process.env.SECRETS);
+                if (process.env[exportSecret] != secrets[exportSecret])
+                    core.setFailed(`Failed to expose secret ${exportSecret}`);
+              }
+        - name: "Clear build secrets"
+          uses: ./.github/actions/dynamic-secrets
+          with:
+            mode: clear
+            export-secrets: ${{ matrix.test.export-secrets }}
+            secrets: ${{ toJSON(secrets) }}
+        - name: "Assert clear"
+          uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+          env:
+            EXPORT_SECRETS: ${{ matrix.test.export-secrets }}
+          with: 
+            script: |
+              const exportSecrets = process.env.EXPORT_SECRETS.split(",");
+              
+              for (const exportSecret of exportSecrets) {
+                if (process.env[exportSecret] != "")
+                    core.setFailed(`Failed to clear secret ${exportSecret}`);
+              }
