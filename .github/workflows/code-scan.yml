@@ -297,7 +297,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Clear build secrets"
-        if: inputs.additional_build_secrets != ''
+        if: always() && inputs.additional_build_secrets != ''
         uses:  entur/gha-security/.github/actions/dynamic-secrets@v2
         with:
           mode: clear
@@ -440,7 +440,7 @@ jobs:
 
       - name: "Clear build secrets"
         uses:  entur/gha-security/.github/actions/dynamic-secrets@v2
-        if: inputs.additional_build_secrets != ''
+        if: always() && inputs.additional_build_secrets != ''
         with:
           mode: clear
           export-secrets: ${{ inputs.additional_build_secrets }}
