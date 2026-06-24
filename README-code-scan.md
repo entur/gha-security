@@ -407,6 +407,24 @@ Following extensions is part of our HTML file extension detection
 * .xhtm
 * .xhtml
 
+### CodeQL/Semgrep is missing secret(s) to build project
+
+The CodeQL autobuild and Semgrep dependency graph steps run in an isolated environment that does not expose your repository or organization secrets by default. If your build needs one (for example, to download dependencies from a private registry), pass a comma-separated list of secret **names** to the `additional_build_secrets` input.
+
+Each named secret is exported as an environment variable for the build/autobuild step and cleared again afterward. The names must match the secrets available to the workflow, so `secrets: inherit` is required.
+
+```yaml
+jobs:
+    code-scan:
+        name: Code Scan
+        uses: entur/gha-security/.github/workflows/code-scan.yml@v2
+        secrets: inherit
+        with:
+          additional_build_secrets: "TOKEN_SECRET,TOKEN_SECRET_2"
+```
+
+The build can then read them as regular environment variables, e.g. `$TOKEN_SECRET`.
+
 ### CodeQL/Semgrep is not able to download dependencies from Github packages for build step.
 
 Enable `expose_github_token_and_actor` to expose `GITHUB_TOKEN` and `GITHUB_ACTOR` in CodeQL/Semgrep steps.
