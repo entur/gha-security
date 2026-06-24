@@ -33,18 +33,20 @@ jobs:
           with: 
             script: |
               const exportSecrets = process.env.EXPORT_SECRETS.split(",");
-              
+              const secrets = JSON.parse(process.env.SECRETS);
+
               for (const exportSecret of exportSecrets) {
-                const secrets = JSON.parse(process.env.SECRETS);
+                if (!secrets[exportSecret])
+                  core.setFailed(`Test secret ${exportSecret} is not defined, is it configured in repository?`);
+
                 if (process.env[exportSecret] != secrets[exportSecret])
-                    core.setFailed(`Failed to expose secret ${exportSecret}`);
+                  core.setFailed(`Failed to expose secret ${exportSecret}`);
               }
         - name: "Clear build secrets"
           uses: ./.github/actions/dynamic-secrets
           with:
             mode: clear
             export-secrets: ${{ matrix.test.export-secrets }}
-            secrets: ${{ toJSON(secrets) }}
         - name: "Assert clear"
           uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
           env:
