@@ -20,6 +20,7 @@ or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your 
 
 |                                                          INPUT                                                          |  TYPE   | REQUIRED |             DEFAULT             |                                                                                                                       DESCRIPTION                                                                                                                        |
 |-------------------------------------------------------------------------------------------------------------------------|---------|----------|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        <a name="input_additional_build_secrets"></a>[additional_build_secrets](#input_additional_build_secrets)         | string  |  false   |                                 |                                                                           Comma-separated list of secrets for <br>CodeQL autobuild / Semgrep Dependency <br>Graph generation                                                                             |
 |                       <a name="input_codeql_queries"></a>[codeql_queries](#input_codeql_queries)                        | string  |  false   |      `"security-extended"`      |                                                                           Comma-separated list of queries for <br>CodeQL to run. By default <br>is set to security-extended.                                                                             |
 | <a name="input_expose_github_token_and_actor"></a>[expose_github_token_and_actor](#input_expose_github_token_and_actor) | boolean |  false   |             `false`             |                                                                             Expose GITHUB_TOKEN and GITHUB_ACTOR to <br>support Github packages for CodeQL <br>and Semgrep                                                                               |
 |                            <a name="input_gradle_opts"></a>[gradle_opts](#input_gradle_opts)                            | string  |  false   | `"-Dorg.gradle.jvmargs=-Xmx4g"` |                                              [Gradle build options](https://docs.gradle.org/current/userguide/build_environment.html#environment_variables_reference) to pass on to <br>the CodeQL scanner                                               |
@@ -405,6 +406,24 @@ Following extensions is part of our HTML file extension detection
 * .html
 * .xhtm
 * .xhtml
+
+### CodeQL/Semgrep is missing secret(s) to build project
+
+The CodeQL autobuild and Semgrep dependency graph steps run in an isolated environment that does not expose your repository or organization secrets by default. If your build needs one (for example, to download dependencies from a private registry), pass a comma-separated list of secret **names** to the `additional_build_secrets` input.
+
+Each named secret is exported as an environment variable for the build/autobuild step and cleared again afterward. The names must match the secrets available to the workflow, so `secrets: inherit` is required.
+
+```yaml
+jobs:
+    code-scan:
+        name: Code Scan
+        uses: entur/gha-security/.github/workflows/code-scan.yml@v2
+        secrets: inherit
+        with:
+          additional_build_secrets: "TOKEN_SECRET,TOKEN_SECRET_2"
+```
+
+The build can then read them as regular environment variables, e.g. `$TOKEN_SECRET`.
 
 ### CodeQL/Semgrep is not able to download dependencies from Github packages for build step.
 
