@@ -6,6 +6,74 @@ on:
   pull_request:
 
 jobs:
+    test-sarif-fix:
+      runs-on: ubuntu-24.04
+      name: "Should set location in sarif data"
+      env: 
+        IMAGE_NAME: "test-image"
+      steps:
+          - name: "Checkout repository"
+            uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
+          - name: Pull and Save Docker Image
+            run: |
+              docker pull node:26.3.0-alpine3.24
+              
+              # Save the pulled image to a tar file
+              docker save -o "$IMAGE_NAME".tar node:26.3.0-alpine3.24
+          - name: "Anchore Syft Scan"
+            id: syft-scan
+            uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+            with:
+              format: spdx-json
+              image: ${{ env.IMAGE_NAME }}.tar
+              output-file: ${{ env.IMAGE_NAME }}.spdx.json
+              artifact-name: ${{ env.IMAGE_NAME }}.spdx.json
+        
+          - name: "Anchore Grype Scan"
+            id: anchore-scan
+            uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7
+            with: 
+              sbom: ${{ env.IMAGE_NAME }}.spdx.json
+              by-cve: true
+              fail-build: false
+              severity-cutoff: critical
+
+          - name: "Fix sarif output"
+            id: sbom-sarif-fix
+            uses: ./.github/actions/sarif-output-fix
+            with:
+              sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
+              sbom_file: ${{ env.IMAGE_NAME }}.spdx.json
+
+          - name: "Assert location set"
+            uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+            env:
+              SARIF_FILE: ${{ steps.anchore-scan.outputs.sarif }}
+            with: 
+              script: |
+                const fs = require('fs');
+                const sarifJSON = JSON.parse(fs.readFileSync(process.env.SARIF_FILE, 'utf8'));
+
+                
+                const getSarifRules = (sarif) => {
+                    try {
+                        return sarif["runs"][0]["tool"]["driver"]["rules"];
+                    } catch (error) {
+                        core.warning(`error while getting rules from sarif: ${error}`)
+                        return null;
+                    }
+                }
+
+                const rules = getSarifRules(sarifJSON);
+
+                if (!rules)
+                  core.setFailed("Failed to get sarif rules, has format changed?");
+
+                for (const rule of rules) {
+                  const location = rule["help"]["text"].split("\nLocation: ")[1].split("\n")[0];
+                  if (location.length == 0)
+                    core.setFailed(`Rule ${rule["id"]} has not set Location!`)
+                }
     test-dynamic-secrets:
       runs-on: ubuntu-24.04
       name: ${{ matrix.test.title }}
