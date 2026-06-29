@@ -1,4 +1,3 @@
-// myscript.js
 module.exports = ({ core }) => {
     const fs = require('fs');
     const sarifJSON = JSON.parse(fs.readFileSync(process.env.SARIF_FILE, 'utf8'));
