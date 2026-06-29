@@ -1,5 +1,5 @@
 name: 'Sarif output fix'
-description: ''
+description: 'Fix Sarif output to include Location from sbom file'
 inputs:
   sarif_file:
     description: 'Sarif file from Grype Scan'
@@ -10,7 +10,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: "Fix sarif file output"
+    - name: "Add location to sarif output file"
       env:
         SARIF_FILE: ${{ inputs.sarif_file }}
         SBOM_FILE: ${{ inputs.sbom_file }}
