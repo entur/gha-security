@@ -1,4 +1,3 @@
-// myscript.js
 module.exports = ({ core }) => {
 
     const fs = require('fs');
