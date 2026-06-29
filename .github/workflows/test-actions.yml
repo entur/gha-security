@@ -6,11 +6,11 @@ on:
   pull_request:
 
 jobs:
-    test-sarif-fix:
+    # We run grype and syft scan as a way to do integration testing.
+    # if format has changed, and location is no longer updated tests will fail.
+    run-grype-and-syft-scan:
       runs-on: ubuntu-24.04
-      name: "Should set location in sarif data"
-      env: 
-        IMAGE_NAME: "test-image"
+      name: "Run grype and syft scan"
       steps:
           - name: "Checkout repository"
             uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
@@ -19,61 +19,84 @@ jobs:
               docker pull node:26.3.0-alpine3.24
               
               # Save the pulled image to a tar file
-              docker save -o "$IMAGE_NAME".tar node:26.3.0-alpine3.24
+              docker save -o test.tar node:26.3.0-alpine3.24
           - name: "Anchore Syft Scan"
             id: syft-scan
             uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
             with:
               format: spdx-json
-              image: ${{ env.IMAGE_NAME }}.tar
-              output-file: ${{ env.IMAGE_NAME }}.spdx.json
-              artifact-name: ${{ env.IMAGE_NAME }}.spdx.json
+              image: test.tar
+              output-file: test.spdx.json
+              artifact-name: test.spdx.json
         
           - name: "Anchore Grype Scan"
             id: anchore-scan
             uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7
             with: 
-              sbom: ${{ env.IMAGE_NAME }}.spdx.json
+              sbom: test.spdx.json
               by-cve: true
               fail-build: false
               severity-cutoff: critical
+          - name: "Upload sarif output as artifact"
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+            with:
+              name: sarif-result
+              path: ${{ steps.anchore-scan.outputs.sarif }}
+              overwrite: true
+          - name: "Upload sbom output as artifact"
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+            with:
+              name: sbom-result
+              path: test.spdx.json
+              overwrite: true
 
-          - name: "Fix sarif output"
-            id: sbom-sarif-fix
+    test-serif-location-fix:
+      runs-on: ubuntu-24.04
+      needs: run-grype-and-syft-scan
+      name: ${{ matrix.test.title }}
+      strategy:
+          matrix:
+              test:
+                - title: "Assert location is NOT set when sbom file is missing"
+                  include-files: ["sarif"]
+                  location-set: false
+                - title: "Assert location is set when sbom and sarif file provided"
+                  include-files: ["sbom", "sarif"]
+                  location-set: true
+      env: 
+        SARIF_FILE: "output"
+        SBOM_FILE: "test.spdx.json"
+      steps:
+          - name: "Checkout repository"
+            uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
+          - name: Download sbom
+            uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+            with:
+              name: sbom-result
+              
+
+          - name: Download sarif
+            uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+            with:
+              name: sarif-result
+
+          - name: "Run sarif output fix action"
             uses: ./.github/actions/sarif-output-fix
             with:
-              sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
-              sbom_file: ${{ env.IMAGE_NAME }}.spdx.json
+              sarif_file: ${{ contains(matrix.test.include-files, 'sarif') && env.SARIF_FILE || '' }}
+              sbom_file: ${{ contains(matrix.test.include-files, 'sbom') && env.SBOM_FILE  || '' }}
 
-          - name: "Assert location set"
+          - name: "Assert sarif fix"
             uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
             env:
-              SARIF_FILE: ${{ steps.anchore-scan.outputs.sarif }}
-            with: 
+              SARIF_FILE: ${{ env.SARIF_FILE }}
+              LOCATION_SET: ${{ matrix.test.location-set }}
+            with:
               script: |
-                const fs = require('fs');
-                const sarifJSON = JSON.parse(fs.readFileSync(process.env.SARIF_FILE, 'utf8'));
+                const assertSarifFix = require("./.github/scripts/assert-sarif-fix.js");
+                assertSarifFix({ core });
 
-                
-                const getSarifRules = (sarif) => {
-                    try {
-                        return sarif["runs"][0]["tool"]["driver"]["rules"];
-                    } catch (error) {
-                        core.warning(`error while getting rules from sarif: ${error}`)
-                        return null;
-                    }
-                }
 
-                const rules = getSarifRules(sarifJSON);
-
-                if (!rules)
-                  core.setFailed("Failed to get sarif rules, has format changed?");
-
-                for (const rule of rules) {
-                  const location = rule["help"]["text"].split("\nLocation: ")[1].split("\n")[0];
-                  if (location.length == 0)
-                    core.setFailed(`Rule ${rule["id"]} has not set Location!`)
-                }
     test-dynamic-secrets:
       runs-on: ubuntu-24.04
       name: ${{ matrix.test.title }}
@@ -100,30 +123,18 @@ jobs:
             SECRETS: ${{ toJSON(secrets) }}
           with: 
             script: |
-              const exportSecrets = process.env.EXPORT_SECRETS.split(",");
-              const secrets = JSON.parse(process.env.SECRETS);
-
-              for (const exportSecret of exportSecrets) {
-                if (!secrets[exportSecret])
-                  core.setFailed(`Test secret ${exportSecret} is not defined, is it configured in repository?`);
-
-                if (process.env[exportSecret] != secrets[exportSecret])
-                  core.setFailed(`Failed to expose secret ${exportSecret}`);
-              }
+              const assertExportSecret = require("./.github/scripts/assert-export-secrets.js");
+              assertExportSecret({ core });
         - name: "Clear build secrets"
           uses: ./.github/actions/dynamic-secrets
           with:
             mode: clear
             export-secrets: ${{ matrix.test.export-secrets }}
-        - name: "Assert clear"
+        - name: "Assert clear secrets"
           uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
           env:
             EXPORT_SECRETS: ${{ matrix.test.export-secrets }}
           with: 
             script: |
-              const exportSecrets = process.env.EXPORT_SECRETS.split(",");
-              
-              for (const exportSecret of exportSecrets) {
-                if (process.env[exportSecret] != "")
-                    core.setFailed(`Failed to clear secret ${exportSecret}`);
-              }
+              const assertClearSecret = require("./.github/scripts/assert-clear-secrets.js");
+              assertClearSecret({ core });
