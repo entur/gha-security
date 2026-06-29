@@ -93,7 +93,7 @@ jobs:
               LOCATION_SET: ${{ matrix.test.location-set }}
             with:
               script: |
-                const assertSarifFix = require("./.github/scripts/assert-sarif-fix.js");
+                const assertSarifFix = require("./.github/test-scripts/assert-sarif-fix.js");
                 assertSarifFix({ core });
 
 
@@ -125,7 +125,7 @@ jobs:
             SECRETS: ${{ toJSON(secrets) }}
           with: 
             script: |
-              const assertExportSecret = require("./.github/scripts/assert-export-secrets.js");
+              const assertExportSecret = require("./.github/test-scripts/assert-export-secrets.js");
               assertExportSecret({ core });
         - name: "Clear build secrets"
           uses: ./.github/actions/dynamic-secrets
@@ -138,5 +138,5 @@ jobs:
             EXPORT_SECRETS: ${{ matrix.test.export-secrets }}
           with: 
             script: |
-              const assertClearSecret = require("./.github/scripts/assert-clear-secrets.js");
+              const assertClearSecret = require("./.github/test-scripts/assert-clear-secrets.js");
               assertClearSecret({ core });
