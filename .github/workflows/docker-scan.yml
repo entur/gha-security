@@ -108,7 +108,7 @@ jobs:
 
       - name: "Fix sarif output"
         id: sbom-sarif-fix
-        uses: entur/.github/actions/sarif-output-fix@v2
+        uses: entur/gha-security/.github/actions/sarif-output-fix@v2
         with:
            sarif_file: ${{ steps.anchore-scan.outputs.sarif }}
            sbom_file: ${{ inputs.image_artifact }}.spdx.json
