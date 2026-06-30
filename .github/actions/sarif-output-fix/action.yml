@@ -1,0 +1,23 @@
+name: 'Sarif output fix'
+description: 'Fix Sarif output to include Location from sbom file'
+inputs:
+  sarif_file:
+    description: 'Sarif file from Grype Scan'
+    required: true
+  sbom_file:
+    description: 'Sbom file from Syft scan'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: "Fix sarif file output"
+      env:
+        SARIF_FILE: ${{ inputs.sarif_file }}
+        SBOM_FILE: ${{ inputs.sbom_file }}
+        ACTION_PATH: ${{ github.action_path }}
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      with:
+        script: |
+          const sarifFix = require(`${process.env.ACTION_PATH}/index.js`);
+          
+          sarifFix({ core });
