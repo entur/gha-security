@@ -1,3 +1,12 @@
+const readJSONFile = (filePath) => {
+    try {
+        return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (error) {
+        core.warning(`Failed to parse file ${filePath} with error: ${error}`)
+        return null;
+    }
+}
+
 module.exports = ({ core }) => {
 
     const fs = require('fs');
@@ -15,8 +24,11 @@ module.exports = ({ core }) => {
         return;
     }
 
-    const sbomJSON = JSON.parse(fs.readFileSync(sbomFilePath, 'utf8'));
-    const sarifJSON = JSON.parse(fs.readFileSync(sarifFilePath, 'utf8'));
+    const sbomJSON = readJSONFile(sbomFilePath, 'utf8');
+    const sarifJSON = readJSONFile(sarifFilePath, 'utf8');
+
+    if (!sbomJSON || !sarifJSON)
+        return;
 
     const getSarifRules = (sarif) => {
         try {
