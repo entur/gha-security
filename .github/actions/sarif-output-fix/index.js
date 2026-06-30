@@ -1,12 +1,3 @@
-const readJSONFile = (filePath) => {
-    try {
-        return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    } catch (error) {
-        core.warning(`Failed to parse file ${filePath} with error: ${error}`)
-        return null;
-    }
-}
-
 module.exports = ({ core }) => {
 
     const fs = require('fs');
@@ -14,14 +5,23 @@ module.exports = ({ core }) => {
     const sbomFilePath = process.env.SBOM_FILE;
     const sarifFilePath = process.env.SARIF_FILE;
 
-    if(!fs.existsSync(sbomFilePath)) {
+    if (!fs.existsSync(sbomFilePath)) {
         core.warning(`sbom file not found, skipping fix`)
         return;
     }
 
-    if(!fs.existsSync(sarifFilePath)) {
+    if (!fs.existsSync(sarifFilePath)) {
         core.warning(`sarif file not found, skipping fix`)
         return;
+    }
+
+    const readJSONFile = (filePath) => {
+        try {
+            return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        } catch (error) {
+            core.warning(`Failed to parse file ${filePath} with error: ${error}`)
+            return null;
+        }
     }
 
     const sbomJSON = readJSONFile(sbomFilePath, 'utf8');
