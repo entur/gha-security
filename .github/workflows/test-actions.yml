@@ -119,12 +119,12 @@ jobs:
             echo "$LOG_MESSAGE"
         - name: "CodeQL Kotlin error handler"
           id: codeql-kotlin-error-handler
-          continue-on-error: ${{ fromJSON(matrix.test.should-fail) }}
+          continue-on-error: ${{ matrix.test.should-fail }}
           uses: ./.github/actions/codeql-kotlin-error-handler
         - name: "Assert step outcome"
-          if: ${{ fromJson(matrix.test.should-fail) && steps.codeql-kotlin-error-handler.outcome != 'failure' }}
+          if: ${{ matrix.test.should-fail && steps.codeql-kotlin-error-handler.outcome != 'failure' }}
           env:
-            EXPECTED_OUTCOME: ${{ fromJson(matrix.test.should-fail) && 'failure' || 'success'  }}
+            EXPECTED_OUTCOME: ${{ matrix.test.should-fail && 'failure' || 'success'  }}
             STEP_OUTCOME: ${{ steps.codeql-kotlin-error-handler.outcome }}
           run: |
             echo "::error::Assert failed: expected step outcome to be $EXPECTED_OUTCOME but actual outcome is $STEP_OUTCOME"
