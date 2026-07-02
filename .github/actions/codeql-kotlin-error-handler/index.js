@@ -1,6 +1,10 @@
+// Github doesn't have a way to get previous log lines of a job.
+// So we take advantage of the logs being stored in the actions-runner, so we can look for the error line from CodeQL autobuild.
+// NOTE: if Github one day, allows you to read logs using Official API, then use that instead.
 const getActionRunnerLog = async (fs, glob) => {
     try {
-
+        // Globber is used here to fetch the files, there is usually 2 files generated here.
+        // One for the log of current step, and one for the entire job.
         const globber = await glob.create("~/actions-runner/cached/*/_diag/blocks/*", {
             followSymbolicLinks: false
         });
@@ -15,6 +19,10 @@ const getActionRunnerLog = async (fs, glob) => {
 }
 
 module.exports = async ({ core, glob }) => {
+    // This action does not support macOS/Windows
+    if (process.env.RUNNER_OS != "Linux")
+        return;
+
     const fs = require('fs');
     
     const actionRunnerLog = await getActionRunnerLog(fs, glob);

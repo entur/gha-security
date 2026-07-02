@@ -8,7 +8,7 @@ runs:
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       env:
         ACTION_PATH: ${{ github.action_path }}
-        JOB_VALUE: ${{ inputs.find_value }}
+        RUNNER_OS: ${{ runner.os }}
       with:
         script: |
           const errorHandler = require(`${process.env.ACTION_PATH}/index.js`);
