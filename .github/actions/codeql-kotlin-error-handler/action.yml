@@ -1,0 +1,20 @@
+name: 'CodeQL Kotlin Error Handler'
+description: 'Handle error from CodeQL auto-build that fails when Kotlin version is not supported'
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Handle CodeQL Kotlin error"
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        RUNNER_OS: ${{ runner.os }}
+      with:
+        script: |
+          const errorHandler = require(`${process.env.ACTION_PATH}/index.js`);
+          
+          try {
+            await errorHandler({ core, glob });
+          } catch(error) {
+            core.setFailed(error.message)
+          }

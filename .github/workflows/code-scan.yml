@@ -445,6 +445,10 @@ jobs:
           mode: clear
           export-secrets: ${{ inputs.additional_build_secrets }}
 
+      - name: "CodeQL Kotlin Error Handler"
+        if: failure() && steps.codeql-analysis.outcome == 'failure' && matrix.language == 'kotlin'
+        uses: entur/gha-security/.github/actions/codeql-kotlin-error-handler@v2
+
       - name: "Post message to job summary if scan with HTML only files fail"
         if: ${{ failure() && steps.codeql-analysis.outcome == 'failure' && needs.get-repository-metadata.outputs.html_only_scan == 'True' && matrix.language == 'javascript-typescript' }}
         run: |
