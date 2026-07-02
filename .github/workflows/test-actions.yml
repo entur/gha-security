@@ -107,6 +107,9 @@ jobs:
                 - title: "Should silently exit if no Kotlin support error"
                   log-message: "No errors found here!"
                   should-fail: no
+                - title: "temp-test-assert"
+                  log-message: "No errors found here!"
+                  should-fail: true
       steps:
         - name: "Checkout repository"
           uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
@@ -118,8 +121,19 @@ jobs:
           run: |
             echo "$LOG_MESSAGE"
         - name: "CodeQL Kotlin error handler"
+          id: codeql-kotlin-error-handler
           continue-on-error: ${{ fromJSON(matrix.test.should-fail) }}
           uses: ./.github/actions/codeql-kotlin-error-handler
+        - name: "Assert step outcome"
+          if: ${{ fromJson(matrix.test.should-fail) && steps.codeql-kotlin-error-handler.outcome != 'failure' }}
+          env:
+            EXPECTED_OUTCOME: ${{ fromJson(matrix.test.should-fail) && 'failure' || 'success'  }}
+            STEP_OUTCOME: ${{ steps.codeql-kotlin-error-handler.outcome }}
+          run: |
+            echo "::error::Assert failed: expected step outcome to be $EXPECTED_OUTCOME but actual outcome is $STEP_OUTCOME"
+            exit 1;
+            
+            
     test-dynamic-secrets:
       runs-on: ubuntu-24.04
       name: ${{ matrix.test.title }}
