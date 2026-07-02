@@ -29,16 +29,16 @@ module.exports = async ({ core, glob }) => {
     const supportErrorMessage = actionRunnerLog
         .split("\n")
         .find(line =>
-            /Kotlin version (\d+\.\d+\.\d+) is too recent. CodeQL currently supports versions below (\d+\.\d+\.\d+)/.test(line));
+            /Kotlin version (.*) is too recent. CodeQL currently supports versions below (.*)/.test(line));
 
     // if no message found related to CodeQL kotlin support, silently quit
     if (!supportErrorMessage)
         return;
 
-    const matches = supportErrorMessage.match(/Kotlin version (\d+\.\d+\.\d+) is too recent. CodeQL currently supports versions below (\d+\.\d+\.\d+)/)
+    const matches = supportErrorMessage.match(/Kotlin version (.*) is too recent. CodeQL currently supports versions below (.*)/)
 
     const [_, kotlinVersion, incompatibleKotlinVersion] = matches;
-     
+
 
     await core.summary
         .addHeading(`CodeQL analysis failed with too recent Kotlin version`)
