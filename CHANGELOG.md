@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.15.0](https://github.com/entur/gha-security/compare/v2.14.0...v2.15.0) (2026-07-02)
+
+
+### Features
+
+* add codeql kotlin support warning ([#233](https://github.com/entur/gha-security/issues/233)) ([980d09b](https://github.com/entur/gha-security/commit/980d09b91133f1c20e964f0e795989fbf7db982b))
+* Improve alert output from Grype to include location ([#232](https://github.com/entur/gha-security/issues/232)) ([3ffb25f](https://github.com/entur/gha-security/commit/3ffb25f1b748852a08c8716a8e8dcae804e12676))
+* support dynamic build secrets ([#228](https://github.com/entur/gha-security/issues/228)) ([408a53b](https://github.com/entur/gha-security/commit/408a53b53851c1981f73356f3bd2449583191f88))
+
 ## [2.14.0](https://github.com/entur/gha-security/compare/v2.13.0...v2.14.0) (2026-06-19)
 
 
