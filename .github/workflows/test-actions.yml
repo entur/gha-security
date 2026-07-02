@@ -106,7 +106,7 @@ jobs:
                   should-fail: true
                 - title: "Should silently exit if no Kotlin support error"
                   log-message: "No errors found here!"
-                  should-fail: no
+                  should-fail: false
                 - title: "temp-test-assert"
                   log-message: "No errors found here!"
                   should-fail: true
