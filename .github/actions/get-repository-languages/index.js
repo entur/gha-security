@@ -24,7 +24,7 @@ const getLanguagesForScanning = (fileExtensions, languageList, ignoreList, isCod
         // get language from value
         .map(extension => Object.keys(languageList).find(key => languageList[key].includes(extension)))
         ), isCodeQL ? 'actions' : '']
-    .filter(f => e !== '' && !ignoreList.includes(f))
+    .filter(f => f !== '' && !ignoreList.includes(f))
 }
 
 const IsHtmlOnlyScan = (fileExtensions, htmlFileExtensions, javascriptFileExtensions) => {
@@ -61,7 +61,7 @@ module.exports = async ({ core, glob }) => {
 
     const languagesToIgnore = extractCommaList(process.env.IGNORE_LANGUAGE)
 
-    const repositoryFileExtensions = await getRepositoryExtensions(glob);
+    const repositoryFileExtensions = process.env.OVERRIDE_EXTENSIONS !== "NO_OVERRIDE" ? extractCommaList(process.env.OVERRIDE_EXTENSIONS) : await getRepositoryExtensions(glob);
 
     // Ignore language "javascript-typescript" if HTML file type(s) is found and no additional javascript file types is found.
     // Needed after CodeQL 2.23.5, see issue: https://github.com/github/codeql/issues/21048
