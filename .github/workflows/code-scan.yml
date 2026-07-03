@@ -105,10 +105,10 @@ jobs:
     runs-on: ubuntu-24.04
     needs: input-validation
     outputs: 
-      codeql_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_CQ }}
-      semgrep_languages: ${{ env.GHA_SECURITY_CODE_SCAN_REPOSITORY_LANGUAGES_SEM }} 
+      codeql_languages: ${{ steps.get-repository-languages.outputs.codeql_languages }}
+      semgrep_languages: ${{ steps.get-repository-languages.outputs.semgrep_languages }} 
       found_gradle: ${{ env.GHA_SECURITY_CODE_SCAN_FOUND_GRADLE }}
-      html_only_scan: ${{env.GHA_SECURITY_CODE_SCAN_HTML_ONLY_SCAN }}
+      html_only_scan: ${{ steps.get-repository-languages.outputs.html_only_scan }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
