@@ -1,0 +1,40 @@
+name: 'Get Repository Languages'
+description: 'Get languages from file extensions found in repository'
+inputs:
+  ignore_language:
+    description: 'Comma separated list of languages to ignore'
+    required: true
+  override_extensions:
+    description: 'Comma seperated list of extensions to override automatic find'
+    required: false
+    default: "NO_OVERRIDE"
+outputs:
+  codeql_languages:
+    description: "CodeQL languages"
+    value: ${{ steps.get-repository-languages.outputs.codeql_languages }}
+  semgrep_languages:
+    description: "CodeQL languages"
+    value: ${{ steps.get-repository-languages.outputs.semgrep_languages }}
+  html_only_scan:
+    description: "HTML only scan"
+    value: ${{ steps.get-repository-languages.outputs.html_only_scan }}
+runs:
+  using: "composite"
+  steps:
+    - name: "Get repository languages"
+      id: get-repository-languages
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        RUNNER_OS: ${{ runner.os }}
+        IGNORE_LANGUAGE: ${{ inputs.ignore_language }}
+        OVERRIDE_EXTENSIONS: ${{ inputs.override_extensions }}
+      with:
+        script: |
+          const getRepositoryLanguages = require(`${process.env.ACTION_PATH}/index.js`);
+          
+          try {
+            await getRepositoryLanguages({ core, glob });
+          } catch(error) {
+            core.setFailed(error.message)
+          }
