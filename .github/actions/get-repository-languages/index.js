@@ -16,21 +16,21 @@ const extractCommaList = (value) => {
         .filter(e => e !== '');
 }
 
-const getLanguagesForScanning = (fileExtensions, languageList, ignoreList) => {
+const getLanguagesForScanning = (fileExtensions, languageList, ignoreList, isCodeQL) => {
     return [... new Set(
         fileExtensions
         // check if any of the values in languageList contains file extension
         .filter(extension => Object.values(languageList).some(arr => arr.includes(extension)))
         // get language from value
-        .map(extension => Object.keys(languageList).find(key => languageList[key] === extension))
-        ), 'actions']
-    .filter(f => !ignoreList.includes(f));
+        .map(extension => Object.keys(languageList).find(key => languageList[key].includes(extension)))
+        ), isCodeQL ? 'actions' : '']
+    .filter(f => e !== '' && !ignoreList.includes(f))
 }
 
-const shouldIgnoreHtml = (fileExtensions, htmlFileExtensions, javascriptFileExtensions, ignoreList) => {
+const IsHtmlOnlyScan = (fileExtensions, htmlFileExtensions, javascriptFileExtensions) => {
     const hasJavascriptFileExtension = fileExtensions.some(f => javascriptFileExtensions.includes(f));
     const hasHtmlFileExtension = fileExtensions.some(f => htmlFileExtensions.includes(f));
-    return !hasJavascriptFileExtension && hasHtmlFileExtension && ignoreList.includes("html")
+    return !hasJavascriptFileExtension && hasHtmlFileExtension 
 }
 
 module.exports = async ({ core, glob }) => {
@@ -65,14 +65,17 @@ module.exports = async ({ core, glob }) => {
 
     // Ignore language "javascript-typescript" if HTML file type(s) is found and no additional javascript file types is found.
     // Needed after CodeQL 2.23.5, see issue: https://github.com/github/codeql/issues/21048
-    if (shouldIgnoreHtml(repositoryFileExtensions, htmlFileExtensions, javascriptFileExtensions, languagesToIgnore)) {
+
+    const htmlOnlyScan =  IsHtmlOnlyScan(repositoryFileExtensions, htmlFileExtensions, javascriptFileExtensions)
+
+    if (htmlOnlyScan && languagesToIgnore.includes("html")) {
         languagesToIgnore.push("javascript-typescript")
     }
 
-    const codeqlLanguages = getLanguagesForScanning(repositoryFileExtensions, supportedCodeqlLanguages, languagesToIgnore);
-    const semgrepLanguages = getLanguagesForScanning(repositoryFileExtensions, supportedSemgrepLanguages, languagesToIgnore);
+    const codeqlLanguages = getLanguagesForScanning(repositoryFileExtensions, supportedCodeqlLanguages, languagesToIgnore, true);
+    const semgrepLanguages = getLanguagesForScanning(repositoryFileExtensions, supportedSemgrepLanguages, languagesToIgnore, false);
 
     core.setOutput("codeql_languages", codeqlLanguages);
     core.setOutput("semgrep_languages", semgrepLanguages);
-    core.setOutput("html_only_scan", !hasJavascriptFileExtension && hasHtmlFileExtension ? "True" : "False");
+    core.setOutput("html_only_scan", htmlOnlyScan ? "True" : "False");
 }
