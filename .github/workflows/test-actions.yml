@@ -144,12 +144,17 @@ jobs:
                   codeql-languages: ['actions']
                   semgrep-languages: []
                   ignore-language: ""
-                - title: "Should detect kotlin language"
-                  extensions: "kt"
-                  codeql-languages: ['actions', 'kotlin']
+                - title: "Should detect codeql languages"
+                  extensions: "js,py,rb,swift,kt,java,cs,go,cpp"
+                  codeql-languages: ['actions','javascript-typescript', 'python', 'ruby','swift','kotlin','java','csharp','go','cpp']
                   semgrep-languages: []
                   ignore-language: ""
-                - title: "Should detect scala"
+                - title: "Should ignore languages"
+                  extensions: "js,scala"
+                  codeql-languages: ['actions']
+                  semgrep-languages: []
+                  ignore-language: "javascript-typescript,scala"
+                - title: "Should detect semgrep languages"
                   extensions: "scala"
                   codeql-languages: ['actions']
                   semgrep-languages: ['scala']
