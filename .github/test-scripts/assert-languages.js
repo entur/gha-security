@@ -1,8 +1,8 @@
 const doesArraysContainSameItems = (array1, array2) => {
     const sortedArray1 = array1.sort();
     const sortedArray2 = array2.sort();
-    
-    return sortedArray2.length == sortedArray2.length && sortedArray1.every((value, index) => value === sortedArray2[index]);
+
+    return sortedArray1.length == sortedArray2.length && sortedArray1.every((value, index) => value === sortedArray2[index]);
 }
 
 module.exports = ({ core }) => {
