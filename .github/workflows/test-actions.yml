@@ -10,7 +10,7 @@ jobs:
     # if format has changed, and location is no longer updated tests will fail.
     run-grype-and-syft-scan:
       runs-on: ubuntu-24.04
-      name: "Run grype and syft scan"
+      name: "[serif-output-fix] Run grype and syft scan"
       steps:
           - name: "Checkout repository"
             uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
@@ -55,7 +55,7 @@ jobs:
     test-serif-location-fix:
       runs-on: ubuntu-24.04
       needs: run-grype-and-syft-scan
-      name: ${{ matrix.test.title }}
+      name: "[serif-output-fix] ${{ matrix.test.title }}"
       strategy:
           matrix:
               test:
@@ -97,7 +97,7 @@ jobs:
                 assertSarifFix({ core });
     test-codeql-kotlin-error-handler:
       runs-on: ubuntu-24.04
-      name: ${{ matrix.test.title }}
+      name: "[codeql-kotlin-error-handler] ${{ matrix.test.title }}"
       strategy:
           matrix:
               test:
@@ -135,7 +135,7 @@ jobs:
     
     test-get-repository-languages:
       runs-on: ubuntu-24.04
-      name: ${{ matrix.test.title }}
+      name: "[get-repository-languages] ${{ matrix.test.title }}"
       strategy:
           matrix:
               test:
@@ -144,12 +144,12 @@ jobs:
                   codeql-languages: ['actions']
                   semgrep-languages: []
                   ignore-language: ""
-                - title: "Should detect kotlin"
+                - title: "Should detect kotlin language"
                   extensions: "kt"
                   codeql-languages: ['actions', 'kotlin']
                   semgrep-languages: []
                   ignore-language: ""
-                - title: "Should detect scala as semgrep"
+                - title: "Should detect scala"
                   extensions: "scala"
                   codeql-languages: ['actions']
                   semgrep-languages: ['scala']
@@ -159,7 +159,7 @@ jobs:
                   codeql-languages: ['actions']
                   semgrep-languages: []
                   ignore-language: "html"
-                - title: "Should not ignore html"
+                - title: "Should detect html as javascript-typescript if not ignored"
                   extensions: "html"
                   codeql-languages: ['actions', 'javascript-typescript']
                   semgrep-languages: []
@@ -187,7 +187,7 @@ jobs:
             
     test-dynamic-secrets:
       runs-on: ubuntu-24.04
-      name: ${{ matrix.test.title }}
+      name: "[dynamic-secrets] ${{ matrix.test.title }}"
       strategy:
           matrix:
               test:
