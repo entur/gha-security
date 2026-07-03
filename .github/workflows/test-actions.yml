@@ -182,7 +182,7 @@ jobs:
             ACTUAL_SEMGREP_LANGUAGES: ${{ steps.get-repository-languages.outputs.semgrep_languages }}
           with:
             script: |
-              const assertLanguages = require("./.github/scripts/assert-languages.js");
+              const assertLanguages = require("./.github/test-scripts/assert-languages.js");
               assertLanguages({ core });
             
     test-dynamic-secrets:
