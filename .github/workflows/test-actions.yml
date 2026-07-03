@@ -150,8 +150,8 @@ jobs:
                   semgrep-languages: []
                   ignore-language: ""
                 - title: "Should ignore languages"
-                  extensions: "js,scala"
-                  codeql-languages: ['actions']
+                  extensions: "js,scala,actions"
+                  codeql-languages: []
                   semgrep-languages: []
                   ignore-language: "javascript-typescript,scala"
                 - title: "Should detect semgrep languages"
