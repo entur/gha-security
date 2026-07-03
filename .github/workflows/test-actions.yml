@@ -132,7 +132,58 @@ jobs:
           run: |
             echo "::error::Assert failed: expected step outcome to be $EXPECTED_OUTCOME but actual outcome is $STEP_OUTCOME"
             exit 1;
-            
+    
+    test-get-repository-languages:
+      runs-on: ubuntu-24.04
+      name: ${{ matrix.test.title }}
+      strategy:
+          matrix:
+              test:
+                - title: "Should always include actions language in codeQL"
+                  extensions: ""
+                  codeql-languages: ['actions']
+                  semgrep-languages: []
+                  ignore-language: ""
+                - title: "Should detect kotlin"
+                  extensions: "kt"
+                  codeql-languages: ['actions', 'kotlin']
+                  semgrep-languages: []
+                  ignore-language: ""
+                - title: "Should detect scala as semgrep"
+                  extensions: "scala"
+                  codeql-languages: ['actions']
+                  semgrep-languages: ['scala']
+                  ignore-language: ""
+                - title: "Should ignore html"
+                  extensions: "html"
+                  codeql-languages: ['actions']
+                  semgrep-languages: []
+                  ignore-language: "html"
+                - title: "Should not ignore html"
+                  extensions: "html"
+                  codeql-languages: ['actions', 'javascript-typescript']
+                  semgrep-languages: []
+                  ignore-language: ""
+      steps:
+        - name: "Checkout repository"
+          uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
+        - name: "Get repository languages"
+          id: get-repository-languages
+          uses: ./.github/actions/get-repository-languages
+          with:
+            ignore_language: ${{matrix.test.ignore-language }}
+            override_extensions: ${{ matrix.test.extensions }}
+        - name: "Assert repository languages"
+          uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+          env:
+            EXPECTED_CODEQL_LANGUAGES: ${{ toJSON(matrix.test.codeql-languages) }}
+            ACTUAL_CODEQL_LANGUAGES: ${{ steps.get-repository-languages.outputs.codeql_languages }}
+            EXPECTED_SEMGREP_LANGUAGES: ${{ toJSON(matrix.test.semgrep-languages) }}
+            ACTUAL_SEMGREP_LANGUAGES: ${{ steps.get-repository-languages.outputs.semgrep_languages }}
+          with:
+            script: |
+              const assertLanguages = require("./.github/scripts/assert-languages.js");
+              assertLanguages({ core });
             
     test-dynamic-secrets:
       runs-on: ubuntu-24.04
