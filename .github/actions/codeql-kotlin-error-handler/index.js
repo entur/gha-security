@@ -52,5 +52,5 @@ module.exports = async ({ core, glob }) => {
         .write()
 
 
-    core.setFailed(`Kotlin ${kotlinVersion} version too recent for CodeQL, CodeQL supports versions below ${incompatibleKotlinVersion}`)
+    core.setFailed(`Kotlin ${kotlinVersion} version too recent for CodeQL, CodeQL supports versions below ${incompatibleKotlinVersion}. See job summary for details`)
 }
