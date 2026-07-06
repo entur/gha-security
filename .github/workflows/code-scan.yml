@@ -127,7 +127,7 @@ jobs:
 
       - name: "Get repository languages"
         id: get-repository-languages
-        uses: entur/gha-security/actions/get-repository-languages@v2
+        uses: entur/gha-security/.github/actions/get-repository-languages@v2
         with:
           ignore_language: ${{ inputs.ignore_language }}
 
