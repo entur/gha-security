@@ -127,7 +127,7 @@ jobs:
 
       - name: "Get repository languages"
         id: get-repository-languages
-        uses: entur/gha-security/.github/actions/get-repository-languages@v2
+        uses: entur/gha-security/.github/actions/get-repository-languages@v2.14.0
         with:
           ignore_language: ${{ inputs.ignore_language }}
 
@@ -157,7 +157,7 @@ jobs:
 
       - name: "Setup Java for Scala"
         if: inputs.use_setup_java && (matrix.language == 'scala')
-        uses: entur/gha-security/.github/actions/setup-java-code-scan@v2
+        uses: entur/gha-security/.github/actions/setup-java-code-scan@v2.14.0
         with:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
@@ -166,7 +166,7 @@ jobs:
 
       - name: "Export build secrets"
         if: inputs.additional_build_secrets != ''
-        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2
+        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2.14.0
         with:
           mode: export
           export-secrets: ${{ inputs.additional_build_secrets }}
@@ -191,7 +191,7 @@ jobs:
 
       - name: "Clear build secrets"
         if: always() && inputs.additional_build_secrets != ''
-        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2
+        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2.14.0
         with:
           mode: clear
           export-secrets: ${{ inputs.additional_build_secrets }}
@@ -269,7 +269,7 @@ jobs:
       
       - name: "Setup Java for Java/Kotlin"
         if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java')
-        uses: entur/gha-security/.github/actions/setup-java-code-scan@v2
+        uses: entur/gha-security/.github/actions/setup-java-code-scan@v2.14.0
         with:
           java-version: ${{ inputs.java_version }}
           distribution: ${{ inputs.java_distribution }}
@@ -308,7 +308,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Export build secrets"
-        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2
+        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2.14.0
         if: inputs.additional_build_secrets != ''
         with:
           mode: export
@@ -332,7 +332,7 @@ jobs:
           IS_CODEQL_SCAN: true
 
       - name: "Clear build secrets"
-        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2
+        uses:  entur/gha-security/.github/actions/dynamic-secrets@v2.14.0
         if: always() && inputs.additional_build_secrets != ''
         with:
           mode: clear
@@ -340,7 +340,7 @@ jobs:
 
       - name: "CodeQL Kotlin Error Handler"
         if: failure() && steps.codeql-analysis.outcome == 'failure' && matrix.language == 'kotlin'
-        uses: entur/gha-security/.github/actions/codeql-kotlin-error-handler@v2
+        uses: entur/gha-security/.github/actions/codeql-kotlin-error-handler@v2.14.0
 
       - name: "Post message to job summary if scan with HTML only files fail"
         if: ${{ failure() && steps.codeql-analysis.outcome == 'failure' && needs.get-repository-metadata.outputs.html_only_scan == 'True' && matrix.language == 'javascript-typescript' }}
@@ -375,7 +375,7 @@ jobs:
       
       - name: Scanner Action
         id: scanner-action
-        uses: entur/gha-security/scanner-action@v2
+        uses: entur/gha-security/scanner-action@v2.14.0
         with:
           scanner: 'codescan'
           token: ${{ secrets.GITHUB_TOKEN }}
