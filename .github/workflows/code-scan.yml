@@ -275,6 +275,9 @@ jobs:
           distribution: ${{ inputs.java_distribution }}
           server-id: ${{ inputs.java_server_id_artifactory }}
           use_maven_cache: ${{ inputs.use_maven_cache }}
+          
+      - name: Back up Setup Java toolchains.xml
+        run: cp ~/.m2/toolchains.xml ~/.m2/toolchains.xml.bak
 
       - name: "Set up Gradle for Java/Kotlin"
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
@@ -284,7 +287,10 @@ jobs:
           add-job-summary: 'on-failure'
           dependency-graph: 'generate-and-upload'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
+          
+      - name: Back up Setup Java toolchains.xml
+        run: mv ~/.m2/toolchains.xml.bak ~/.m2/toolchains.xml
+  
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
         uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
