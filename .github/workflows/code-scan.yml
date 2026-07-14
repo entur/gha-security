@@ -276,7 +276,10 @@ jobs:
           server-id: ${{ inputs.java_server_id_artifactory }}
           use_maven_cache: ${{ inputs.use_maven_cache }}
           
-      - name: Back up Setup Java toolchains.xml
+      # setup-gradle overwrites toolchains.xml from setup-java, preserve it so we get the requested version and 
+      # distribution instead of the autodetected version from gradle build files.
+      # See also https://github.com/github/codeql-action/issues/2752
+      - name: Backup Setup-Java toolchains.xml
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
         run: cp ~/.m2/toolchains.xml ~/.m2/toolchains.xml.bak
 
@@ -289,7 +292,7 @@ jobs:
           dependency-graph: 'generate-and-upload'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Back up Setup Java toolchains.xml
+      - name: Restore Setup-Java toolchains.xml
         if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
         run: mv ~/.m2/toolchains.xml.bak ~/.m2/toolchains.xml
   
