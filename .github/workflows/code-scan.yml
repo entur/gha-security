@@ -280,7 +280,7 @@ jobs:
       # distribution instead of the autodetected version from gradle build files.
       # See also https://github.com/github/codeql-action/issues/2752
       - name: Backup Setup-Java toolchains.xml
-        if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
+        if: inputs.use_setup_java && needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
         run: cp ~/.m2/toolchains.xml ~/.m2/toolchains.xml.bak
 
       - name: "Set up Gradle for Java/Kotlin"
@@ -293,7 +293,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Restore Setup-Java toolchains.xml
-        if: needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
+        if: inputs.use_setup_java && needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'kotlin' || matrix.language == 'java')
         run: mv ~/.m2/toolchains.xml.bak ~/.m2/toolchains.xml
   
       - name: "Initialize CodeQL for Java/Kotlin"
