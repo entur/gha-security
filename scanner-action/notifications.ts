@@ -109,7 +109,7 @@ const runNotifications = async (octokitAction: Octokit, scannerType: string, sca
 const sendPullRequestNotification = async (scannerNotifications: ScannerNotifications, octokit: Octokit) => {
 	const isPullRequestEnabled = scannerNotifications.config.outputs?.pullRequest?.enabled ?? true;
 
-	const skipNotification = !isPullRequestEnabled || github.context.eventName !== "pull_request" || !scannerNotifications.alertsFound;
+	const skipNotification = !isPullRequestEnabled || github.context.eventName !== "pull_request";
 
 	if (skipNotification) return;
 
@@ -118,7 +118,9 @@ const sendPullRequestNotification = async (scannerNotifications: ScannerNotifica
 	const issue = { issue_number: github.context.issue.number, owner: github.context.issue.owner, repo: github.context.issue.repo };
 
 	await removeIssueComment(issue, `<!-- gha-security:${scannerNotifications.scannerType} -->`, octokit);
-	await sendIssueComment(issue, notificationOutput, octokit);
+	if (scannerNotifications.alertsFound) {
+		await sendIssueComment(issue, notificationOutput, octokit);
+	}
 };
 
 export { type Notifications, runNotifications, ScannerNotifications };
