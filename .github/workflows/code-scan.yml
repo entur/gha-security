@@ -399,7 +399,7 @@ jobs:
     uses: entur/gha-slack/.github/workflows/post.yml@v3
     with:
       channel_id: ${{ needs.scanner-action.outputs.notification_slack_channel_id }}
-      blocks: ${{ toJSON(fromJSON(needs.scanner-action.outputs.notification_slack_block).blocks) }}
+      blocks: ${{ needs.scanner-action.outputs.notification_slack_block }}
     secrets: inherit
 
   # fallback if no dependency-graph artifactory exists from a pull request, and CodeQL/Semgrep analysis was running under default branch

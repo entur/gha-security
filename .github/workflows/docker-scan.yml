@@ -146,5 +146,5 @@ jobs:
     uses: entur/gha-slack/.github/workflows/post.yml@v3
     with:
       channel_id: ${{ needs.docker-scan.outputs.notification_slack_channel_id }}
-      blocks: ${{ toJSON(fromJSON(needs.docker-scan.outputs.notification_slack_block).blocks) }}
+      blocks: ${{ needs.docker-scan.outputs.notification_slack_block }}
     secrets: inherit
