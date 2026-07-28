@@ -42412,12 +42412,14 @@ var runNotifications = async (octokitAction, scannerType, scannerConfig) => {
 };
 var sendPullRequestNotification = async (scannerNotifications, octokit) => {
   const isPullRequestEnabled = scannerNotifications.config.outputs?.pullRequest?.enabled ?? true;
-  const skipNotification = !isPullRequestEnabled || context2.eventName !== "pull_request" || !scannerNotifications.alertsFound;
+  const skipNotification = !isPullRequestEnabled || context2.eventName !== "pull_request";
   if (skipNotification) return;
   const notificationOutput = createMarkdown(scannerNotifications);
   const issue2 = { issue_number: context2.issue.number, owner: context2.issue.owner, repo: context2.issue.repo };
   await removeIssueComment(issue2, `<!-- gha-security:${scannerNotifications.scannerType} -->`, octokit);
-  await sendIssueComment(issue2, notificationOutput, octokit);
+  if (scannerNotifications.alertsFound) {
+    await sendIssueComment(issue2, notificationOutput, octokit);
+  }
 };
 
 // scanner-config.ts
