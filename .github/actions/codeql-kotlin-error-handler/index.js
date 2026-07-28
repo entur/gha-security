@@ -27,7 +27,7 @@ module.exports = async ({ core, glob }) => {
     const fs = require('fs');
 
     // Sleep for 1 second to wait for the logs
-    sleep(1000)
+    await sleep(1000)
     
     
     const actionRunnerLog = await getActionRunnerLog(fs, glob);
