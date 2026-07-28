@@ -17,6 +17,7 @@ const getActionRunnerLog = async (fs, glob) => {
         throw new Error("Failed to get action runner log", { cause: error })
     }
 }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 module.exports = async ({ core, glob }) => {
     // This action does not support macOS/Windows
@@ -24,6 +25,10 @@ module.exports = async ({ core, glob }) => {
         return;
 
     const fs = require('fs');
+
+    // Sleep for 1 second to wait for the logs
+    sleep(1000)
+    
     
     const actionRunnerLog = await getActionRunnerLog(fs, glob);
     const supportErrorMessage = actionRunnerLog
