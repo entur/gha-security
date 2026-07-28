@@ -56,35 +56,35 @@ const createSlackBlock = (scannerNotifications: ScannerNotifications) => {
 	const scannerReport = getScannerReport(scannerNotifications);
 	const githubRepository = getGithubRepository();
 
-	return {
-		blocks: [
-			{
-				type: "header",
-				text: {
-					type: "plain_text",
-					text: `${scannerReport.header} on ${githubRepository}`,
-				},
+	const blocks = [
+		{
+			type: "header",
+			text: {
+				type: "plain_text",
+				text: `${scannerReport.header} on ${githubRepository}`,
 			},
-			{
-				type: "section",
-				text: {
-					type: "mrkdwn",
-					text: `*Results*
+		},
+		{
+			type: "section",
+			text: {
+				type: "mrkdwn",
+				text: `*Results*
 ${scannerReport.resultsList}  
 ${scannerReport.scannerTypeName} Report can be found <${scannerReport.resultsUrl}|here>`,
-				},
 			},
-			{
-				type: "section",
-				text: {
-					type: "mrkdwn",
-					text: `*Allowlist*
+		},
+		{
+			type: "section",
+			text: {
+				type: "mrkdwn",
+				text: `*Allowlist*
 Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. 
 See the <${scannerReport.allowListDocumentationUrl}|${scannerReport.scannerTypeName} documentation> on how to use allowlist.`,
-				},
 			},
-		],
-	};
+		},
+	];
+
+	return JSON.stringify(blocks, null, " ");
 };
 
 const setNotificationOutputs = (scannerNotifications: ScannerNotifications) => {

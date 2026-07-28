@@ -39,8 +39,13 @@ jobs:
       contents: write # required for checking out the repository and creating files
       issues: write # required for creating issues, and/or adding issue comments
       pull-requests: write # required for creating comments on pull requests
-      security-events: write # required for uploading SARIF file to GitHub 
+      security-events: write # required for uploading SARIF file to GitHub
       actions: read #required for uploading SARIF file to GitHub (workflows in private repositories)
+    outputs:
+      notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
+      notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
+      notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
+      notification_slack_block: ${{ steps.scanner-action.outputs.notification_slack_block }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
@@ -135,14 +140,11 @@ jobs:
         run: |
           echo "$NOTIFICATION_MARKDOWN" >> "$GITHUB_STEP_SUMMARY"
 
-      # Taken from https://github.com/entur/gha-slack/blob/main/.github/workflows/post.yml
-      - name: "Send slack notification"
-        if: ${{ steps.scanner-action.outputs.notification_slack_enabled == 'True' && steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3.27.3.0.3
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          NOTIFICATION_SLACK_POST_BLOCKS: ${{ steps.scanner-action.outputs.notification_slack_block }}
-        with:
-          channel-id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
-          payload: |
-            ${{ env.NOTIFICATION_SLACK_POST_BLOCKS }}
+  send-slack-notification:
+    needs: docker-scan
+    if: ${{ needs.docker-scan.outputs.notification_slack_enabled == 'True' && needs.docker-scan.outputs.notification_severity_alert_found == 'True' }}
+    uses: entur/gha-slack/.github/workflows/post.yml@v3
+    with:
+      channel_id: ${{ needs.docker-scan.outputs.notification_slack_channel_id }}
+      blocks: ${{ needs.docker-scan.outputs.notification_slack_block }}
+    secrets: inherit
