@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.15.1](https://github.com/entur/gha-security/compare/v2.15.0...v2.15.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* Remove docker scan comment if there are no longer errors ([#239](https://github.com/entur/gha-security/issues/239)) ([69ab985](https://github.com/entur/gha-security/commit/69ab985ed4826f07830a53c4e932a33d9ae2005a))
+* Slack notification not running in docker-scan and code-scan ([#241](https://github.com/entur/gha-security/issues/241)) ([4b4fd18](https://github.com/entur/gha-security/commit/4b4fd1862bcec9c76adc0907c9f09c657717a930))
+* use toolchains.xml from setup-java instead of setup-gradle ([#238](https://github.com/entur/gha-security/issues/238)) ([abee641](https://github.com/entur/gha-security/commit/abee641018eaeae99f7fe3b64200b195ca6d7cb4))
+
 ## [2.15.0](https://github.com/entur/gha-security/compare/v2.14.0...v2.15.0) (2026-07-07)
 
 
