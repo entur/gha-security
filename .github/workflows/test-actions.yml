@@ -120,6 +120,8 @@ jobs:
             LOG_MESSAGE: ${{ matrix.test.log-message }}
           run: |
             echo "$LOG_MESSAGE"
+            for i in $(seq 1 100); do echo "padding-line-$i"; done
+            echo "::endgroup::"
         - name: "CodeQL Kotlin error handler"
           id: codeql-kotlin-error-handler
           continue-on-error: ${{ matrix.test.should-fail }}

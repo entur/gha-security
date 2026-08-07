@@ -5,7 +5,7 @@ const getActionRunnerLog = async (fs, glob) => {
     try {
         // Globber is used here to fetch the files, there is usually 2 files generated here.
         // One for the log of current step, and one for the entire job.
-        const globber = await glob.create("~/actions-runner/cached/*/_diag/blocks/*", {
+        const globber = await glob.create("~/**/**/_diag/blocks/*", {
             followSymbolicLinks: false
         });
 
