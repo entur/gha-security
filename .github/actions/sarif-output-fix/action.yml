@@ -7,6 +7,9 @@ inputs:
   sbom_file:
     description: 'Sbom file from Syft scan'
     required: true
+  category:
+    description: "SARIF analysis category"
+    required: false
 runs:
   using: "composite"
   steps:
