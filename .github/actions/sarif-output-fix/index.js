@@ -4,6 +4,7 @@ module.exports = ({ core }) => {
 
     const sbomFilePath = process.env.SBOM_FILE;
     const sarifFilePath = process.env.SARIF_FILE;
+    const sarifCategory = process.env.SARIF_CATEGORY;
 
     if (!fs.existsSync(sbomFilePath)) {
         core.warning(`sbom file not found, skipping fix`)
