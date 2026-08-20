@@ -26,6 +26,15 @@ module.exports = ({ core }) => {
 
     const sbomJSON = readJSONFile(sbomFilePath, 'utf8');
     const sarifJSON = readJSONFile(sarifFilePath, 'utf8');
+    
+    if (sarifCategory && sarifJSON) {
+  for (const run of sarifJSON.runs ?? []) {
+    run.automationDetails = {
+      ...(run.automationDetails ?? {}),
+      id: sarifCategory.endsWith('/') ? sarifCategory : `${sarifCategory}/`
+    };
+  }
+}
 
     if (!sbomJSON || !sarifJSON)
         return;
