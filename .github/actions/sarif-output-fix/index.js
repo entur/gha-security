@@ -4,6 +4,7 @@ module.exports = ({ core }) => {
 
     const sbomFilePath = process.env.SBOM_FILE;
     const sarifFilePath = process.env.SARIF_FILE;
+    const sarifCategory = process.env.SARIF_CATEGORY;
 
     if (!fs.existsSync(sbomFilePath)) {
         core.warning(`sbom file not found, skipping fix`)
@@ -26,6 +27,17 @@ module.exports = ({ core }) => {
 
     const sbomJSON = readJSONFile(sbomFilePath, 'utf8');
     const sarifJSON = readJSONFile(sarifFilePath, 'utf8');
+    
+    if (sarifCategory && sarifJSON) {
+  for (const run of sarifJSON.runs ?? []) {
+    run.automationDetails = {
+      ...(run.automationDetails ?? {}),
+      id: sarifCategory.endsWith('/') ? sarifCategory : `${sarifCategory}/`
+    };
+  }
+
+  fs.writeFileSync(sarifFilePath, JSON.stringify(sarifJSON));
+}
 
     if (!sbomJSON || !sarifJSON)
         return;
