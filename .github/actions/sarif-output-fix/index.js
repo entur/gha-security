@@ -35,6 +35,8 @@ module.exports = ({ core }) => {
       id: sarifCategory.endsWith('/') ? sarifCategory : `${sarifCategory}/`
     };
   }
+
+  fs.writeFileSync(sarifFilePath, JSON.stringify(sarifJSON));
 }
 
     if (!sbomJSON || !sarifJSON)
