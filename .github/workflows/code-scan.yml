@@ -266,7 +266,27 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
         with:
           persist-credentials: false
-      
+
+      # Vendors the Entur trusted-publishers CodeQL model pack into .github/codeql/extensions/, which
+      # CodeQL auto-discovers, so actions/unpinned-tag stops flagging entur/* actions. See README-code-scan.md#trusted-actions-publishers.
+      - name: "Checkout Entur CodeQL Actions trusted-publishers model pack"
+        if: matrix.language == 'actions'
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
+        with:
+          repository: entur/gha-security
+          persist-credentials: false
+          sparse-checkout: |
+            .github/codeql/actions-trusted-publishers-model-pack
+          sparse-checkout-cone-mode: false
+          path: .entur-codeql-model-pack-src
+
+      - name: "Install Entur CodeQL Actions trusted-publishers model pack"
+        if: matrix.language == 'actions'
+        run: |
+          mkdir -p .github/codeql/extensions
+          cp -r .entur-codeql-model-pack-src/.github/codeql/actions-trusted-publishers-model-pack .github/codeql/extensions/entur-actions-trusted-publishers-model-pack
+          rm -rf .entur-codeql-model-pack-src
+
       - name: "Setup Java for Java/Kotlin"
         if: inputs.use_setup_java && (matrix.language == 'kotlin' || matrix.language == 'java')
         uses: entur/gha-security/.github/actions/setup-java-code-scan@v2
