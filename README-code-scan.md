@@ -277,11 +277,19 @@ See [Security rulesets](README-security-rulesets.md) for how to setup code scann
 
 ## Trusted Actions publishers
 
-The `actions` CodeQL analysis includes a [CodeQL model pack](.github/codeql/actions-trusted-publishers-model-pack) that adds `entur` to the [trusted Actions publishers list](https://github.com/github/codeql/blob/main/docs/codeql/codeql-language-guides/customizing-library-models-for-actions.rst#example-extend-the-trusted-actions-publishers-for-the-actionsunpinned-tag-query) for the `actions/unpinned-tag` query, so unpinned tags on `entur/*` actions no longer trigger alerts.
+When scanning workflow files, CodeQL's `actions/unpinned-tag` query flags actions that are referenced by tag or branch instead of by commit SHA. `entur` is registered as a [trusted Actions publisher](https://github.com/github/codeql/blob/main/docs/codeql/codeql-language-guides/customizing-library-models-for-actions.rst#example-extend-the-trusted-actions-publishers-for-the-actionsunpinned-tag-query), so you will not get alerts for referencing internal actions by tag:
 
-To trust another owner, add it to the `data` list in [`models/trusted-owner.model.yml`](.github/codeql/actions-trusted-publishers-model-pack/models/trusted-owner.model.yml).
+```yaml
+      # No alert - entur is a trusted publisher
+      - uses: entur/gha-security/.github/actions/setup-java-code-scan@v2
 
-This pack isn't published to a registry. Instead, the `codeql-analysis` job checks it out from this repo's default branch and copies it into the scanned repository's `.github/codeql/extensions/` directory before running CodeQL, which [auto-discovers model packs placed there](https://docs.github.com/en/code-security/code-scanning/managing-your-code-scanning-configuration/editing-your-configuration-of-default-setup#extending-codeql-coverage-with-codeql-model-packs-in-default-setup). That auto-discovery behavior is documented for a specific set of languages that doesn't explicitly list GitHub Actions, so verify it's actually applying (run a scan against an unpinned `entur/*` action and confirm no alert is raised) after upgrading the pinned `github/codeql-action` SHA in `code-scan.yml`, or if GitHub changes how extension packs are discovered.
+      # Alert - pin third-party actions by SHA
+      - uses: actions/checkout@v6
+```
+
+This applies automatically, with no configuration needed on your side. The reusable workflow installs a [CodeQL model pack](.github/actions/install-codeql-model-pack) into your repository's `.github/codeql/extensions/` directory during the scan. The directory is created on the runner only and is never committed to your repository.
+
+If you need another owner to be trusted, or want to know why an `actions/unpinned-tag` alert is still raised for an `entur/*` action, contact the security team or open an issue in [entur/gha-security](https://github.com/entur/gha-security/issues).
 
 ## Troubleshooting
 
