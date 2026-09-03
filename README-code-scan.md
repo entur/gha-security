@@ -275,6 +275,14 @@ spec:
 
 See [Security rulesets](README-security-rulesets.md) for how to setup code scanning merge protection ruleset.
 
+## Trusted Actions publishers
+
+The `actions` CodeQL analysis includes a [CodeQL model pack](.github/codeql/actions-trusted-publishers-model-pack) that adds `entur` to the [trusted Actions publishers list](https://github.com/github/codeql/blob/main/docs/codeql/codeql-language-guides/customizing-library-models-for-actions.rst#example-extend-the-trusted-actions-publishers-for-the-actionsunpinned-tag-query) for the `actions/unpinned-tag` query, so unpinned tags on `entur/*` actions no longer trigger alerts.
+
+To trust another owner, add it to the `data` list in [`models/trusted-owner.model.yml`](.github/codeql/actions-trusted-publishers-model-pack/models/trusted-owner.model.yml).
+
+This pack isn't published to a registry. Instead, the `codeql-analysis` job checks it out from this repo's default branch and copies it into the scanned repository's `.github/codeql/extensions/` directory before running CodeQL, which [auto-discovers model packs placed there](https://docs.github.com/en/code-security/code-scanning/managing-your-code-scanning-configuration/editing-your-configuration-of-default-setup#extending-codeql-coverage-with-codeql-model-packs-in-default-setup). That auto-discovery behavior is documented for a specific set of languages that doesn't explicitly list GitHub Actions, so verify it's actually applying (run a scan against an unpinned `entur/*` action and confirm no alert is raised) after upgrading the pinned `github/codeql-action` SHA in `code-scan.yml`, or if GitHub changes how extension packs are discovered.
+
 ## Troubleshooting
 
 Some potential pitfalls and solutions with CodeQL
