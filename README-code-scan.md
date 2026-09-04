@@ -275,6 +275,22 @@ spec:
 
 See [Security rulesets](README-security-rulesets.md) for how to setup code scanning merge protection ruleset.
 
+## Trusted Actions publishers
+
+When scanning workflow files, CodeQL's `actions/unpinned-tag` query flags actions that are referenced by tag or branch instead of by commit SHA. `entur` is registered as a [trusted Actions publisher](https://github.com/github/codeql/blob/main/docs/codeql/codeql-language-guides/customizing-library-models-for-actions.rst#example-extend-the-trusted-actions-publishers-for-the-actionsunpinned-tag-query), so you will not get alerts for referencing internal actions by tag:
+
+```yaml
+      # No alert - entur is a trusted publisher
+      - uses: entur/gha-security/.github/actions/setup-java-code-scan@v2
+
+      # Alert - pin third-party actions by SHA
+      - uses: actions/checkout@v6
+```
+
+This applies automatically, with no configuration needed on your side. The reusable workflow installs a [CodeQL model pack](.github/actions/install-codeql-model-pack) into your repository's `.github/codeql/extensions/` directory during the scan. The directory is created on the runner only and is never committed to your repository.
+
+If you need another owner to be trusted, or want to know why an `actions/unpinned-tag` alert is still raised for an `entur/*` action, contact the security team or open an issue in [entur/gha-security](https://github.com/entur/gha-security/issues).
+
 ## Troubleshooting
 
 Some potential pitfalls and solutions with CodeQL

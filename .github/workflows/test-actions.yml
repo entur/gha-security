@@ -235,3 +235,37 @@ jobs:
             script: |
               const assertClearSecret = require("./.github/test-scripts/assert-clear-secrets.js");
               assertClearSecret({ core });
+
+    test-install-codeql-model-pack:
+      runs-on: ubuntu-24.04
+      name: "[install-codeql-model-pack] ${{ matrix.test.title }}"
+      strategy:
+          matrix:
+              test:
+                - title: "Should install model pack into extensions directory"
+                  stale-pack: false
+                - title: "Should replace an already installed model pack"
+                  stale-pack: true
+      env:
+        DESTINATION: ".github/codeql/extensions/entur-actions-trusted-publishers-model-pack"
+      steps:
+        - name: "Checkout repository"
+          uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.2
+          with:
+            persist-credentials: false
+        - name: "Install stale model pack"
+          if: ${{ matrix.test.stale-pack }}
+          run: |
+            mkdir -p "$DESTINATION/models"
+            touch "$DESTINATION/stale.model.yml"
+        - name: "Install CodeQL model pack"
+          uses: ./.github/actions/install-codeql-model-pack
+        - name: "Assert model pack"
+          uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+          env:
+            DESTINATION: ${{ env.DESTINATION }}
+            STALE_PACK: ${{ matrix.test.stale-pack }}
+          with:
+            script: |
+              const assertModelPack = require("./.github/test-scripts/assert-model-pack.js");
+              assertModelPack({ core });

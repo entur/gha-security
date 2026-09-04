@@ -1,0 +1,17 @@
+name: 'Install CodeQL Model Pack'
+description: 'Vendors the Entur CodeQL model pack for GitHub Actions into the scanned repository, so CodeQL applies it during analysis'
+runs:
+  using: "composite"
+  steps:
+    - name: "Install trusted-publishers model pack"
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        DESTINATION=".github/codeql/extensions/entur-actions-trusted-publishers-model-pack"
+
+        # Replace instead of copying into an existing directory, so a stale copy from a
+        # previous run cannot end up nested inside the destination and silently ignored.
+        rm -rf "$DESTINATION"
+        mkdir -p "$DESTINATION"
+        cp -R "$ACTION_PATH/actions-trusted-publishers-model-pack/." "$DESTINATION/"

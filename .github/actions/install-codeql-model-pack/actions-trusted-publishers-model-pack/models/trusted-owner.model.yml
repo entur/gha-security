@@ -1,0 +1,9 @@
+# Owners listed here are treated as trusted Actions publishers, so the CodeQL
+# actions/unpinned-tag query does not flag their actions when referenced by tag.
+# To trust another owner, add it as a new entry in the data list below.
+extensions:
+  - addsTo:
+      pack: codeql/actions-all
+      extensible: trustedActionsOwnerDataModel
+    data:
+      - ["entur"]

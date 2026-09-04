@@ -25,19 +25,31 @@ module.exports = ({ core }) => {
         }
     }
 
-    const sbomJSON = readJSONFile(sbomFilePath, 'utf8');
-    const sarifJSON = readJSONFile(sarifFilePath, 'utf8');
-    
-    if (sarifCategory && sarifJSON) {
-  for (const run of sarifJSON.runs ?? []) {
-    run.automationDetails = {
-      ...(run.automationDetails ?? {}),
-      id: sarifCategory.endsWith('/') ? sarifCategory : `${sarifCategory}/`
-    };
-  }
+    // Written through a file descriptor, so the file cannot be swapped between being opened
+    // and being written (CodeQL js/file-system-race).
+    const writeJSONFile = (filePath, json) => {
+        const fileDescriptor = fs.openSync(filePath, 'w');
 
-  fs.writeFileSync(sarifFilePath, JSON.stringify(sarifJSON));
-}
+        try {
+            fs.writeFileSync(fileDescriptor, JSON.stringify(json));
+        } finally {
+            fs.closeSync(fileDescriptor);
+        }
+    }
+
+    const sbomJSON = readJSONFile(sbomFilePath);
+    const sarifJSON = readJSONFile(sarifFilePath);
+
+    if (sarifCategory && sarifJSON) {
+        for (const run of sarifJSON.runs ?? []) {
+            run.automationDetails = {
+                ...(run.automationDetails ?? {}),
+                id: sarifCategory.endsWith('/') ? sarifCategory : `${sarifCategory}/`
+            };
+        }
+
+        writeJSONFile(sarifFilePath, sarifJSON);
+    }
 
     if (!sbomJSON || !sarifJSON)
         return;
@@ -216,5 +228,5 @@ module.exports = ({ core }) => {
         }
     }
 
-    fs.writeFileSync(sarifFilePath, JSON.stringify(sarifJSON));
+    writeJSONFile(sarifFilePath, sarifJSON);
 };
