@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.0](https://github.com/entur/gha-security/compare/v2.15.1...v2.16.0) (2026-09-04)
+
+
+### Features
+
+* Add entur as trusted action publisher to reduce unpinned tag noise ([#256](https://github.com/entur/gha-security/issues/256)) ([a3937b0](https://github.com/entur/gha-security/commit/a3937b0a4101dd585351d0cfe273399acf237cd5))
+
 ## [2.15.1](https://github.com/entur/gha-security/compare/v2.15.0...v2.15.1) (2026-07-28)
 
 
