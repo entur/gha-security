@@ -1,15 +1,33 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directory: "/"
+    directories:
+      - "/"
+      - "/.github/actions/**"
     schedule:
       interval: "weekly"
       time: "09:00"
       timezone: "Europe/Oslo"
       day: "monday"
-    open-pull-requests-limit: 2 # default is 5
     cooldown:
-      default-days: 7
+      default-days: 5
+    groups:
+      codeql-actions:
+        applies-to: version-updates
+        patterns:
+        - "github/codeql-action/*"
+        update-types:
+        - "minor"
+        - "patch"
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+        - "minor"
+        - "patch"
+      major-updates:
+        applies-to: version-updates
+        update-types:
+        - "major"
   - package-ecosystem: "npm"
     directory: "/scanner-action"
     schedule:
@@ -18,7 +36,7 @@ updates:
       timezone: "Europe/Oslo"
       day: "monday"
     cooldown:
-      default-days: 7
+      default-days: 5
     groups:
       minor-and-patch:
         applies-to: version-updates
