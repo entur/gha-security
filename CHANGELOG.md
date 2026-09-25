@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.17.0](https://github.com/entur/gha-security/compare/v2.16.0...v2.17.0) (2026-09-25)
+
+
+### Features
+
+* use self repository syntax for docker and code scan reusable workflows ([#260](https://github.com/entur/gha-security/issues/260)) ([853ac9d](https://github.com/entur/gha-security/commit/853ac9d047e315df6da7cbe01fa9cfd3dba9bc9a))
+
 ## [2.16.0](https://github.com/entur/gha-security/compare/v2.15.1...v2.16.0) (2026-09-04)
 
 
