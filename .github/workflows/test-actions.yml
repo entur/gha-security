@@ -13,7 +13,7 @@ jobs:
       name: "[serif-output-fix] Run grype and syft scan"
       steps:
           - name: "Checkout repository"
-            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
             with:
               persist-credentials: false
           - name: Pull and Save Docker Image
@@ -70,7 +70,7 @@ jobs:
         SBOM_FILE: "test.spdx.json"
       steps:
           - name: "Checkout repository"
-            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
             with:
               persist-credentials: false
           - name: Download sbom
@@ -112,7 +112,7 @@ jobs:
                   should-fail: true
       steps:
         - name: "Checkout repository"
-          uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
+          uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           with:
             persist-credentials: false
         - name: "Log message"
@@ -173,7 +173,7 @@ jobs:
                   ignore-language: ""
       steps:
         - name: "Checkout repository"
-          uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
+          uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         - name: "Get repository languages"
           id: get-repository-languages
           uses: ./.github/actions/get-repository-languages
@@ -204,7 +204,7 @@ jobs:
                   export-secrets: "DUMMY_SECRET_FOR_TEST,DUMMY_SECRET_FOR_TEST_2"
       steps:
         - name: "Checkout repository"
-          uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
+          uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           with:
             persist-credentials: false
         - name: "Export build secrets"
@@ -250,7 +250,7 @@ jobs:
         DESTINATION: ".github/codeql/extensions/entur-actions-trusted-publishers-model-pack"
       steps:
         - name: "Checkout repository"
-          uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
+          uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           with:
             persist-credentials: false
         - name: "Install stale model pack"

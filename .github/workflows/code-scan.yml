@@ -111,7 +111,7 @@ jobs:
       html_only_scan: ${{ steps.get-repository-languages.outputs.html_only_scan }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -151,7 +151,7 @@ jobs:
         language: ${{ fromJson(needs.get-repository-metadata.outputs.semgrep_languages) }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -263,7 +263,7 @@ jobs:
         language: ${{ fromJson(needs.get-repository-metadata.outputs.codeql_languages) }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -390,7 +390,7 @@ jobs:
       notification_slack_block: ${{ steps.scanner-action.outputs.notification_slack_block }}
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
