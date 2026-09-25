@@ -15,7 +15,7 @@ updates:
       codeql-actions:
         applies-to: version-updates
         patterns:
-          "github/codeql-action/*"
+        - "github/codeql-action/*"
       minor-and-patch:
         applies-to: version-updates
         update-types:
