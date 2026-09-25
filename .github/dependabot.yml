@@ -10,12 +10,15 @@ updates:
       timezone: "Europe/Oslo"
       day: "monday"
     cooldown:
-      default-days: 4
+      default-days: 5
     groups:
       codeql-actions:
         applies-to: version-updates
         patterns:
         - "github/codeql-action/*"
+        update-types:
+        - "minor"
+        - "patch"
       minor-and-patch:
         applies-to: version-updates
         update-types:
@@ -33,7 +36,7 @@ updates:
       timezone: "Europe/Oslo"
       day: "monday"
     cooldown:
-      default-days: 7
+      default-days: 5
     groups:
       minor-and-patch:
         applies-to: version-updates
