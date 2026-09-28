@@ -1,5 +1,5 @@
 <h1 align="center">
-      <img src="logo.png" width="96px" height="96px" />
+      <img src="./images/logo.png" width="96px" height="96px" />
       <br>entur/gha-security<br>
 </h1>
 
@@ -7,10 +7,11 @@
 
 GitHub Actions for working with security tools.
 
-- [Code scan](../README-code-scan.md)
-- [Docker scan](../README-docker-scan.md)
+- [Code scan](README-code-scan.md)
+- [Docker scan](README-docker-scan.md)
 
 Github rulesets
-- [Security rulesets](../README-security-rulesets.md)
+- [Security rulesets](README-security-rulesets.md)
 
-
+For maintainers/contributors
+- [Contributing](CONTRIBUTING.md)
