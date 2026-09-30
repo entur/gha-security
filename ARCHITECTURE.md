@@ -12,67 +12,68 @@ Both workflows upload their findings as SARIF to GitHub Code Scanning, then run 
 
 ## Code scan
 
+Build secrets passed through `additional_build_secrets` are only exported while CodeQL autobuild
+and the Gradle dependency graph run, and are cleared afterwards.
+
 ```mermaid
----
-config:
-  layout: elk
----
 flowchart TB
     CALLER["Repository workflow<br/>uses: code-scan.yml@v2"] --> DETECT["Detect repository languages<br/>and Gradle build"]
 
-    DETECT --> CODEQL["CodeQL<br/>security-extended queries<br/>+ Entur trusted-publishers model pack"]
-    DETECT --> SEMGREP["Semgrep<br/>languages not supported by CodeQL (Scala)"]
-    SECRETS["Build secrets<br/>exported for autobuild, cleared afterwards"] -.-> CODEQL
-    SECRETS -.-> SEMGREP
-
-    CODEQL -- SARIF --> GHCS[("GitHub Code Scanning")]
-    SEMGREP -- SARIF --> GHCS
-
-    CODEQL --> SCANNER
-    SEMGREP --> SCANNER
+    DETECT --> SCAN
     DETECT --> DEPGRAPH["Upload Gradle dependency graph<br/>(default branch only)"]
 
+    subgraph SCAN["Static analysis"]
+        CODEQL["CodeQL<br/>security-extended queries<br/>+ Entur trusted-publishers model pack"]
+        SEMGREP["Semgrep<br/>languages not supported by CodeQL (Scala)"]
+    end
+
+    SCAN -- SARIF --> GHCS[("GitHub Code Scanning")]
+    GHCS --> SCANNER
+
     subgraph SCANNER["scanner-action (scanner: codescan)"]
-        direction TB
         LOAD["Load and validate<br/>.entur/security/codescan.yml<br/>+ inherited config"] --> ALLOW["Dismiss allowlisted alerts<br/>matched by CWE"]
         ALLOW --> NOTIFY["Count open alerts<br/>≥ severityThreshold (default: high)"]
     end
 
-    ALLOW <-. "read / dismiss CodeQL alerts" .-> GHCS
-    NOTIFY --> PR["Pull request comment"]
-    NOTIFY --> SUMMARY["Job summary"]
-    NOTIFY --> SLACK["Slack notification<br/>(if enabled)"]
+    SCANNER --> OUTPUTS
+    SCANNER -- remaining open alerts --> RULESET{{"Branch ruleset<br/>blocks merge on Critical alerts"}}
 
-    GHCS --> RULESET{{"Branch ruleset<br/>blocks merge on Critical alerts"}}
+    subgraph OUTPUTS["Notifications"]
+        PR["Pull request comment"]
+        SUMMARY["Job summary"]
+        SLACK["Slack notification<br/>(if enabled)"]
+    end
 ```
 
 ## Docker scan
 
 ```mermaid
----
-config:
-  layout: elk
----
 flowchart TB
     CALLER["Repository workflow<br/>builds image and uploads it as artifact<br/>uses: docker-scan.yml@v2"] --> DOWNLOAD["Download image artifact<br/>(optionally extract Docker workdir)"]
 
     DOWNLOAD --> SYFT["Syft<br/>generate SBOM (SPDX)"]
     SYFT --> GRYPE["Grype<br/>scan SBOM for known CVEs"]
-    SYFT --> ARTIFACT["Workflow artifact<br/>(image).spdx.json"]
-    SYFT -- "dependency snapshot<br/>(default branch only)" --> DEPGRAPH["GitHub dependency graph<br/>(Dependabot alerts)"]
+    SYFT --> SBOM_OUT
+
+    subgraph SBOM_OUT["SBOM outputs"]
+        ARTIFACT["Workflow artifact<br/>(image).spdx.json"]
+        DEPGRAPH["GitHub dependency graph<br/>(default branch only)"]
+    end
+
     GRYPE -- SARIF --> GHCS[("GitHub Code Scanning")]
-    GRYPE --> SCANNER
+    GHCS --> SCANNER
 
     subgraph SCANNER["scanner-action (scanner: dockerscan)"]
-        direction TB
         LOAD["Load and validate<br/>.entur/security/dockerscan.yml<br/>+ inherited config<br/>+ central allowlist (currently disabled)"] --> ALLOW["Dismiss allowlisted alerts<br/>matched by CVE"]
         ALLOW --> NOTIFY["Count open alerts<br/>≥ severityThreshold (default: high)"]
     end
 
-    ALLOW <-. "read / dismiss Grype alerts" .-> GHCS
-    NOTIFY --> PR["Pull request comment"]
-    NOTIFY --> SUMMARY["Job summary"]
-    NOTIFY --> SLACK["Slack notification<br/>(if enabled)"]
+    SCANNER --> OUTPUTS
+    SCANNER -- remaining open alerts --> RULESET{{"Branch ruleset<br/>blocks merge on Critical alerts"}}
 
-    GHCS --> RULESET{{"Branch ruleset<br/>blocks merge on Critical alerts"}}
+    subgraph OUTPUTS["Notifications"]
+        PR["Pull request comment"]
+        SUMMARY["Job summary"]
+        SLACK["Slack notification<br/>(if enabled)"]
+    end
 ```
