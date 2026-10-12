@@ -234,7 +234,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Upload Semgrep report as artifact"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: semgrep-${{ matrix.language }}-sarif
           path: semgrep.sarif
@@ -364,7 +364,7 @@ jobs:
           echo -e "# ❗️ CodeQL analysis failed on HTML file(s) \n CodeQL will fail if no javascript can be extracted from HTML file(s).  \n \n Ignore scanning HTML files by adding 'html' to workflow input ignore_language  \n See [CodeQL supported languages and frameworks](https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/#id9) for more information from CodeQL." >> "$GITHUB_STEP_SUMMARY"
 
       - name: "Upload CodeQL report as artifact"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: codeql-${{ matrix.language }}-sarif
           path: "/home/runner/work/${{ github.event.repository.name }}/results"
