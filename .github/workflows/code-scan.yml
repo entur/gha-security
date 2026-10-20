@@ -411,7 +411,7 @@ jobs:
 
   send-slack-notification:
     needs: scanner-action
-    if: ${{ needs.scanner-action.outputs.notification_slack_enabled == 'True' && needs.scanner-action.outputs.notification_severity_alert_found == 'True' }}
+    if: ${{ needs.scanner-action.outputs.notification_severity_alert_found == 'True' }}
     runs-on: ubuntu-24.04
     steps:
       - id: post
