@@ -370,6 +370,29 @@ jobs:
           path: "/home/runner/work/${{ github.event.repository.name }}/results"
           overwrite: true
 
+  # fallback if no dependency-graph artifactory exists from a pull request, and CodeQL/Semgrep analysis was running under default branch
+  upload-dependency-graph:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # required to upload dependency graph
+    needs: [get-repository-metadata, codeql-analysis, semgrep-analysis]
+    if: (!failure() && !cancelled()) && (needs.codeql-analysis.result == 'success' || needs.semgrep-analysis.result == 'success') && github.ref_name == github.event.repository.default_branch
+    steps:
+      - name: "Upload dependency graph"
+        if:  >- 
+          ${{ 
+            needs.get-repository-metadata.outputs.found_gradle == 'True' &&
+            (
+              contains(needs.get-repository-metadata.outputs.codeql_languages, 'java') || 
+              contains(needs.get-repository-metadata.outputs.codeql_languages, 'kotlin') ||
+              contains(needs.get-repository-metadata.outputs.semgrep_languages, 'scala')
+            ) 
+          }}
+        uses: gradle/actions/dependency-submission@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-disabled: true
+          dependency-graph: download-and-submit # Download saved dependency-graph and submit
+
   scanner-action:
     needs: [codeql-analysis, semgrep-analysis]
     # If needs jobs have not failed or been cancelled,
@@ -408,38 +431,24 @@ jobs:
           NOTIFICATION_MARKDOWN: ${{ steps.scanner-action-step.outputs.notification_markdown }}
         run: |
           echo "$NOTIFICATION_MARKDOWN" >> "$GITHUB_STEP_SUMMARY"
+      - name: "Send slack notification"
+        if: ${{ steps.scanner-action-step.outputs.notification_severity_alert_found == 'True' }}
+        uses: entur/gha-slack/.github/actions/post@v3
+        with:
+          channel_id: ${{ steps.scanner-action-step.outputs.notification_slack_channel_id }}
+          blocks: ${{ steps.scanner-action-step.outputs.notification_slack_block }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
 
   send-slack-notification:
     needs: scanner-action
     if: ${{ needs.scanner-action.outputs.notification_severity_alert_found == 'True' }}
     runs-on: ubuntu-24.04
     steps:
-      - id: post
+      - name: "Send slack notification"
+        if: ${{ needs.scanner-action.outputs.notification_severity_alert_found == 'True' }}
         uses: entur/gha-slack/.github/actions/post@v3
         with:
           channel_id: ${{ needs.scanner-action.outputs.notification_slack_channel_id }}
           blocks: ${{ needs.scanner-action.outputs.notification_slack_block }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
 
-  # fallback if no dependency-graph artifactory exists from a pull request, and CodeQL/Semgrep analysis was running under default branch
-  upload-dependency-graph:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write # required to upload dependency graph
-    needs: [get-repository-metadata, codeql-analysis, semgrep-analysis]
-    if: (!failure() && !cancelled()) && (needs.codeql-analysis.result == 'success' || needs.semgrep-analysis.result == 'success') && github.ref_name == github.event.repository.default_branch
-    steps:
-      - name: "Upload dependency graph"
-        if:  >- 
-          ${{ 
-            needs.get-repository-metadata.outputs.found_gradle == 'True' &&
-            (
-              contains(needs.get-repository-metadata.outputs.codeql_languages, 'java') || 
-              contains(needs.get-repository-metadata.outputs.codeql_languages, 'kotlin') ||
-              contains(needs.get-repository-metadata.outputs.semgrep_languages, 'scala')
-            ) 
-          }}
-        uses: gradle/actions/dependency-submission@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-        with:
-          cache-disabled: true
-          dependency-graph: download-and-submit # Download saved dependency-graph and submit
