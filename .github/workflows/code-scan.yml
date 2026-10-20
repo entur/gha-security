@@ -227,7 +227,7 @@ jobs:
 
       - name: "Upload Semgrep report"
         id: upload-semgrep-report
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with: 
           sarif_file: semgrep.sarif
           category: 'semgrep-scan'
@@ -303,7 +303,7 @@ jobs:
   
       - name: "Initialize CodeQL for Java/Kotlin"
         if: matrix.language == 'kotlin' || matrix.language == 'java'
-        uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           languages: ${{ matrix.language }}
           build-mode: autobuild
@@ -312,7 +312,7 @@ jobs:
 
       - name: "Initialize CodeQL"
         if: matrix.language != 'java' && matrix.language != 'kotlin'
-        uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           languages: ${{ matrix.language }}
           queries: ${{ inputs.codeql_queries }}
@@ -333,7 +333,7 @@ jobs:
 
       - name: "Perform CodeQL Analysis"
         id: codeql-analysis
-        uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           category: "/language:${{ matrix.language }}"
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -370,6 +370,54 @@ jobs:
           path: "/home/runner/work/${{ github.event.repository.name }}/results"
           overwrite: true
 
+  scanner-action:
+    needs: [codeql-analysis, semgrep-analysis]
+    # If needs jobs have not failed or been cancelled,
+    # and if at least one of the needs has successful run
+    if: ${{ (!failure() && !cancelled()) && (needs.codeql-analysis.result == 'success' || needs.semgrep-analysis.result == 'success') }}
+    runs-on: ubuntu-24.04
+    permissions:
+      # required to read and update code scan alerts
+      security-events: write
+      # required to checkout the repository
+      contents: read
+      issues: write # required for creating issues, and/or adding issue comments
+      pull-requests: write # required for creating comments on pull requests
+    outputs:
+      notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
+      notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
+      notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
+      notification_slack_block: ${{ steps.scanner-action.outputs.notification_slack_block }}
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scanner Action
+        id: scanner-action
+        uses: $/scanner-action
+        with:
+          scanner: 'codescan'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          external-repository-token: ${{ secrets.external_repository_token }}
+
+      - name: "Send job summary notification"
+        if: ${{ steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
+        env:
+          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
+        run: |
+          echo "$NOTIFICATION_MARKDOWN" >> "$GITHUB_STEP_SUMMARY"
+
+  send-slack-notification:
+    needs: scanner-action
+    if: ${{ (!failure() && !cancelled()) && needs.scanner-action.outputs.notification_slack_enabled == 'True' && needs.scanner-action.outputs.notification_severity_alert_found == 'True' }}
+    uses: entur/gha-slack/.github/workflows/post.yml@v3
+    with:
+      channel_id: ${{ needs.scanner-action.outputs.notification_slack_channel_id }}
+      blocks: ${{ needs.scanner-action.outputs.notification_slack_block }}
+    secrets: inherit
+
   # fallback if no dependency-graph artifactory exists from a pull request, and CodeQL/Semgrep analysis was running under default branch
   upload-dependency-graph:
     runs-on: ubuntu-24.04
@@ -392,63 +440,3 @@ jobs:
         with:
           cache-disabled: true
           dependency-graph: download-and-submit # Download saved dependency-graph and submit
-
-  scanner-action:
-    needs: [codeql-analysis, semgrep-analysis]
-    # If needs jobs have not failed or been cancelled,
-    # and if at least one of the needs has successful run
-    if: ${{ (!failure() && !cancelled()) && (needs.codeql-analysis.result == 'success' || needs.semgrep-analysis.result == 'success') }}
-    runs-on: ubuntu-24.04
-    permissions:
-      # required to read and update code scan alerts
-      security-events: write
-      # required to checkout the repository
-      contents: read
-      issues: write # required for creating issues, and/or adding issue comments
-      pull-requests: write # required for creating comments on pull requests
-    outputs:
-      notification_slack_enabled: ${{ steps.scanner-action-step.outputs.notification_slack_enabled }}
-      notification_severity_alert_found: ${{ steps.scanner-action-step.outputs.notification_severity_alert_found }}
-      notification_slack_channel_id: ${{ steps.scanner-action-step.outputs.notification_slack_channel_id }}
-      notification_slack_block: ${{ steps.scanner-action-step.outputs.notification_slack_block }}
-    steps:
-      - name: "Checkout repository"
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Scanner Action
-        id: scanner-action-step
-        uses: $/scanner-action
-        with:
-          scanner: 'codescan'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          external-repository-token: ${{ secrets.external_repository_token }}
-
-      - name: "Send job summary notification"
-        if: ${{ steps.scanner-action-step.outputs.notification_severity_alert_found == 'True' }}
-        env:
-          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action-step.outputs.notification_markdown }}
-        run: |
-          echo "$NOTIFICATION_MARKDOWN" >> "$GITHUB_STEP_SUMMARY"
-      - name: "Send slack notification"
-        if: ${{ steps.scanner-action-step.outputs.notification_severity_alert_found == 'True' }}
-        uses: entur/gha-slack/.github/actions/post@v3
-        with:
-          channel_id: ${{ steps.scanner-action-step.outputs.notification_slack_channel_id }}
-          blocks: ${{ steps.scanner-action-step.outputs.notification_slack_block }}
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
-
-  send-slack-notification:
-    needs: scanner-action
-    if: ${{ needs.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-    runs-on: ubuntu-24.04
-    steps:
-      - name: "Send slack notification"
-        if: ${{ needs.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-        uses: entur/gha-slack/.github/actions/post@v3
-        with:
-          channel_id: ${{ needs.scanner-action.outputs.notification_slack_channel_id }}
-          blocks: ${{ needs.scanner-action.outputs.notification_slack_block }}
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
-
