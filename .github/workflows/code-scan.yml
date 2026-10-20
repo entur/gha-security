@@ -384,10 +384,10 @@ jobs:
       issues: write # required for creating issues, and/or adding issue comments
       pull-requests: write # required for creating comments on pull requests
     outputs:
-      notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
-      notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
-      notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
-      notification_slack_block: ${{ steps.scanner-action.outputs.notification_slack_block }}
+      notification_slack_enabled: ${{ steps.scanner-action-step.outputs.notification_slack_enabled }}
+      notification_severity_alert_found: ${{ steps.scanner-action-step.outputs.notification_severity_alert_found }}
+      notification_slack_channel_id: ${{ steps.scanner-action-step.outputs.notification_slack_channel_id }}
+      notification_slack_block: ${{ steps.scanner-action-step.outputs.notification_slack_block }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -395,7 +395,7 @@ jobs:
           persist-credentials: false
 
       - name: Scanner Action
-        id: scanner-action
+        id: scanner-action-step
         uses: $/scanner-action
         with:
           scanner: 'codescan'
@@ -403,9 +403,9 @@ jobs:
           external-repository-token: ${{ secrets.external_repository_token }}
 
       - name: "Send job summary notification"
-        if: ${{ steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
+        if: ${{ steps.scanner-action-step.outputs.notification_severity_alert_found == 'True' }}
         env:
-          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
+          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action-step.outputs.notification_markdown }}
         run: |
           echo "$NOTIFICATION_MARKDOWN" >> "$GITHUB_STEP_SUMMARY"
 
