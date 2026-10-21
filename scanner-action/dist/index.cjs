@@ -50958,45 +50958,14 @@ var ScannerReport = class {
   }
   get markdown() {
     return `## ${this.header}
-### Results
-${this.overviewAsList}  
+### Results  
+${this.overviewAsList}
 
-${this.scanner.prettyName} Report can be found [here](${this.codeScanningResultUrl})
-### Allowlist
-Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
-See the [${this.scanner.prettyName} documentation](${this.allowListDocumentationUrl}) on how to use allowlist.
+${this.scanner.prettyName} Report can be found [here](${this.codeScanningResultUrl})  
+### Allowlist  
+Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
+See the [${this.scanner.prettyName} documentation](${this.allowListDocumentationUrl}) on how to use allowlist.  
 ${this.scannerComment}`;
-  }
-  get slackBlocks() {
-    const githubRepository = `${context2.repo.owner}/${context2.repo.repo}`;
-    const blocks = [
-      {
-        type: "header",
-        text: {
-          type: "plain_text",
-          text: `${this.header} on ${githubRepository}`
-        }
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*Results*
-	${this.overviewAsList}  
-	${this.scanner.name} Report can be found <${this.codeScanningResultUrl}|here>`
-        }
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*Allowlist*
-	Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. 
-	See the <${this.allowListDocumentationUrl}|${this.scanner.name} documentation> on how to use allowlist.`
-        }
-      }
-    ];
-    return blocks;
   }
 };
 
@@ -51031,7 +51000,12 @@ var ScannerNotifications = class {
     if (!this.slackWebClient || !this.slackChannelId) return;
     await this.slackWebClient.chat.postMessage({
       channel: this.slackChannelId,
-      blocks: this.scannerReport.slackBlocks
+      blocks: [
+        {
+          type: "markdown",
+          text: this.scannerReport.markdown
+        }
+      ]
     });
   }
   writeJobSummary() {
@@ -51042,18 +51016,21 @@ var ScannerNotifications = class {
   }
   async handleNotifications() {
     await this.scannerReport.initialize();
+    if (this.isPullRequest) {
+      info("notifications: remove previous issue comment");
+      await removeIssueComment(this.pullRequestIssue, this.scannerReport.scannerComment, this.octokit);
+    }
     if (this.scannerReport.hasAlertWithinThreshold) {
-      info("Writing to job summary");
+      info("notifications: write job summary");
       this.writeJobSummary();
       if (this.isPullRequest) {
+        info("notifications: create pull request comment");
         await sendIssueComment(this.pullRequestIssue, this.scannerReport.markdown, this.octokit);
       }
       if (this.slackEnabled) {
+        info("notifications: create slack message");
         await this.sendSlackNotification();
       }
-    }
-    if (this.isPullRequest) {
-      await removeIssueComment(this.pullRequestIssue, this.scannerReport.scannerComment, this.octokit);
     }
   }
 };
