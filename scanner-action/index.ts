@@ -1,25 +1,33 @@
 import * as core from "@actions/core";
 import { throttling } from "@octokit/plugin-throttling";
+import { WebClient } from "@slack/web-api";
 import { Octokit } from "octokit";
 import { runAllowlist } from "./allowlist.js";
 import { getOctokitThrottleConfig } from "./config.js";
-import { runNotifications } from "./notifications.js";
+import { ScannerNotifications } from "./notifications.js";
+import { type Scanner, ScannerFromType } from "./scanner.js";
 import { getScannerConfig } from "./scanner-config.js";
 
 const main = async () => {
 	try {
-		const TOKEN = core.getInput("token");
-		const SCANNER_TYPE = core.getInput("scanner");
-		const EXTERNAL_REPOSITORY_TOKEN = core.getInput("external-repository-token");
+		const GITHUB_TOKEN = core.getInput("gh_token");
+		const SCANNER_TYPE = core.getInput("scanner") as "dockerscan" | "codescan";
+		const SLACK_BOT_TOKEN = core.getInput("slack_bot_token");
+		const EXTERNAL_REPOSITORY_TOKEN = core.getInput("external_repository_token");
 		const VALID_SCANNERS = ["dockerscan", "codescan"];
 
 		const ThrottledOctokit = Octokit.plugin(throttling);
 
 		let octokitExternal: Octokit | undefined;
+		let slackWebClient: WebClient | undefined;
 
 		if (!VALID_SCANNERS.includes(SCANNER_TYPE)) {
 			core.setFailed(`Invalid scanner defined ${SCANNER_TYPE}`);
 			return;
+		}
+
+		if (SLACK_BOT_TOKEN !== "") {
+			slackWebClient = new WebClient(SLACK_BOT_TOKEN);
 		}
 
 		if (EXTERNAL_REPOSITORY_TOKEN !== "") {
@@ -30,13 +38,20 @@ const main = async () => {
 		}
 
 		const octokitAction = new ThrottledOctokit({
-			auth: TOKEN,
+			auth: GITHUB_TOKEN,
 			throttle: getOctokitThrottleConfig(),
 		});
 
+		const scanner: Scanner = ScannerFromType(SCANNER_TYPE);
 		const config = await getScannerConfig(SCANNER_TYPE, octokitExternal);
 		await runAllowlist(octokitAction, SCANNER_TYPE, config);
-		await runNotifications(octokitAction, SCANNER_TYPE, config);
+
+		if (config.spec?.notifications) {
+			const scannerNotifications = new ScannerNotifications(octokitAction, scanner, config.spec?.notifications, slackWebClient);
+			await scannerNotifications.handleNotifications();
+		} else {
+			throw Error("Notification is undefined, unexpected!");
+		}
 	} catch (error) {
 		if (error instanceof Error) {
 			core.setFailed(error.message);

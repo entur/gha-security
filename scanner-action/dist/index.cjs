@@ -4073,11 +4073,11 @@ var require_util2 = __commonJS({
     var { isUint8Array } = require("node:util/types");
     var { webidl } = require_webidl();
     var supportedHashes = [];
-    var crypto2;
+    var crypto;
     try {
-      crypto2 = require("node:crypto");
+      crypto = require("node:crypto");
       const possibleRelevantHashes = ["sha256", "sha384", "sha512"];
-      supportedHashes = crypto2.getHashes().filter((hash) => possibleRelevantHashes.includes(hash));
+      supportedHashes = crypto.getHashes().filter((hash) => possibleRelevantHashes.includes(hash));
     } catch {
     }
     function responseURL(response) {
@@ -4350,7 +4350,7 @@ var require_util2 = __commonJS({
       }
     }
     function bytesMatch(bytes, metadataList) {
-      if (crypto2 === void 0) {
+      if (crypto === void 0) {
         return true;
       }
       const parsedMetadata = parseMetadata(metadataList);
@@ -4365,7 +4365,7 @@ var require_util2 = __commonJS({
       for (const item of metadata) {
         const algorithm = item.algo;
         const expectedValue = item.hash;
-        let actualValue = crypto2.createHash(algorithm).update(bytes).digest("base64");
+        let actualValue = crypto.createHash(algorithm).update(bytes).digest("base64");
         if (actualValue[actualValue.length - 1] === "=") {
           if (actualValue[actualValue.length - 2] === "=") {
             actualValue = actualValue.slice(0, -2);
@@ -5017,7 +5017,7 @@ var require_formdata = __commonJS({
     var { File: NativeFile } = require("node:buffer");
     var nodeUtil = require("node:util");
     var File = globalThis.File ?? NativeFile;
-    var FormData = class _FormData {
+    var FormData2 = class _FormData {
       constructor(form) {
         webidl.util.markAsUncloneable(this);
         if (form !== void 0) {
@@ -5119,8 +5119,8 @@ var require_formdata = __commonJS({
         return `FormData ${output.slice(output.indexOf("]") + 2)}`;
       }
     };
-    iteratorMixin("FormData", FormData, kState, "name", "value");
-    Object.defineProperties(FormData.prototype, {
+    iteratorMixin("FormData", FormData2, kState, "name", "value");
+    Object.defineProperties(FormData2.prototype, {
       append: kEnumerableProperty,
       delete: kEnumerableProperty,
       get: kEnumerableProperty,
@@ -5148,7 +5148,7 @@ var require_formdata = __commonJS({
       }
       return { name, value };
     }
-    module2.exports = { FormData, makeEntry };
+    module2.exports = { FormData: FormData2, makeEntry };
   }
 });
 
@@ -5418,7 +5418,7 @@ var require_body = __commonJS({
       extractMimeType,
       utf8DecodeBytes
     } = require_util2();
-    var { FormData } = require_formdata();
+    var { FormData: FormData2 } = require_formdata();
     var { kState } = require_symbols2();
     var { webidl } = require_webidl();
     var { Blob: Blob2 } = require("node:buffer");
@@ -5429,8 +5429,8 @@ var require_body = __commonJS({
     var { multipartFormDataParser } = require_formdata_parser();
     var random;
     try {
-      const crypto2 = require("node:crypto");
-      random = (max) => crypto2.randomInt(0, max);
+      const crypto = require("node:crypto");
+      random = (max) => crypto.randomInt(0, max);
     } catch {
       random = (max) => Math.floor(Math.random(max));
     }
@@ -5638,13 +5638,13 @@ Content-Type: ${value.type || "application/octet-stream"}\r
                   if (parsed === "failure") {
                     throw new TypeError("Failed to parse body as FormData.");
                   }
-                  const fd = new FormData();
+                  const fd = new FormData2();
                   fd[kState] = parsed;
                   return fd;
                 }
                 case "application/x-www-form-urlencoded": {
                   const entries = new URLSearchParams(value.toString());
-                  const fd = new FormData();
+                  const fd = new FormData2();
                   for (const [name, value2] of entries) {
                     fd.append(name, value2);
                   }
@@ -12379,7 +12379,7 @@ var require_response = __commonJS({
     } = require_constants3();
     var { kState, kHeaders } = require_symbols2();
     var { webidl } = require_webidl();
-    var { FormData } = require_formdata();
+    var { FormData: FormData2 } = require_formdata();
     var { URLSerializer } = require_data_url();
     var { kConstruct } = require_symbols();
     var assert = require("node:assert");
@@ -12692,7 +12692,7 @@ var require_response = __commonJS({
       ReadableStream
     );
     webidl.converters.FormData = webidl.interfaceConverter(
-      FormData
+      FormData2
     );
     webidl.converters.URLSearchParams = webidl.interfaceConverter(
       URLSearchParams
@@ -17070,13 +17070,13 @@ var require_frame = __commonJS({
     "use strict";
     var { maxUnsigned16Bit } = require_constants5();
     var BUFFER_SIZE = 16386;
-    var crypto2;
+    var crypto;
     var buffer = null;
     var bufIdx = BUFFER_SIZE;
     try {
-      crypto2 = require("node:crypto");
+      crypto = require("node:crypto");
     } catch {
-      crypto2 = {
+      crypto = {
         // not full compatibility, but minimum.
         randomFillSync: function randomFillSync(buffer2, _offset, _size) {
           for (let i = 0; i < buffer2.length; ++i) {
@@ -17089,7 +17089,7 @@ var require_frame = __commonJS({
     function generateMask() {
       if (bufIdx === BUFFER_SIZE) {
         bufIdx = 0;
-        crypto2.randomFillSync(buffer ??= Buffer.allocUnsafe(BUFFER_SIZE), 0, BUFFER_SIZE);
+        crypto.randomFillSync(buffer ??= Buffer.allocUnsafe(BUFFER_SIZE), 0, BUFFER_SIZE);
       }
       return [buffer[bufIdx++], buffer[bufIdx++], buffer[bufIdx++], buffer[bufIdx++]];
     }
@@ -17161,9 +17161,9 @@ var require_connection = __commonJS({
     var { Headers: Headers2, getHeadersList } = require_headers();
     var { getDecodeSplit } = require_util2();
     var { WebsocketFrameSend } = require_frame();
-    var crypto2;
+    var crypto;
     try {
-      crypto2 = require("node:crypto");
+      crypto = require("node:crypto");
     } catch {
     }
     function establishWebSocketConnection(url, protocols, client, ws, onEstablish, options) {
@@ -17183,7 +17183,7 @@ var require_connection = __commonJS({
         const headersList = getHeadersList(new Headers2(options.headers));
         request2.headersList = headersList;
       }
-      const keyValue = crypto2.randomBytes(16).toString("base64");
+      const keyValue = crypto.randomBytes(16).toString("base64");
       request2.headersList.append("sec-websocket-key", keyValue);
       request2.headersList.append("sec-websocket-version", "13");
       for (const protocol of protocols) {
@@ -17213,7 +17213,7 @@ var require_connection = __commonJS({
             return;
           }
           const secWSAccept = response.headersList.get("Sec-WebSocket-Accept");
-          const digest = crypto2.createHash("sha1").update(keyValue + uid).digest("base64");
+          const digest = crypto.createHash("sha1").update(keyValue + uid).digest("base64");
           if (secWSAccept !== digest) {
             failWebsocketConnection(ws, "Incorrect hash received in Sec-WebSocket-Accept header.");
             return;
@@ -20377,6 +20377,4731 @@ var require_light = __commonJS({
   }
 });
 
+// node_modules/@slack/web-api/dist/errors.js
+var require_errors2 = __commonJS({
+  "node_modules/@slack/web-api/dist/errors.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.WebAPIFileUploadReadFileDataError = exports2.WebAPIFileUploadInvalidArgumentsError = exports2.WebAPIRateLimitedError = exports2.WebAPIHTTPError = exports2.WebAPIRequestError = exports2.WebAPIPlatformError = exports2.SlackError = exports2.ErrorCode = void 0;
+    var ErrorCode;
+    (function(ErrorCode2) {
+      ErrorCode2["RequestError"] = "slack_webapi_request_error";
+      ErrorCode2["HTTPError"] = "slack_webapi_http_error";
+      ErrorCode2["PlatformError"] = "slack_webapi_platform_error";
+      ErrorCode2["RateLimitedError"] = "slack_webapi_rate_limited_error";
+      ErrorCode2["FileUploadInvalidArgumentsError"] = "slack_webapi_file_upload_invalid_args_error";
+      ErrorCode2["FileUploadReadFileDataError"] = "slack_webapi_file_upload_read_file_data_error";
+    })(ErrorCode || (exports2.ErrorCode = ErrorCode = {}));
+    var SlackError = class extends Error {
+      constructor(message, options) {
+        super(message, options);
+        this.name = this.constructor.name;
+        Object.setPrototypeOf(this, new.target.prototype);
+      }
+    };
+    exports2.SlackError = SlackError;
+    var WebAPIPlatformError = class extends SlackError {
+      code = ErrorCode.PlatformError;
+      data;
+      constructor(result) {
+        super(`An API error occurred: ${result.error}`);
+        this.data = result;
+      }
+    };
+    exports2.WebAPIPlatformError = WebAPIPlatformError;
+    var WebAPIRequestError = class extends SlackError {
+      code = ErrorCode.RequestError;
+      original;
+      constructor(original) {
+        super(`A request error occurred: ${original.message}`, { cause: original });
+        this.original = original;
+      }
+    };
+    exports2.WebAPIRequestError = WebAPIRequestError;
+    var WebAPIHTTPError = class extends SlackError {
+      code = ErrorCode.HTTPError;
+      statusCode;
+      statusMessage;
+      headers;
+      // biome-ignore lint/suspicious/noExplicitAny: HTTP response bodies might be anything
+      body;
+      constructor(statusCode, statusMessage, headers, body) {
+        super(`An HTTP protocol error occurred: statusCode = ${statusCode}`);
+        this.statusCode = statusCode;
+        this.statusMessage = statusMessage;
+        this.headers = headers;
+        if (typeof body === "string") {
+          try {
+            this.body = JSON.parse(body);
+          } catch {
+            this.body = body;
+          }
+        } else {
+          this.body = body;
+        }
+      }
+    };
+    exports2.WebAPIHTTPError = WebAPIHTTPError;
+    var WebAPIRateLimitedError = class extends SlackError {
+      code = ErrorCode.RateLimitedError;
+      retryAfter;
+      constructor(retryAfter) {
+        super(`A rate-limit has been reached, you may retry this request in ${retryAfter} seconds`);
+        this.retryAfter = retryAfter;
+      }
+    };
+    exports2.WebAPIRateLimitedError = WebAPIRateLimitedError;
+    var WebAPIFileUploadInvalidArgumentsError = class extends SlackError {
+      code = ErrorCode.FileUploadInvalidArgumentsError;
+    };
+    exports2.WebAPIFileUploadInvalidArgumentsError = WebAPIFileUploadInvalidArgumentsError;
+    var WebAPIFileUploadReadFileDataError = class extends SlackError {
+      code = ErrorCode.FileUploadReadFileDataError;
+    };
+    exports2.WebAPIFileUploadReadFileDataError = WebAPIFileUploadReadFileDataError;
+  }
+});
+
+// node_modules/@slack/web-api/package.json
+var require_package = __commonJS({
+  "node_modules/@slack/web-api/package.json"(exports2, module2) {
+    module2.exports = {
+      name: "@slack/web-api",
+      version: "8.2.0",
+      description: "Official library for using the Slack Platform's Web API",
+      author: "Slack Technologies, LLC",
+      license: "MIT",
+      keywords: [
+        "slack",
+        "web-api",
+        "bot",
+        "client",
+        "http",
+        "api",
+        "proxy",
+        "rate-limiting",
+        "pagination"
+      ],
+      main: "dist/index.js",
+      types: "./dist/index.d.ts",
+      files: [
+        "dist/**/*"
+      ],
+      engines: {
+        node: ">= 20",
+        npm: ">=9.6.4"
+      },
+      repository: {
+        type: "git",
+        url: "git+https://github.com/slackapi/node-slack-sdk.git"
+      },
+      homepage: "https://docs.slack.dev/tools/node-slack-sdk/web-api/",
+      publishConfig: {
+        access: "public"
+      },
+      bugs: {
+        url: "https://github.com/slackapi/node-slack-sdk/issues"
+      },
+      scripts: {
+        build: "npm run build:clean && tsc",
+        "build:clean": "shx rm -rf ./dist",
+        docs: "npx typedoc --plugin typedoc-plugin-markdown",
+        prepack: "npm run build",
+        test: "npm run build && bash -c 'node --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results.xml --import tsx --test src/*.test.ts'",
+        "test:coverage": "npm run build && node --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=lcov.info --test-reporter=junit --test-reporter-destination=test-results.xml --import tsx --test src/*.test.ts",
+        "test:integration": "npm run build && node test/integration/commonjs-project/index.js && node test/integration/esm-project/index.mjs && npm run test:integration:ts",
+        "test:integration:ts": "cd test/integration/ts-4.7-project && npm i && npm run build",
+        "test:types": "tsd",
+        watch: "npx nodemon --watch 'src' --ext 'ts' --exec npm run build"
+      },
+      dependencies: {
+        "@slack/logger": "^5.0.0",
+        "@slack/types": "^3.2.0",
+        "@types/node": ">=20",
+        "@types/retry": "0.12.5",
+        eventemitter3: "^5.0.1",
+        "p-queue": "^6.6.2",
+        "p-retry": "^4.6.2",
+        retry: "^0.13.1"
+      },
+      devDependencies: {
+        "@types/busboy": "^1.5.4",
+        "@types/sinon": "^22.0.0",
+        busboy: "^1",
+        nock: "^14.0.17",
+        sinon: "^22.1.0",
+        tsd: "^0.33.0"
+      },
+      tsd: {
+        directory: "test/types"
+      }
+    };
+  }
+});
+
+// node_modules/@slack/web-api/dist/instrument.js
+var require_instrument = __commonJS({
+  "node_modules/@slack/web-api/dist/instrument.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
+      var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function(o2) {
+          var ar = [];
+          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+          return ar;
+        };
+        return ownKeys(o);
+      };
+      return function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
+    })();
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.addAppMetadata = addAppMetadata;
+    exports2.getUserAgent = getUserAgent2;
+    var os4 = __importStar(require("node:os"));
+    var node_path_1 = require("node:path");
+    var packageJson = require_package();
+    function replaceSlashes(s) {
+      return s.replace("/", ":");
+    }
+    var MAX_LATIN1_CODE = 255;
+    function toLatin1Safe(s) {
+      let result = "";
+      for (const char of s) {
+        result += char.charCodeAt(0) <= MAX_LATIN1_CODE ? char : encodeURIComponent(char);
+      }
+      return result;
+    }
+    var baseUserAgent = `${replaceSlashes(packageJson.name)}/${packageJson.version} ${toLatin1Safe((0, node_path_1.basename)(process.title))}/${process.version.replace("v", "")} ${os4.platform()}/${os4.release()}`;
+    var appMetadata = {};
+    function addAppMetadata({ name, version }) {
+      appMetadata[replaceSlashes(name)] = version;
+    }
+    function getUserAgent2() {
+      const appIdentifier = Object.entries(appMetadata).map(([name, version]) => `${name}/${version}`).join(" ");
+      return (appIdentifier.length > 0 ? `${appIdentifier} ` : "") + baseUserAgent;
+    }
+  }
+});
+
+// node_modules/@slack/logger/dist/index.js
+var require_dist = __commonJS({
+  "node_modules/@slack/logger/dist/index.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.ConsoleLogger = exports2.LogLevel = void 0;
+    var LogLevel;
+    (function(LogLevel2) {
+      LogLevel2["ERROR"] = "error";
+      LogLevel2["WARN"] = "warn";
+      LogLevel2["INFO"] = "info";
+      LogLevel2["DEBUG"] = "debug";
+    })(LogLevel || (exports2.LogLevel = LogLevel = {}));
+    var ConsoleLogger = class _ConsoleLogger {
+      /** Setting for level */
+      level;
+      /** Name */
+      name;
+      /** Map of labels for each log level */
+      static labels = (() => {
+        const entries = Object.entries(LogLevel);
+        const map = entries.map(([key, value]) => [value, `[${key}] `]);
+        return new Map(map);
+      })();
+      /** Map of severity as comparable numbers for each log level */
+      static severity = {
+        [LogLevel.ERROR]: 400,
+        [LogLevel.WARN]: 300,
+        [LogLevel.INFO]: 200,
+        [LogLevel.DEBUG]: 100
+      };
+      constructor() {
+        this.level = LogLevel.INFO;
+        this.name = "";
+      }
+      getLevel() {
+        return this.level;
+      }
+      /**
+       * Sets the instance's log level so that only messages which are equal or more severe are output to the console.
+       */
+      setLevel(level) {
+        this.level = level;
+      }
+      /**
+       * Set the instance's name, which will appear on each log line before the message.
+       */
+      setName(name) {
+        this.name = name;
+      }
+      /**
+       * Log a debug message
+       */
+      // biome-ignore lint/suspicious/noExplicitAny: can log anything
+      debug(...msg) {
+        if (_ConsoleLogger.isMoreOrEqualSevere(LogLevel.DEBUG, this.level)) {
+          console.debug(_ConsoleLogger.labels.get(LogLevel.DEBUG), this.name, ...msg);
+        }
+      }
+      /**
+       * Log an info message
+       */
+      // biome-ignore lint/suspicious/noExplicitAny: can log anything
+      info(...msg) {
+        if (_ConsoleLogger.isMoreOrEqualSevere(LogLevel.INFO, this.level)) {
+          console.info(_ConsoleLogger.labels.get(LogLevel.INFO), this.name, ...msg);
+        }
+      }
+      /**
+       * Log a warning message
+       */
+      // biome-ignore lint/suspicious/noExplicitAny: can log anything
+      warn(...msg) {
+        if (_ConsoleLogger.isMoreOrEqualSevere(LogLevel.WARN, this.level)) {
+          console.warn(_ConsoleLogger.labels.get(LogLevel.WARN), this.name, ...msg);
+        }
+      }
+      /**
+       * Log an error message
+       */
+      // biome-ignore lint/suspicious/noExplicitAny: can log anything
+      error(...msg) {
+        if (_ConsoleLogger.isMoreOrEqualSevere(LogLevel.ERROR, this.level)) {
+          console.error(_ConsoleLogger.labels.get(LogLevel.ERROR), this.name, ...msg);
+        }
+      }
+      /**
+       * Helper to compare two log levels and determine if a is equal or more severe than b
+       */
+      static isMoreOrEqualSevere(a, b) {
+        return _ConsoleLogger.severity[a] >= _ConsoleLogger.severity[b];
+      }
+    };
+    exports2.ConsoleLogger = ConsoleLogger;
+  }
+});
+
+// node_modules/@slack/web-api/dist/logger.js
+var require_logger = __commonJS({
+  "node_modules/@slack/web-api/dist/logger.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.LogLevel = void 0;
+    exports2.getLogger = getLogger;
+    var logger_1 = require_dist();
+    var logger_2 = require_dist();
+    Object.defineProperty(exports2, "LogLevel", { enumerable: true, get: function() {
+      return logger_2.LogLevel;
+    } });
+    var instanceCount = 0;
+    function getLogger(name, level, existingLogger) {
+      const instanceId = instanceCount;
+      instanceCount += 1;
+      const logger = (() => {
+        if (existingLogger !== void 0) {
+          return existingLogger;
+        }
+        return new logger_1.ConsoleLogger();
+      })();
+      logger.setName(`web-api:${name}:${instanceId}`);
+      if (level !== void 0) {
+        logger.setLevel(level);
+      }
+      return logger;
+    }
+  }
+});
+
+// node_modules/@slack/web-api/dist/retry-policies.js
+var require_retry_policies = __commonJS({
+  "node_modules/@slack/web-api/dist/retry-policies.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.rapidRetryPolicy = exports2.fiveRetriesInFiveMinutes = exports2.tenRetriesInAboutThirtyMinutes = void 0;
+    exports2.tenRetriesInAboutThirtyMinutes = {
+      retries: 10,
+      factor: 1.96821,
+      randomize: true
+    };
+    exports2.fiveRetriesInFiveMinutes = {
+      retries: 5,
+      factor: 3.86
+    };
+    exports2.rapidRetryPolicy = {
+      minTimeout: 0,
+      maxTimeout: 1
+    };
+    var policies = {
+      tenRetriesInAboutThirtyMinutes: exports2.tenRetriesInAboutThirtyMinutes,
+      fiveRetriesInFiveMinutes: exports2.fiveRetriesInFiveMinutes,
+      rapidRetryPolicy: exports2.rapidRetryPolicy
+    };
+    exports2.default = policies;
+  }
+});
+
+// node_modules/@slack/web-api/dist/types/request/index.js
+var require_request3 = __commonJS({
+  "node_modules/@slack/web-api/dist/types/request/index.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/web-api/dist/types/response/index.js
+var require_response2 = __commonJS({
+  "node_modules/@slack/web-api/dist/types/response/index.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/web-api/dist/chat-stream.js
+var require_chat_stream = __commonJS({
+  "node_modules/@slack/web-api/dist/chat-stream.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.ChatStreamer = void 0;
+    var ChatStreamer = class {
+      buffer = "";
+      client;
+      logger;
+      options;
+      state;
+      streamArgs;
+      streamTs;
+      token;
+      /**
+       * Instantiate a new chat streamer.
+       *
+       * @description The "constructor" method creates a unique {@link ChatStreamer} instance that keeps track of one chat stream.
+       * @example
+       * const client = new WebClient(process.env.SLACK_BOT_TOKEN);
+       * const logger = new ConsoleLogger();
+       * const args = {
+       *   channel: "C0123456789",
+       *   thread_ts: "1700000001.123456",
+       *   recipient_team_id: "T0123456789",
+       *   recipient_user_id: "U0123456789",
+       * };
+       * const streamer = new ChatStreamer(client, logger, args, { buffer_size: 512 });
+       * await streamer.append({
+       *   markdown_text: "**hello world!**",
+       * });
+       * await streamer.stop();
+       * @see {@link https://docs.slack.dev/reference/methods/chat.startStream}
+       * @see {@link https://docs.slack.dev/reference/methods/chat.appendStream}
+       * @see {@link https://docs.slack.dev/reference/methods/chat.stopStream}
+       */
+      constructor(client, logger, args, options) {
+        this.client = client;
+        this.logger = logger;
+        this.options = {
+          buffer_size: options.buffer_size ?? 256
+        };
+        this.state = "starting";
+        this.streamArgs = args;
+      }
+      /**
+       * @description The message timestamp of the stream. Returns `undefined` until the first flush
+       * (when `chat.startStream` is called).
+       * @see {@link https://docs.slack.dev/reference/methods/chat.update}
+       */
+      get ts() {
+        return this.streamTs;
+      }
+      /**
+       * Append to the stream.
+       *
+       * @description The "append" method appends to the chat stream being used. This method can be called multiple times. After the stream is stopped this method cannot be called.
+       * @example
+       * const streamer = client.chatStream({
+       *   channel: "C0123456789",
+       *   thread_ts: "1700000001.123456",
+       *   recipient_team_id: "T0123456789",
+       *   recipient_user_id: "U0123456789",
+       * });
+       * await streamer.append({
+       *   markdown_text: "**hello wo",
+       * });
+       * await streamer.append({
+       *   markdown_text: "rld!**",
+       * });
+       * await streamer.stop();
+       * @see {@link https://docs.slack.dev/reference/methods/chat.appendStream}
+       */
+      async append(args) {
+        if (this.state === "completed") {
+          throw new Error(`failed to append stream: stream state is ${this.state}`);
+        }
+        const { markdown_text, chunks, ...opts } = args;
+        if (opts.token) {
+          this.token = opts.token;
+        }
+        if (markdown_text) {
+          this.buffer += markdown_text;
+        }
+        if (this.buffer.length >= this.options.buffer_size || chunks) {
+          return await this.flushBuffer({ chunks, ...opts });
+        }
+        const details = {
+          bufferLength: this.buffer.length,
+          bufferSize: this.options.buffer_size,
+          channel: this.streamArgs.channel,
+          recipientTeamId: this.streamArgs.recipient_team_id,
+          recipientUserId: this.streamArgs.recipient_user_id,
+          threadTs: this.streamArgs.thread_ts
+        };
+        this.logger.debug(`ChatStreamer appended to buffer: ${JSON.stringify(details)}`);
+        return null;
+      }
+      /**
+       * Stop the stream and finalize the message.
+       *
+       * @description The "stop" method stops the chat stream being used. This method can be called once to end the stream. Additional "blocks" and "metadata" can be provided.
+       *
+       * @example
+       * const streamer = client.chatStream({
+       *   channel: "C0123456789",
+       *   thread_ts: "1700000001.123456",
+       *   recipient_team_id: "T0123456789",
+       *   recipient_user_id: "U0123456789",
+       * });
+       * await streamer.append({
+       *   markdown_text: "**hello world!**",
+       * });
+       * await streamer.stop();
+       * @see {@link https://docs.slack.dev/reference/methods/chat.stopStream}
+       */
+      async stop(args) {
+        if (this.state === "completed") {
+          throw new Error(`failed to stop stream: stream state is ${this.state}`);
+        }
+        const { markdown_text, chunks, ...opts } = args ?? {};
+        if (opts.token) {
+          this.token = opts.token;
+        }
+        if (markdown_text) {
+          this.buffer += markdown_text;
+        }
+        if (!this.streamTs) {
+          const response2 = await this.client.chat.startStream({
+            ...this.streamArgs,
+            token: this.token
+          });
+          if (!response2.ts) {
+            throw new Error("failed to stop stream: stream not started");
+          }
+          this.streamTs = response2.ts;
+          this.state = "in_progress";
+        }
+        const chunksToFlush = [];
+        if (this.buffer.length > 0) {
+          chunksToFlush.push({
+            type: "markdown_text",
+            text: this.buffer
+          });
+        }
+        if (chunks) {
+          chunksToFlush.push(...chunks);
+        }
+        const response = await this.client.chat.stopStream({
+          token: this.token,
+          channel: this.streamArgs.channel,
+          ts: this.streamTs,
+          chunks: chunksToFlush,
+          ...opts
+        });
+        this.state = "completed";
+        return response;
+      }
+      async flushBuffer(args) {
+        const { chunks, ...opts } = args ?? {};
+        const chunksToFlush = [];
+        if (this.buffer.length > 0) {
+          chunksToFlush.push({
+            type: "markdown_text",
+            text: this.buffer
+          });
+        }
+        if (chunks) {
+          chunksToFlush.push(...chunks);
+        }
+        if (!this.streamTs) {
+          const response2 = await this.client.chat.startStream({
+            ...this.streamArgs,
+            token: this.token,
+            chunks: chunksToFlush,
+            ...opts
+          });
+          this.buffer = "";
+          this.streamTs = response2.ts;
+          this.state = "in_progress";
+          return response2;
+        }
+        const response = await this.client.chat.appendStream({
+          token: this.token,
+          channel: this.streamArgs.channel,
+          ts: this.streamTs,
+          chunks: chunksToFlush,
+          ...opts
+        });
+        this.buffer = "";
+        return response;
+      }
+    };
+    exports2.ChatStreamer = ChatStreamer;
+  }
+});
+
+// node_modules/p-queue/node_modules/eventemitter3/index.js
+var require_eventemitter3 = __commonJS({
+  "node_modules/p-queue/node_modules/eventemitter3/index.js"(exports2, module2) {
+    "use strict";
+    var has = Object.prototype.hasOwnProperty;
+    var prefix = "~";
+    function Events() {
+    }
+    if (Object.create) {
+      Events.prototype = /* @__PURE__ */ Object.create(null);
+      if (!new Events().__proto__) prefix = false;
+    }
+    function EE(fn, context3, once) {
+      this.fn = fn;
+      this.context = context3;
+      this.once = once || false;
+    }
+    function addListener(emitter, event, fn, context3, once) {
+      if (typeof fn !== "function") {
+        throw new TypeError("The listener must be a function");
+      }
+      var listener = new EE(fn, context3 || emitter, once), evt = prefix ? prefix + event : event;
+      if (!emitter._events[evt]) emitter._events[evt] = listener, emitter._eventsCount++;
+      else if (!emitter._events[evt].fn) emitter._events[evt].push(listener);
+      else emitter._events[evt] = [emitter._events[evt], listener];
+      return emitter;
+    }
+    function clearEvent(emitter, evt) {
+      if (--emitter._eventsCount === 0) emitter._events = new Events();
+      else delete emitter._events[evt];
+    }
+    function EventEmitter() {
+      this._events = new Events();
+      this._eventsCount = 0;
+    }
+    EventEmitter.prototype.eventNames = function eventNames() {
+      var names = [], events, name;
+      if (this._eventsCount === 0) return names;
+      for (name in events = this._events) {
+        if (has.call(events, name)) names.push(prefix ? name.slice(1) : name);
+      }
+      if (Object.getOwnPropertySymbols) {
+        return names.concat(Object.getOwnPropertySymbols(events));
+      }
+      return names;
+    };
+    EventEmitter.prototype.listeners = function listeners(event) {
+      var evt = prefix ? prefix + event : event, handlers = this._events[evt];
+      if (!handlers) return [];
+      if (handlers.fn) return [handlers.fn];
+      for (var i = 0, l = handlers.length, ee = new Array(l); i < l; i++) {
+        ee[i] = handlers[i].fn;
+      }
+      return ee;
+    };
+    EventEmitter.prototype.listenerCount = function listenerCount(event) {
+      var evt = prefix ? prefix + event : event, listeners = this._events[evt];
+      if (!listeners) return 0;
+      if (listeners.fn) return 1;
+      return listeners.length;
+    };
+    EventEmitter.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
+      var evt = prefix ? prefix + event : event;
+      if (!this._events[evt]) return false;
+      var listeners = this._events[evt], len = arguments.length, args, i;
+      if (listeners.fn) {
+        if (listeners.once) this.removeListener(event, listeners.fn, void 0, true);
+        switch (len) {
+          case 1:
+            return listeners.fn.call(listeners.context), true;
+          case 2:
+            return listeners.fn.call(listeners.context, a1), true;
+          case 3:
+            return listeners.fn.call(listeners.context, a1, a2), true;
+          case 4:
+            return listeners.fn.call(listeners.context, a1, a2, a3), true;
+          case 5:
+            return listeners.fn.call(listeners.context, a1, a2, a3, a4), true;
+          case 6:
+            return listeners.fn.call(listeners.context, a1, a2, a3, a4, a5), true;
+        }
+        for (i = 1, args = new Array(len - 1); i < len; i++) {
+          args[i - 1] = arguments[i];
+        }
+        listeners.fn.apply(listeners.context, args);
+      } else {
+        var length = listeners.length, j;
+        for (i = 0; i < length; i++) {
+          if (listeners[i].once) this.removeListener(event, listeners[i].fn, void 0, true);
+          switch (len) {
+            case 1:
+              listeners[i].fn.call(listeners[i].context);
+              break;
+            case 2:
+              listeners[i].fn.call(listeners[i].context, a1);
+              break;
+            case 3:
+              listeners[i].fn.call(listeners[i].context, a1, a2);
+              break;
+            case 4:
+              listeners[i].fn.call(listeners[i].context, a1, a2, a3);
+              break;
+            default:
+              if (!args) for (j = 1, args = new Array(len - 1); j < len; j++) {
+                args[j - 1] = arguments[j];
+              }
+              listeners[i].fn.apply(listeners[i].context, args);
+          }
+        }
+      }
+      return true;
+    };
+    EventEmitter.prototype.on = function on(event, fn, context3) {
+      return addListener(this, event, fn, context3, false);
+    };
+    EventEmitter.prototype.once = function once(event, fn, context3) {
+      return addListener(this, event, fn, context3, true);
+    };
+    EventEmitter.prototype.removeListener = function removeListener2(event, fn, context3, once) {
+      var evt = prefix ? prefix + event : event;
+      if (!this._events[evt]) return this;
+      if (!fn) {
+        clearEvent(this, evt);
+        return this;
+      }
+      var listeners = this._events[evt];
+      if (listeners.fn) {
+        if (listeners.fn === fn && (!once || listeners.once) && (!context3 || listeners.context === context3)) {
+          clearEvent(this, evt);
+        }
+      } else {
+        for (var i = 0, events = [], length = listeners.length; i < length; i++) {
+          if (listeners[i].fn !== fn || once && !listeners[i].once || context3 && listeners[i].context !== context3) {
+            events.push(listeners[i]);
+          }
+        }
+        if (events.length) this._events[evt] = events.length === 1 ? events[0] : events;
+        else clearEvent(this, evt);
+      }
+      return this;
+    };
+    EventEmitter.prototype.removeAllListeners = function removeAllListeners(event) {
+      var evt;
+      if (event) {
+        evt = prefix ? prefix + event : event;
+        if (this._events[evt]) clearEvent(this, evt);
+      } else {
+        this._events = new Events();
+        this._eventsCount = 0;
+      }
+      return this;
+    };
+    EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
+    EventEmitter.prototype.addListener = EventEmitter.prototype.on;
+    EventEmitter.prefixed = prefix;
+    EventEmitter.EventEmitter = EventEmitter;
+    if ("undefined" !== typeof module2) {
+      module2.exports = EventEmitter;
+    }
+  }
+});
+
+// node_modules/p-finally/index.js
+var require_p_finally = __commonJS({
+  "node_modules/p-finally/index.js"(exports2, module2) {
+    "use strict";
+    module2.exports = (promise, onFinally) => {
+      onFinally = onFinally || (() => {
+      });
+      return promise.then(
+        (val) => new Promise((resolve) => {
+          resolve(onFinally());
+        }).then(() => val),
+        (err) => new Promise((resolve) => {
+          resolve(onFinally());
+        }).then(() => {
+          throw err;
+        })
+      );
+    };
+  }
+});
+
+// node_modules/p-timeout/index.js
+var require_p_timeout = __commonJS({
+  "node_modules/p-timeout/index.js"(exports2, module2) {
+    "use strict";
+    var pFinally = require_p_finally();
+    var TimeoutError = class extends Error {
+      constructor(message) {
+        super(message);
+        this.name = "TimeoutError";
+      }
+    };
+    var pTimeout = (promise, milliseconds, fallback) => new Promise((resolve, reject) => {
+      if (typeof milliseconds !== "number" || milliseconds < 0) {
+        throw new TypeError("Expected `milliseconds` to be a positive number");
+      }
+      if (milliseconds === Infinity) {
+        resolve(promise);
+        return;
+      }
+      const timer = setTimeout(() => {
+        if (typeof fallback === "function") {
+          try {
+            resolve(fallback());
+          } catch (error2) {
+            reject(error2);
+          }
+          return;
+        }
+        const message = typeof fallback === "string" ? fallback : `Promise timed out after ${milliseconds} milliseconds`;
+        const timeoutError = fallback instanceof Error ? fallback : new TimeoutError(message);
+        if (typeof promise.cancel === "function") {
+          promise.cancel();
+        }
+        reject(timeoutError);
+      }, milliseconds);
+      pFinally(
+        // eslint-disable-next-line promise/prefer-await-to-then
+        promise.then(resolve, reject),
+        () => {
+          clearTimeout(timer);
+        }
+      );
+    });
+    module2.exports = pTimeout;
+    module2.exports.default = pTimeout;
+    module2.exports.TimeoutError = TimeoutError;
+  }
+});
+
+// node_modules/p-queue/dist/lower-bound.js
+var require_lower_bound = __commonJS({
+  "node_modules/p-queue/dist/lower-bound.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    function lowerBound(array, value, comparator) {
+      let first = 0;
+      let count = array.length;
+      while (count > 0) {
+        const step = count / 2 | 0;
+        let it = first + step;
+        if (comparator(array[it], value) <= 0) {
+          first = ++it;
+          count -= step + 1;
+        } else {
+          count = step;
+        }
+      }
+      return first;
+    }
+    exports2.default = lowerBound;
+  }
+});
+
+// node_modules/p-queue/dist/priority-queue.js
+var require_priority_queue = __commonJS({
+  "node_modules/p-queue/dist/priority-queue.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    var lower_bound_1 = require_lower_bound();
+    var PriorityQueue = class {
+      constructor() {
+        this._queue = [];
+      }
+      enqueue(run, options) {
+        options = Object.assign({ priority: 0 }, options);
+        const element = {
+          priority: options.priority,
+          run
+        };
+        if (this.size && this._queue[this.size - 1].priority >= options.priority) {
+          this._queue.push(element);
+          return;
+        }
+        const index = lower_bound_1.default(this._queue, element, (a, b) => b.priority - a.priority);
+        this._queue.splice(index, 0, element);
+      }
+      dequeue() {
+        const item = this._queue.shift();
+        return item === null || item === void 0 ? void 0 : item.run;
+      }
+      filter(options) {
+        return this._queue.filter((element) => element.priority === options.priority).map((element) => element.run);
+      }
+      get size() {
+        return this._queue.length;
+      }
+    };
+    exports2.default = PriorityQueue;
+  }
+});
+
+// node_modules/p-queue/dist/index.js
+var require_dist2 = __commonJS({
+  "node_modules/p-queue/dist/index.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    var EventEmitter = require_eventemitter3();
+    var p_timeout_1 = require_p_timeout();
+    var priority_queue_1 = require_priority_queue();
+    var empty = () => {
+    };
+    var timeoutError = new p_timeout_1.TimeoutError();
+    var PQueue = class extends EventEmitter {
+      constructor(options) {
+        var _a, _b, _c, _d;
+        super();
+        this._intervalCount = 0;
+        this._intervalEnd = 0;
+        this._pendingCount = 0;
+        this._resolveEmpty = empty;
+        this._resolveIdle = empty;
+        options = Object.assign({ carryoverConcurrencyCount: false, intervalCap: Infinity, interval: 0, concurrency: Infinity, autoStart: true, queueClass: priority_queue_1.default }, options);
+        if (!(typeof options.intervalCap === "number" && options.intervalCap >= 1)) {
+          throw new TypeError(`Expected \`intervalCap\` to be a number from 1 and up, got \`${(_b = (_a = options.intervalCap) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : ""}\` (${typeof options.intervalCap})`);
+        }
+        if (options.interval === void 0 || !(Number.isFinite(options.interval) && options.interval >= 0)) {
+          throw new TypeError(`Expected \`interval\` to be a finite number >= 0, got \`${(_d = (_c = options.interval) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : ""}\` (${typeof options.interval})`);
+        }
+        this._carryoverConcurrencyCount = options.carryoverConcurrencyCount;
+        this._isIntervalIgnored = options.intervalCap === Infinity || options.interval === 0;
+        this._intervalCap = options.intervalCap;
+        this._interval = options.interval;
+        this._queue = new options.queueClass();
+        this._queueClass = options.queueClass;
+        this.concurrency = options.concurrency;
+        this._timeout = options.timeout;
+        this._throwOnTimeout = options.throwOnTimeout === true;
+        this._isPaused = options.autoStart === false;
+      }
+      get _doesIntervalAllowAnother() {
+        return this._isIntervalIgnored || this._intervalCount < this._intervalCap;
+      }
+      get _doesConcurrentAllowAnother() {
+        return this._pendingCount < this._concurrency;
+      }
+      _next() {
+        this._pendingCount--;
+        this._tryToStartAnother();
+        this.emit("next");
+      }
+      _resolvePromises() {
+        this._resolveEmpty();
+        this._resolveEmpty = empty;
+        if (this._pendingCount === 0) {
+          this._resolveIdle();
+          this._resolveIdle = empty;
+          this.emit("idle");
+        }
+      }
+      _onResumeInterval() {
+        this._onInterval();
+        this._initializeIntervalIfNeeded();
+        this._timeoutId = void 0;
+      }
+      _isIntervalPaused() {
+        const now = Date.now();
+        if (this._intervalId === void 0) {
+          const delay = this._intervalEnd - now;
+          if (delay < 0) {
+            this._intervalCount = this._carryoverConcurrencyCount ? this._pendingCount : 0;
+          } else {
+            if (this._timeoutId === void 0) {
+              this._timeoutId = setTimeout(() => {
+                this._onResumeInterval();
+              }, delay);
+            }
+            return true;
+          }
+        }
+        return false;
+      }
+      _tryToStartAnother() {
+        if (this._queue.size === 0) {
+          if (this._intervalId) {
+            clearInterval(this._intervalId);
+          }
+          this._intervalId = void 0;
+          this._resolvePromises();
+          return false;
+        }
+        if (!this._isPaused) {
+          const canInitializeInterval = !this._isIntervalPaused();
+          if (this._doesIntervalAllowAnother && this._doesConcurrentAllowAnother) {
+            const job = this._queue.dequeue();
+            if (!job) {
+              return false;
+            }
+            this.emit("active");
+            job();
+            if (canInitializeInterval) {
+              this._initializeIntervalIfNeeded();
+            }
+            return true;
+          }
+        }
+        return false;
+      }
+      _initializeIntervalIfNeeded() {
+        if (this._isIntervalIgnored || this._intervalId !== void 0) {
+          return;
+        }
+        this._intervalId = setInterval(() => {
+          this._onInterval();
+        }, this._interval);
+        this._intervalEnd = Date.now() + this._interval;
+      }
+      _onInterval() {
+        if (this._intervalCount === 0 && this._pendingCount === 0 && this._intervalId) {
+          clearInterval(this._intervalId);
+          this._intervalId = void 0;
+        }
+        this._intervalCount = this._carryoverConcurrencyCount ? this._pendingCount : 0;
+        this._processQueue();
+      }
+      /**
+      Executes all queued functions until it reaches the limit.
+      */
+      _processQueue() {
+        while (this._tryToStartAnother()) {
+        }
+      }
+      get concurrency() {
+        return this._concurrency;
+      }
+      set concurrency(newConcurrency) {
+        if (!(typeof newConcurrency === "number" && newConcurrency >= 1)) {
+          throw new TypeError(`Expected \`concurrency\` to be a number from 1 and up, got \`${newConcurrency}\` (${typeof newConcurrency})`);
+        }
+        this._concurrency = newConcurrency;
+        this._processQueue();
+      }
+      /**
+      Adds a sync or async task to the queue. Always returns a promise.
+      */
+      async add(fn, options = {}) {
+        return new Promise((resolve, reject) => {
+          const run = async () => {
+            this._pendingCount++;
+            this._intervalCount++;
+            try {
+              const operation = this._timeout === void 0 && options.timeout === void 0 ? fn() : p_timeout_1.default(Promise.resolve(fn()), options.timeout === void 0 ? this._timeout : options.timeout, () => {
+                if (options.throwOnTimeout === void 0 ? this._throwOnTimeout : options.throwOnTimeout) {
+                  reject(timeoutError);
+                }
+                return void 0;
+              });
+              resolve(await operation);
+            } catch (error2) {
+              reject(error2);
+            }
+            this._next();
+          };
+          this._queue.enqueue(run, options);
+          this._tryToStartAnother();
+          this.emit("add");
+        });
+      }
+      /**
+          Same as `.add()`, but accepts an array of sync or async functions.
+      
+          @returns A promise that resolves when all functions are resolved.
+          */
+      async addAll(functions, options) {
+        return Promise.all(functions.map(async (function_) => this.add(function_, options)));
+      }
+      /**
+      Start (or resume) executing enqueued tasks within concurrency limit. No need to call this if queue is not paused (via `options.autoStart = false` or by `.pause()` method.)
+      */
+      start() {
+        if (!this._isPaused) {
+          return this;
+        }
+        this._isPaused = false;
+        this._processQueue();
+        return this;
+      }
+      /**
+      Put queue execution on hold.
+      */
+      pause() {
+        this._isPaused = true;
+      }
+      /**
+      Clear the queue.
+      */
+      clear() {
+        this._queue = new this._queueClass();
+      }
+      /**
+          Can be called multiple times. Useful if you for example add additional items at a later time.
+      
+          @returns A promise that settles when the queue becomes empty.
+          */
+      async onEmpty() {
+        if (this._queue.size === 0) {
+          return;
+        }
+        return new Promise((resolve) => {
+          const existingResolve = this._resolveEmpty;
+          this._resolveEmpty = () => {
+            existingResolve();
+            resolve();
+          };
+        });
+      }
+      /**
+          The difference with `.onEmpty` is that `.onIdle` guarantees that all work from the queue has finished. `.onEmpty` merely signals that the queue is empty, but it could mean that some promises haven't completed yet.
+      
+          @returns A promise that settles when the queue becomes empty, and all promises have completed; `queue.size === 0 && queue.pending === 0`.
+          */
+      async onIdle() {
+        if (this._pendingCount === 0 && this._queue.size === 0) {
+          return;
+        }
+        return new Promise((resolve) => {
+          const existingResolve = this._resolveIdle;
+          this._resolveIdle = () => {
+            existingResolve();
+            resolve();
+          };
+        });
+      }
+      /**
+      Size of the queue.
+      */
+      get size() {
+        return this._queue.size;
+      }
+      /**
+          Size of the queue, filtered by the given options.
+      
+          For example, this can be used to find the number of items remaining in the queue with a specific priority level.
+          */
+      sizeBy(options) {
+        return this._queue.filter(options).length;
+      }
+      /**
+      Number of pending promises.
+      */
+      get pending() {
+        return this._pendingCount;
+      }
+      /**
+      Whether the queue is currently paused.
+      */
+      get isPaused() {
+        return this._isPaused;
+      }
+      get timeout() {
+        return this._timeout;
+      }
+      /**
+      Set the timeout for future operations.
+      */
+      set timeout(milliseconds) {
+        this._timeout = milliseconds;
+      }
+    };
+    exports2.default = PQueue;
+  }
+});
+
+// node_modules/retry/lib/retry_operation.js
+var require_retry_operation = __commonJS({
+  "node_modules/retry/lib/retry_operation.js"(exports2, module2) {
+    function RetryOperation(timeouts, options) {
+      if (typeof options === "boolean") {
+        options = { forever: options };
+      }
+      this._originalTimeouts = JSON.parse(JSON.stringify(timeouts));
+      this._timeouts = timeouts;
+      this._options = options || {};
+      this._maxRetryTime = options && options.maxRetryTime || Infinity;
+      this._fn = null;
+      this._errors = [];
+      this._attempts = 1;
+      this._operationTimeout = null;
+      this._operationTimeoutCb = null;
+      this._timeout = null;
+      this._operationStart = null;
+      this._timer = null;
+      if (this._options.forever) {
+        this._cachedTimeouts = this._timeouts.slice(0);
+      }
+    }
+    module2.exports = RetryOperation;
+    RetryOperation.prototype.reset = function() {
+      this._attempts = 1;
+      this._timeouts = this._originalTimeouts.slice(0);
+    };
+    RetryOperation.prototype.stop = function() {
+      if (this._timeout) {
+        clearTimeout(this._timeout);
+      }
+      if (this._timer) {
+        clearTimeout(this._timer);
+      }
+      this._timeouts = [];
+      this._cachedTimeouts = null;
+    };
+    RetryOperation.prototype.retry = function(err) {
+      if (this._timeout) {
+        clearTimeout(this._timeout);
+      }
+      if (!err) {
+        return false;
+      }
+      var currentTime = (/* @__PURE__ */ new Date()).getTime();
+      if (err && currentTime - this._operationStart >= this._maxRetryTime) {
+        this._errors.push(err);
+        this._errors.unshift(new Error("RetryOperation timeout occurred"));
+        return false;
+      }
+      this._errors.push(err);
+      var timeout = this._timeouts.shift();
+      if (timeout === void 0) {
+        if (this._cachedTimeouts) {
+          this._errors.splice(0, this._errors.length - 1);
+          timeout = this._cachedTimeouts.slice(-1);
+        } else {
+          return false;
+        }
+      }
+      var self2 = this;
+      this._timer = setTimeout(function() {
+        self2._attempts++;
+        if (self2._operationTimeoutCb) {
+          self2._timeout = setTimeout(function() {
+            self2._operationTimeoutCb(self2._attempts);
+          }, self2._operationTimeout);
+          if (self2._options.unref) {
+            self2._timeout.unref();
+          }
+        }
+        self2._fn(self2._attempts);
+      }, timeout);
+      if (this._options.unref) {
+        this._timer.unref();
+      }
+      return true;
+    };
+    RetryOperation.prototype.attempt = function(fn, timeoutOps) {
+      this._fn = fn;
+      if (timeoutOps) {
+        if (timeoutOps.timeout) {
+          this._operationTimeout = timeoutOps.timeout;
+        }
+        if (timeoutOps.cb) {
+          this._operationTimeoutCb = timeoutOps.cb;
+        }
+      }
+      var self2 = this;
+      if (this._operationTimeoutCb) {
+        this._timeout = setTimeout(function() {
+          self2._operationTimeoutCb();
+        }, self2._operationTimeout);
+      }
+      this._operationStart = (/* @__PURE__ */ new Date()).getTime();
+      this._fn(this._attempts);
+    };
+    RetryOperation.prototype.try = function(fn) {
+      console.log("Using RetryOperation.try() is deprecated");
+      this.attempt(fn);
+    };
+    RetryOperation.prototype.start = function(fn) {
+      console.log("Using RetryOperation.start() is deprecated");
+      this.attempt(fn);
+    };
+    RetryOperation.prototype.start = RetryOperation.prototype.try;
+    RetryOperation.prototype.errors = function() {
+      return this._errors;
+    };
+    RetryOperation.prototype.attempts = function() {
+      return this._attempts;
+    };
+    RetryOperation.prototype.mainError = function() {
+      if (this._errors.length === 0) {
+        return null;
+      }
+      var counts = {};
+      var mainError = null;
+      var mainErrorCount = 0;
+      for (var i = 0; i < this._errors.length; i++) {
+        var error2 = this._errors[i];
+        var message = error2.message;
+        var count = (counts[message] || 0) + 1;
+        counts[message] = count;
+        if (count >= mainErrorCount) {
+          mainError = error2;
+          mainErrorCount = count;
+        }
+      }
+      return mainError;
+    };
+  }
+});
+
+// node_modules/retry/lib/retry.js
+var require_retry2 = __commonJS({
+  "node_modules/retry/lib/retry.js"(exports2) {
+    var RetryOperation = require_retry_operation();
+    exports2.operation = function(options) {
+      var timeouts = exports2.timeouts(options);
+      return new RetryOperation(timeouts, {
+        forever: options && (options.forever || options.retries === Infinity),
+        unref: options && options.unref,
+        maxRetryTime: options && options.maxRetryTime
+      });
+    };
+    exports2.timeouts = function(options) {
+      if (options instanceof Array) {
+        return [].concat(options);
+      }
+      var opts = {
+        retries: 10,
+        factor: 2,
+        minTimeout: 1 * 1e3,
+        maxTimeout: Infinity,
+        randomize: false
+      };
+      for (var key in options) {
+        opts[key] = options[key];
+      }
+      if (opts.minTimeout > opts.maxTimeout) {
+        throw new Error("minTimeout is greater than maxTimeout");
+      }
+      var timeouts = [];
+      for (var i = 0; i < opts.retries; i++) {
+        timeouts.push(this.createTimeout(i, opts));
+      }
+      if (options && options.forever && !timeouts.length) {
+        timeouts.push(this.createTimeout(i, opts));
+      }
+      timeouts.sort(function(a, b) {
+        return a - b;
+      });
+      return timeouts;
+    };
+    exports2.createTimeout = function(attempt, opts) {
+      var random = opts.randomize ? Math.random() + 1 : 1;
+      var timeout = Math.round(random * Math.max(opts.minTimeout, 1) * Math.pow(opts.factor, attempt));
+      timeout = Math.min(timeout, opts.maxTimeout);
+      return timeout;
+    };
+    exports2.wrap = function(obj, options, methods) {
+      if (options instanceof Array) {
+        methods = options;
+        options = null;
+      }
+      if (!methods) {
+        methods = [];
+        for (var key in obj) {
+          if (typeof obj[key] === "function") {
+            methods.push(key);
+          }
+        }
+      }
+      for (var i = 0; i < methods.length; i++) {
+        var method = methods[i];
+        var original = obj[method];
+        obj[method] = function retryWrapper(original2) {
+          var op = exports2.operation(options);
+          var args = Array.prototype.slice.call(arguments, 1);
+          var callback = args.pop();
+          args.push(function(err) {
+            if (op.retry(err)) {
+              return;
+            }
+            if (err) {
+              arguments[0] = op.mainError();
+            }
+            callback.apply(this, arguments);
+          });
+          op.attempt(function() {
+            original2.apply(obj, args);
+          });
+        }.bind(obj, original);
+        obj[method].options = options;
+      }
+    };
+  }
+});
+
+// node_modules/retry/index.js
+var require_retry3 = __commonJS({
+  "node_modules/retry/index.js"(exports2, module2) {
+    module2.exports = require_retry2();
+  }
+});
+
+// node_modules/p-retry/index.js
+var require_p_retry = __commonJS({
+  "node_modules/p-retry/index.js"(exports2, module2) {
+    "use strict";
+    var retry2 = require_retry3();
+    var networkErrorMsgs = [
+      "Failed to fetch",
+      // Chrome
+      "NetworkError when attempting to fetch resource.",
+      // Firefox
+      "The Internet connection appears to be offline.",
+      // Safari
+      "Network request failed"
+      // `cross-fetch`
+    ];
+    var AbortError = class extends Error {
+      constructor(message) {
+        super();
+        if (message instanceof Error) {
+          this.originalError = message;
+          ({ message } = message);
+        } else {
+          this.originalError = new Error(message);
+          this.originalError.stack = this.stack;
+        }
+        this.name = "AbortError";
+        this.message = message;
+      }
+    };
+    var decorateErrorWithCounts = (error2, attemptNumber, options) => {
+      const retriesLeft = options.retries - (attemptNumber - 1);
+      error2.attemptNumber = attemptNumber;
+      error2.retriesLeft = retriesLeft;
+      return error2;
+    };
+    var isNetworkError = (errorMessage) => networkErrorMsgs.includes(errorMessage);
+    var pRetry = (input, options) => new Promise((resolve, reject) => {
+      options = {
+        onFailedAttempt: () => {
+        },
+        retries: 10,
+        ...options
+      };
+      const operation = retry2.operation(options);
+      operation.attempt(async (attemptNumber) => {
+        try {
+          resolve(await input(attemptNumber));
+        } catch (error2) {
+          if (!(error2 instanceof Error)) {
+            reject(new TypeError(`Non-error was thrown: "${error2}". You should only throw errors.`));
+            return;
+          }
+          if (error2 instanceof AbortError) {
+            operation.stop();
+            reject(error2.originalError);
+          } else if (error2 instanceof TypeError && !isNetworkError(error2.message)) {
+            operation.stop();
+            reject(error2);
+          } else {
+            decorateErrorWithCounts(error2, attemptNumber, options);
+            try {
+              await options.onFailedAttempt(error2);
+            } catch (error3) {
+              reject(error3);
+              return;
+            }
+            if (!operation.retry(error2)) {
+              reject(operation.mainError());
+            }
+          }
+        }
+      });
+    });
+    module2.exports = pRetry;
+    module2.exports.default = pRetry;
+    module2.exports.AbortError = AbortError;
+  }
+});
+
+// node_modules/@slack/web-api/dist/file-upload.js
+var require_file_upload = __commonJS({
+  "node_modules/@slack/web-api/dist/file-upload.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.getFileUploadJob = getFileUploadJob;
+    exports2.getMultipleFileUploadJobs = getMultipleFileUploadJobs;
+    exports2.getFileData = getFileData;
+    exports2.getFileDataLength = getFileDataLength;
+    exports2.getFileDataAsStream = getFileDataAsStream;
+    exports2.getAllFileUploadsToComplete = getAllFileUploadsToComplete;
+    exports2.warnIfChannels = warnIfChannels;
+    exports2.errorIfChannelsCsv = errorIfChannelsCsv;
+    exports2.errorIfInvalidOrMissingFileData = errorIfInvalidOrMissingFileData;
+    exports2.warnIfMissingOrInvalidFileNameAndDefault = warnIfMissingOrInvalidFileNameAndDefault;
+    exports2.warnIfLegacyFileType = warnIfLegacyFileType;
+    exports2.buildMissingFileIdError = buildMissingFileIdError;
+    exports2.buildFileSizeErrorMsg = buildFileSizeErrorMsg;
+    exports2.buildLegacyFileTypeWarning = buildLegacyFileTypeWarning;
+    exports2.buildMissingFileNameWarning = buildMissingFileNameWarning;
+    exports2.buildMissingExtensionWarning = buildMissingExtensionWarning;
+    exports2.buildFilesUploadMissingMessage = buildFilesUploadMissingMessage;
+    exports2.buildChannelsWarning = buildChannelsWarning;
+    exports2.buildMultipleChannelsErrorMsg = buildMultipleChannelsErrorMsg;
+    exports2.buildInvalidFilesUploadParamError = buildInvalidFilesUploadParamError;
+    var node_fs_1 = require("node:fs");
+    var node_stream_1 = require("node:stream");
+    var errors_1 = require_errors2();
+    async function getFileUploadJob(options, logger) {
+      warnIfLegacyFileType(options, logger);
+      warnIfChannels(options, logger);
+      errorIfChannelsCsv(options);
+      const fileName = warnIfMissingOrInvalidFileNameAndDefault(options, logger);
+      const fileData = await getFileData(options);
+      const fileDataBytesLength = getFileDataLength(fileData);
+      const fileUploadJob = {
+        // supplied by user
+        alt_text: options.alt_text,
+        blocks: options.blocks,
+        channel_id: options.channels ?? options.channel_id,
+        filename: options.filename ?? fileName,
+        highlight_type: options.highlight_type,
+        initial_comment: options.initial_comment,
+        snippet_type: options.snippet_type,
+        title: options.title ?? options.filename ?? fileName,
+        // default title to filename unless otherwise specified
+        // calculated
+        data: fileData,
+        length: fileDataBytesLength
+      };
+      if ("thread_ts" in options) {
+        fileUploadJob.thread_ts = options.thread_ts;
+      }
+      if ("token" in options) {
+        fileUploadJob.token = options.token;
+      }
+      if ("content" in options) {
+        return {
+          content: options.content,
+          ...fileUploadJob
+        };
+      }
+      if ("file" in options) {
+        return {
+          file: options.file,
+          ...fileUploadJob
+        };
+      }
+      throw new errors_1.WebAPIFileUploadInvalidArgumentsError("Either a file or content field is required for valid file upload. You must supply one");
+    }
+    async function getMultipleFileUploadJobs(options, logger) {
+      if ("file_uploads" in options) {
+        return Promise.all(options.file_uploads.map((upload) => {
+          const { blocks, channel_id, channels, initial_comment, thread_ts } = upload;
+          if (blocks || channel_id || channels || initial_comment || thread_ts) {
+            throw new errors_1.WebAPIFileUploadInvalidArgumentsError(buildInvalidFilesUploadParamError());
+          }
+          const uploadJobArgs = {
+            ...upload,
+            blocks: options.blocks,
+            channels: options.channels,
+            channel_id: options.channel_id,
+            initial_comment: options.initial_comment
+          };
+          if ("thread_ts" in options) {
+            uploadJobArgs.thread_ts = options.thread_ts;
+          }
+          if ("token" in options) {
+            uploadJobArgs.token = options.token;
+          }
+          if ("content" in upload) {
+            return getFileUploadJob({
+              content: upload.content,
+              ...uploadJobArgs
+            }, logger);
+          }
+          if ("file" in upload) {
+            return getFileUploadJob({
+              file: upload.file,
+              ...uploadJobArgs
+            }, logger);
+          }
+          throw new errors_1.WebAPIFileUploadInvalidArgumentsError("Either a file or content field is required for valid file upload. You must supply one");
+        }));
+      }
+      throw new Error(buildFilesUploadMissingMessage());
+    }
+    async function getFileData(options) {
+      errorIfInvalidOrMissingFileData(options);
+      if ("file" in options) {
+        const { file } = options;
+        if (Buffer.isBuffer(file))
+          return file;
+        if (typeof file === "string") {
+          try {
+            const dataBuffer = (0, node_fs_1.readFileSync)(file);
+            return dataBuffer;
+          } catch (_err) {
+            throw new errors_1.WebAPIFileUploadInvalidArgumentsError(`Unable to resolve file data for ${file}. Please supply a filepath string, or binary data Buffer or String directly.`);
+          }
+        }
+        const data = await getFileDataAsStream(file);
+        if (data)
+          return data;
+      }
+      if ("content" in options)
+        return Buffer.from(options.content);
+      throw new errors_1.WebAPIFileUploadReadFileDataError("There was an issue getting the file data for the file or content supplied");
+    }
+    function getFileDataLength(data) {
+      if (data) {
+        return Buffer.byteLength(data, "utf8");
+      }
+      throw new errors_1.WebAPIFileUploadReadFileDataError(buildFileSizeErrorMsg());
+    }
+    async function getFileDataAsStream(readable) {
+      const chunks = [];
+      return new Promise((resolve, reject) => {
+        readable.on("readable", () => {
+          let chunk = readable.read();
+          while (chunk !== null) {
+            chunks.push(chunk);
+            chunk = readable.read();
+          }
+        });
+        readable.on("end", () => {
+          if (chunks.length > 0) {
+            const content = Buffer.concat(chunks);
+            resolve(content);
+          } else {
+            reject(Error("No data in supplied file"));
+          }
+        });
+      });
+    }
+    function getAllFileUploadsToComplete(fileUploads) {
+      const toComplete = {};
+      for (const upload of fileUploads) {
+        const { blocks, channel_id, thread_ts, highlight_type, initial_comment, file_id, title } = upload;
+        if (file_id) {
+          const compareString = `:::${channel_id}:::${thread_ts}:::${initial_comment}:::${JSON.stringify(blocks)}`;
+          if (!Object.prototype.hasOwnProperty.call(toComplete, compareString)) {
+            toComplete[compareString] = {
+              files: [{ id: file_id, title, highlight_type }],
+              channel_id,
+              blocks,
+              initial_comment
+            };
+            if (thread_ts && channel_id) {
+              const fileThreadDestinationArgument = {
+                channel_id,
+                thread_ts
+              };
+              toComplete[compareString] = {
+                ...toComplete[compareString],
+                ...fileThreadDestinationArgument
+              };
+            }
+            if ("token" in upload) {
+              toComplete[compareString].token = upload.token;
+            }
+          } else {
+            toComplete[compareString].files.push({
+              id: file_id,
+              title,
+              highlight_type
+            });
+          }
+        } else {
+          throw new Error(buildMissingFileIdError());
+        }
+      }
+      return toComplete;
+    }
+    function warnIfChannels(options, logger) {
+      if (options.channels)
+        logger.warn(buildChannelsWarning());
+    }
+    function errorIfChannelsCsv(options) {
+      const channels = options.channels ? options.channels.split(",") : [];
+      if (channels.length > 1) {
+        throw new errors_1.WebAPIFileUploadInvalidArgumentsError(buildMultipleChannelsErrorMsg());
+      }
+    }
+    function errorIfInvalidOrMissingFileData(options) {
+      const hasFile = "file" in options;
+      const hasContent = "content" in options;
+      if (!(hasFile || hasContent) || hasFile && hasContent) {
+        throw new errors_1.WebAPIFileUploadInvalidArgumentsError("Either a file or content field is required for valid file upload. You cannot supply both");
+      }
+      if ("file" in options) {
+        const { file } = options;
+        if (file && !(typeof file === "string" || Buffer.isBuffer(file) || file instanceof node_stream_1.Readable)) {
+          throw new errors_1.WebAPIFileUploadInvalidArgumentsError("file must be a valid string path, buffer or Readable");
+        }
+      }
+      if ("content" in options && options.content && typeof options.content !== "string") {
+        throw new errors_1.WebAPIFileUploadInvalidArgumentsError("content must be a string");
+      }
+    }
+    function warnIfMissingOrInvalidFileNameAndDefault(options, logger) {
+      const DEFAULT_FILETYPE = "txt";
+      const DEFAULT_FILENAME = `file.${options.filetype ?? DEFAULT_FILETYPE}`;
+      const { filename } = options;
+      if (!filename) {
+        logger.warn(buildMissingFileNameWarning());
+        return DEFAULT_FILENAME;
+      }
+      if (filename.split(".").length < 2) {
+        logger.warn(buildMissingExtensionWarning(filename));
+      }
+      return filename;
+    }
+    function warnIfLegacyFileType(options, logger) {
+      if (options.filetype) {
+        logger.warn(buildLegacyFileTypeWarning());
+      }
+    }
+    function buildMissingFileIdError() {
+      return "Missing required file id for file upload completion";
+    }
+    function buildFileSizeErrorMsg() {
+      return "There was an issue calculating the size of your file";
+    }
+    function buildLegacyFileTypeWarning() {
+      return "filetype is no longer a supported field in files.uploadV2. \nPlease remove this field. To indicate file type, please do so via the required filename property using the appropriate file extension, e.g. image.png, text.txt";
+    }
+    function buildMissingFileNameWarning() {
+      return "filename is a required field for files.uploadV2. \n For backwards compatibility and ease of migration, defaulting the filename. For best experience and consistent unfurl behavior, you should set the filename property with correct file extension, e.g. image.png, text.txt";
+    }
+    function buildMissingExtensionWarning(filename) {
+      return `filename supplied '${filename}' may be missing a proper extension. Missing extenions may result in unexpected unfurl behavior when shared`;
+    }
+    function buildFilesUploadMissingMessage() {
+      return "Something went wrong with processing file_uploads";
+    }
+    function buildChannelsWarning() {
+      return "Although the 'channels' parameter is still supported for smoother migration from legacy files.upload, we recommend using the new channel_id parameter with a single str value instead (e.g. 'C12345').";
+    }
+    function buildMultipleChannelsErrorMsg() {
+      return "Sharing files with multiple channels is no longer supported in v2. Share files in each channel separately instead.";
+    }
+    function buildInvalidFilesUploadParamError() {
+      return "You may supply file_uploads only for a single channel, message, or thread respectively. Therefore, please supply any channel_id, initial_comment or blocks, or thread_ts in the top-layer.";
+    }
+  }
+});
+
+// node_modules/@slack/web-api/dist/helpers.js
+var require_helpers = __commonJS({
+  "node_modules/@slack/web-api/dist/helpers.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.default = delay;
+    function delay(ms) {
+      return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+      });
+    }
+  }
+});
+
+// node_modules/eventemitter3/index.js
+var require_eventemitter32 = __commonJS({
+  "node_modules/eventemitter3/index.js"(exports2, module2) {
+    "use strict";
+    var has = Object.prototype.hasOwnProperty;
+    var prefix = "~";
+    function Events() {
+    }
+    if (Object.create) {
+      Events.prototype = /* @__PURE__ */ Object.create(null);
+      if (!new Events().__proto__) prefix = false;
+    }
+    function EE(fn, context3, once) {
+      this.fn = fn;
+      this.context = context3;
+      this.once = once || false;
+    }
+    function addListener(emitter, event, fn, context3, once) {
+      if (typeof fn !== "function") {
+        throw new TypeError("The listener must be a function");
+      }
+      var listener = new EE(fn, context3 || emitter, once), evt = prefix ? prefix + event : event;
+      if (!emitter._events[evt]) emitter._events[evt] = listener, emitter._eventsCount++;
+      else if (!emitter._events[evt].fn) emitter._events[evt].push(listener);
+      else emitter._events[evt] = [emitter._events[evt], listener];
+      return emitter;
+    }
+    function clearEvent(emitter, evt) {
+      if (--emitter._eventsCount === 0) emitter._events = new Events();
+      else delete emitter._events[evt];
+    }
+    function EventEmitter() {
+      this._events = new Events();
+      this._eventsCount = 0;
+    }
+    EventEmitter.prototype.eventNames = function eventNames() {
+      var names = [], events, name;
+      if (this._eventsCount === 0) return names;
+      for (name in events = this._events) {
+        if (has.call(events, name)) names.push(prefix ? name.slice(1) : name);
+      }
+      if (Object.getOwnPropertySymbols) {
+        return names.concat(Object.getOwnPropertySymbols(events));
+      }
+      return names;
+    };
+    EventEmitter.prototype.listeners = function listeners(event) {
+      var evt = prefix ? prefix + event : event, handlers = this._events[evt];
+      if (!handlers) return [];
+      if (handlers.fn) return [handlers.fn];
+      for (var i = 0, l = handlers.length, ee = new Array(l); i < l; i++) {
+        ee[i] = handlers[i].fn;
+      }
+      return ee;
+    };
+    EventEmitter.prototype.listenerCount = function listenerCount(event) {
+      var evt = prefix ? prefix + event : event, listeners = this._events[evt];
+      if (!listeners) return 0;
+      if (listeners.fn) return 1;
+      return listeners.length;
+    };
+    EventEmitter.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
+      var evt = prefix ? prefix + event : event;
+      if (!this._events[evt]) return false;
+      var listeners = this._events[evt], len = arguments.length, args, i;
+      if (listeners.fn) {
+        if (listeners.once) this.removeListener(event, listeners.fn, void 0, true);
+        switch (len) {
+          case 1:
+            return listeners.fn.call(listeners.context), true;
+          case 2:
+            return listeners.fn.call(listeners.context, a1), true;
+          case 3:
+            return listeners.fn.call(listeners.context, a1, a2), true;
+          case 4:
+            return listeners.fn.call(listeners.context, a1, a2, a3), true;
+          case 5:
+            return listeners.fn.call(listeners.context, a1, a2, a3, a4), true;
+          case 6:
+            return listeners.fn.call(listeners.context, a1, a2, a3, a4, a5), true;
+        }
+        for (i = 1, args = new Array(len - 1); i < len; i++) {
+          args[i - 1] = arguments[i];
+        }
+        listeners.fn.apply(listeners.context, args);
+      } else {
+        var length = listeners.length, j;
+        for (i = 0; i < length; i++) {
+          if (listeners[i].once) this.removeListener(event, listeners[i].fn, void 0, true);
+          switch (len) {
+            case 1:
+              listeners[i].fn.call(listeners[i].context);
+              break;
+            case 2:
+              listeners[i].fn.call(listeners[i].context, a1);
+              break;
+            case 3:
+              listeners[i].fn.call(listeners[i].context, a1, a2);
+              break;
+            case 4:
+              listeners[i].fn.call(listeners[i].context, a1, a2, a3);
+              break;
+            default:
+              if (!args) for (j = 1, args = new Array(len - 1); j < len; j++) {
+                args[j - 1] = arguments[j];
+              }
+              listeners[i].fn.apply(listeners[i].context, args);
+          }
+        }
+      }
+      return true;
+    };
+    EventEmitter.prototype.on = function on(event, fn, context3) {
+      return addListener(this, event, fn, context3, false);
+    };
+    EventEmitter.prototype.once = function once(event, fn, context3) {
+      return addListener(this, event, fn, context3, true);
+    };
+    EventEmitter.prototype.removeListener = function removeListener2(event, fn, context3, once) {
+      var evt = prefix ? prefix + event : event;
+      if (!this._events[evt]) return this;
+      if (!fn) {
+        clearEvent(this, evt);
+        return this;
+      }
+      var listeners = this._events[evt];
+      if (listeners.fn) {
+        if (listeners.fn === fn && (!once || listeners.once) && (!context3 || listeners.context === context3)) {
+          clearEvent(this, evt);
+        }
+      } else {
+        for (var i = 0, events = [], length = listeners.length; i < length; i++) {
+          if (listeners[i].fn !== fn || once && !listeners[i].once || context3 && listeners[i].context !== context3) {
+            events.push(listeners[i]);
+          }
+        }
+        if (events.length) this._events[evt] = events.length === 1 ? events[0] : events;
+        else clearEvent(this, evt);
+      }
+      return this;
+    };
+    EventEmitter.prototype.removeAllListeners = function removeAllListeners(event) {
+      var evt;
+      if (event) {
+        evt = prefix ? prefix + event : event;
+        if (this._events[evt]) clearEvent(this, evt);
+      } else {
+        this._events = new Events();
+        this._eventsCount = 0;
+      }
+      return this;
+    };
+    EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
+    EventEmitter.prototype.addListener = EventEmitter.prototype.on;
+    EventEmitter.prefixed = prefix;
+    EventEmitter.EventEmitter = EventEmitter;
+    if ("undefined" !== typeof module2) {
+      module2.exports = EventEmitter;
+    }
+  }
+});
+
+// node_modules/@slack/types/dist/block-kit/block-elements.js
+var require_block_elements = __commonJS({
+  "node_modules/@slack/types/dist/block-kit/block-elements.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/block-kit/blocks.js
+var require_blocks = __commonJS({
+  "node_modules/@slack/types/dist/block-kit/blocks.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/block-kit/composition-objects.js
+var require_composition_objects = __commonJS({
+  "node_modules/@slack/types/dist/block-kit/composition-objects.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/block-kit/extensions.js
+var require_extensions = __commonJS({
+  "node_modules/@slack/types/dist/block-kit/extensions.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/calls.js
+var require_calls = __commonJS({
+  "node_modules/@slack/types/dist/calls.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/chunk.js
+var require_chunk = __commonJS({
+  "node_modules/@slack/types/dist/chunk.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/dialog.js
+var require_dialog = __commonJS({
+  "node_modules/@slack/types/dist/dialog.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/agent.js
+var require_agent2 = __commonJS({
+  "node_modules/@slack/types/dist/events/agent.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/app.js
+var require_app = __commonJS({
+  "node_modules/@slack/types/dist/events/app.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/assistant.js
+var require_assistant = __commonJS({
+  "node_modules/@slack/types/dist/events/assistant.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/call.js
+var require_call = __commonJS({
+  "node_modules/@slack/types/dist/events/call.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/channel.js
+var require_channel = __commonJS({
+  "node_modules/@slack/types/dist/events/channel.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/dnd.js
+var require_dnd = __commonJS({
+  "node_modules/@slack/types/dist/events/dnd.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/email.js
+var require_email = __commonJS({
+  "node_modules/@slack/types/dist/events/email.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/emoji.js
+var require_emoji = __commonJS({
+  "node_modules/@slack/types/dist/events/emoji.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/file.js
+var require_file2 = __commonJS({
+  "node_modules/@slack/types/dist/events/file.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/function.js
+var require_function = __commonJS({
+  "node_modules/@slack/types/dist/events/function.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/grid-migration.js
+var require_grid_migration = __commonJS({
+  "node_modules/@slack/types/dist/events/grid-migration.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/group.js
+var require_group = __commonJS({
+  "node_modules/@slack/types/dist/events/group.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/im.js
+var require_im = __commonJS({
+  "node_modules/@slack/types/dist/events/im.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/invite.js
+var require_invite = __commonJS({
+  "node_modules/@slack/types/dist/events/invite.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/link-shared.js
+var require_link_shared = __commonJS({
+  "node_modules/@slack/types/dist/events/link-shared.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/member.js
+var require_member = __commonJS({
+  "node_modules/@slack/types/dist/events/member.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/message.js
+var require_message = __commonJS({
+  "node_modules/@slack/types/dist/events/message.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/message-metadata.js
+var require_message_metadata = __commonJS({
+  "node_modules/@slack/types/dist/events/message-metadata.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/pin.js
+var require_pin = __commonJS({
+  "node_modules/@slack/types/dist/events/pin.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/reaction.js
+var require_reaction = __commonJS({
+  "node_modules/@slack/types/dist/events/reaction.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/shared-channel.js
+var require_shared_channel = __commonJS({
+  "node_modules/@slack/types/dist/events/shared-channel.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/star.js
+var require_star = __commonJS({
+  "node_modules/@slack/types/dist/events/star.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/steps-from-apps.js
+var require_steps_from_apps = __commonJS({
+  "node_modules/@slack/types/dist/events/steps-from-apps.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/subteam.js
+var require_subteam = __commonJS({
+  "node_modules/@slack/types/dist/events/subteam.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/team.js
+var require_team = __commonJS({
+  "node_modules/@slack/types/dist/events/team.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/token.js
+var require_token = __commonJS({
+  "node_modules/@slack/types/dist/events/token.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/user.js
+var require_user = __commonJS({
+  "node_modules/@slack/types/dist/events/user.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/events/index.js
+var require_events2 = __commonJS({
+  "node_modules/@slack/types/dist/events/index.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __exportStar = exports2 && exports2.__exportStar || function(m, exports3) {
+      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports3, p)) __createBinding(exports3, m, p);
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    __exportStar(require_agent2(), exports2);
+    __exportStar(require_app(), exports2);
+    __exportStar(require_assistant(), exports2);
+    __exportStar(require_call(), exports2);
+    __exportStar(require_channel(), exports2);
+    __exportStar(require_dnd(), exports2);
+    __exportStar(require_email(), exports2);
+    __exportStar(require_emoji(), exports2);
+    __exportStar(require_file2(), exports2);
+    __exportStar(require_function(), exports2);
+    __exportStar(require_grid_migration(), exports2);
+    __exportStar(require_group(), exports2);
+    __exportStar(require_im(), exports2);
+    __exportStar(require_invite(), exports2);
+    __exportStar(require_link_shared(), exports2);
+    __exportStar(require_member(), exports2);
+    __exportStar(require_message(), exports2);
+    __exportStar(require_message_metadata(), exports2);
+    __exportStar(require_pin(), exports2);
+    __exportStar(require_reaction(), exports2);
+    __exportStar(require_shared_channel(), exports2);
+    __exportStar(require_star(), exports2);
+    __exportStar(require_steps_from_apps(), exports2);
+    __exportStar(require_subteam(), exports2);
+    __exportStar(require_team(), exports2);
+    __exportStar(require_token(), exports2);
+    __exportStar(require_user(), exports2);
+  }
+});
+
+// node_modules/@slack/types/dist/message-attachments.js
+var require_message_attachments = __commonJS({
+  "node_modules/@slack/types/dist/message-attachments.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/message-metadata.js
+var require_message_metadata2 = __commonJS({
+  "node_modules/@slack/types/dist/message-metadata.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.CustomFieldType = exports2.EntityType = void 0;
+    var EntityType;
+    (function(EntityType2) {
+      EntityType2["Task"] = "slack#/entities/task";
+      EntityType2["File"] = "slack#/entities/file";
+      EntityType2["Item"] = "slack#/entities/item";
+      EntityType2["Incident"] = "slack#/entities/incident";
+      EntityType2["ContentItem"] = "slack#/entities/content_item";
+    })(EntityType || (exports2.EntityType = EntityType = {}));
+    var CustomFieldType;
+    (function(CustomFieldType2) {
+      CustomFieldType2["Integer"] = "integer";
+      CustomFieldType2["String"] = "string";
+      CustomFieldType2["Array"] = "array";
+      CustomFieldType2["Date"] = "slack#/types/date";
+      CustomFieldType2["Timestamp"] = "slack#/types/timestamp";
+      CustomFieldType2["Image"] = "slack#/types/image";
+      CustomFieldType2["ChannelId"] = "slack#/types/channel_id";
+      CustomFieldType2["User"] = "slack#/types/user";
+      CustomFieldType2["EntityRef"] = "slack#/types/entity_ref";
+      CustomFieldType2["Boolean"] = "boolean";
+      CustomFieldType2["Link"] = "slack#/types/link";
+      CustomFieldType2["Email"] = "slack#/types/email";
+    })(CustomFieldType || (exports2.CustomFieldType = CustomFieldType = {}));
+  }
+});
+
+// node_modules/@slack/types/dist/views.js
+var require_views = __commonJS({
+  "node_modules/@slack/types/dist/views.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
+// node_modules/@slack/types/dist/index.js
+var require_dist3 = __commonJS({
+  "node_modules/@slack/types/dist/index.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __exportStar = exports2 && exports2.__exportStar || function(m, exports3) {
+      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports3, p)) __createBinding(exports3, m, p);
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    __exportStar(require_block_elements(), exports2);
+    __exportStar(require_blocks(), exports2);
+    __exportStar(require_composition_objects(), exports2);
+    __exportStar(require_extensions(), exports2);
+    __exportStar(require_calls(), exports2);
+    __exportStar(require_chunk(), exports2);
+    __exportStar(require_dialog(), exports2);
+    __exportStar(require_events2(), exports2);
+    __exportStar(require_message_attachments(), exports2);
+    __exportStar(require_message_metadata2(), exports2);
+    __exportStar(require_views(), exports2);
+  }
+});
+
+// node_modules/@slack/web-api/dist/methods.js
+var require_methods = __commonJS({
+  "node_modules/@slack/web-api/dist/methods.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __exportStar = exports2 && exports2.__exportStar || function(m, exports3) {
+      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports3, p)) __createBinding(exports3, m, p);
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.Methods = void 0;
+    var eventemitter3_1 = require_eventemitter32();
+    var WebClient_1 = require_WebClient();
+    function bindApiCall(self2, method) {
+      const apiMethod = self2.apiCall.bind(self2, method);
+      return apiMethod;
+    }
+    function bindApiCallWithOptionalArgument(self2, method) {
+      const apiMethod = self2.apiCall.bind(self2, method);
+      return apiMethod;
+    }
+    function bindFilesUploadV2(self2) {
+      return self2.filesUploadV2.bind(self2);
+    }
+    var Methods = class extends eventemitter3_1.EventEmitter {
+      constructor() {
+        super();
+        if (new.target !== WebClient_1.WebClient && !(new.target.prototype instanceof WebClient_1.WebClient)) {
+          throw new Error("Attempt to inherit from WebClient methods without inheriting from WebClient");
+        }
+      }
+      admin = {
+        analytics: {
+          /**
+           * @description Retrieve analytics data for a given date, presented as a compressed JSON file.
+           * @see {@link https://docs.slack.dev/reference/methods/api.test `api.test` API reference}.
+           */
+          getFile: bindApiCall(this, "admin.analytics.getFile")
+        },
+        apps: {
+          activities: {
+            /**
+             * @description Get logs for a specified team/org.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.apps.activities.list `admin.apps.activities.list` API reference}.
+             */
+            list: bindApiCallWithOptionalArgument(this, "admin.apps.activities.list")
+          },
+          /**
+           * @description Approve an app for installation on a workspace.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.apps.approve `admin.apps.approve` API reference}.
+           */
+          approve: bindApiCall(this, "admin.apps.approve"),
+          approved: {
+            /**
+             * @description List approved apps for an org or workspace.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.apps.approved.list `admin.apps.approved.list` API reference}.
+             */
+            list: bindApiCall(this, "admin.apps.approved.list")
+          },
+          /**
+           * @description Clear an app resolution.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.apps.clearResolution `admin.apps.clearResolution` API reference}.
+           */
+          clearResolution: bindApiCall(this, "admin.apps.clearResolution"),
+          config: {
+            /**
+             * @description Look up the app config for connectors by their IDs.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.apps.config.lookup `admin.apps.config.lookup` API reference}.
+             */
+            lookup: bindApiCall(this, "admin.apps.config.lookup"),
+            /**
+             * @description Set the app config for a connector.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.apps.config.set `admin.apps.config.set` API reference}.
+             */
+            set: bindApiCall(this, "admin.apps.config.set")
+          },
+          requests: {
+            /**
+             * @description Cancel app request for team.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.apps.requests.cancel `admin.apps.requests.cancel` API reference}.
+             */
+            cancel: bindApiCall(this, "admin.apps.requests.cancel"),
+            /**
+             * @description List app requests for a team/workspace.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.apps.requests.list `admin.apps.requests.list` API reference}.
+             */
+            list: bindApiCall(this, "admin.apps.requests.list")
+          },
+          /**
+           * @description Restrict an app for installation on a workspace.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.apps.restrict `admin.apps.restrict` API reference}.
+           */
+          restrict: bindApiCall(this, "admin.apps.restrict"),
+          restricted: {
+            /**
+             * @description List restricted apps for an org or workspace.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.apps.restricted.list `admin.apps.restricted.list` API reference}.
+             */
+            list: bindApiCall(this, "admin.apps.restricted.list")
+          },
+          /**
+           * @description Uninstall an app from one or many workspaces, or an entire enterprise organization.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.apps.uninstall `admin.apps.uninstall` API reference}.
+           */
+          uninstall: bindApiCall(this, "admin.apps.uninstall")
+        },
+        auth: {
+          policy: {
+            /**
+             * @description Assign entities to a particular authentication policy.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.auth.policy.assignEntities `admin.auth.policy.assignEntities` API reference}.
+             */
+            assignEntities: bindApiCall(this, "admin.auth.policy.assignEntities"),
+            /**
+             * @description Fetch all the entities assigned to a particular authentication policy by name.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.auth.policy.getEntities `admin.auth.policy.getEntities` API reference}.
+             */
+            getEntities: bindApiCall(this, "admin.auth.policy.getEntities"),
+            /**
+             * @description Remove specified entities from a specified authentication policy.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.auth.policy.removeEntities `admin.auth.policy.removeEntities` API reference}.
+             */
+            removeEntities: bindApiCall(this, "admin.auth.policy.removeEntities")
+          }
+        },
+        barriers: {
+          /**
+           * @description Create an Information Barrier.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.barriers.create `admin.barriers.create` API reference}.
+           */
+          create: bindApiCall(this, "admin.barriers.create"),
+          /**
+           * @description Delete an existing Information Barrier.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.barriers.delete `admin.barriers.delete` API reference}.
+           */
+          delete: bindApiCall(this, "admin.barriers.delete"),
+          /**
+           * @description Get all Information Barriers for your organization.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.barriers.list `admin.barriers.list` API reference}.
+           */
+          list: bindApiCallWithOptionalArgument(this, "admin.barriers.list"),
+          /**
+           * @description Update an existing Information Barrier.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.barriers.update `admin.barriers.update` API reference}.
+           */
+          update: bindApiCall(this, "admin.barriers.update")
+        },
+        conversations: {
+          /**
+           * @description Archive a public or private channel.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.archive `admin.conversations.archive` API reference}.
+           */
+          archive: bindApiCall(this, "admin.conversations.archive"),
+          /**
+           * @description Archive public or private channels in bulk.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.bulkArchive `admin.conversations.bulkArchive` API reference}.
+           */
+          bulkArchive: bindApiCall(this, "admin.conversations.bulkArchive"),
+          /**
+           * @description Delete public or private channels in bulk.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.bulkDelete `admin.conversations.bulkDelete` API reference}.
+           */
+          bulkDelete: bindApiCall(this, "admin.conversations.bulkDelete"),
+          /**
+           * @description Move public or private channels in bulk.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.bulkMove `admin.conversations.bulkMove` API reference}.
+           */
+          bulkMove: bindApiCall(this, "admin.conversations.bulkMove"),
+          /**
+           * @description Convert a public channel to a private channel.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.convertToPrivate `admin.conversations.convertToPrivate` API reference}.
+           */
+          convertToPrivate: bindApiCall(this, "admin.conversations.convertToPrivate"),
+          /**
+           * @description Convert a private channel to a public channel.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.convertToPublic `admin.conversations.convertToPublic` API reference}.
+           */
+          convertToPublic: bindApiCall(this, "admin.conversations.convertToPublic"),
+          /**
+           * @description Create a public or private channel-based conversation.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.create `admin.conversations.create` API reference}.
+           */
+          create: bindApiCall(this, "admin.conversations.create"),
+          /**
+           * @description Delete a public or private channel.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.delete `admin.conversations.delete` API reference}.
+           */
+          delete: bindApiCall(this, "admin.conversations.delete"),
+          /**
+           * @description Disconnect a connected channel from one or more workspaces.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.disconnectShared `admin.conversations.disconnectShared` API reference}.
+           */
+          disconnectShared: bindApiCall(this, "admin.conversations.disconnectShared"),
+          ekm: {
+            /**
+             * @description List all disconnected channels — i.e., channels that were once connected to other workspaces
+             * and then disconnected — and the corresponding original channel IDs for key revocation with EKM.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.ekm.listOriginalConnectedChannelInfo `admin.conversations.ekm.listOriginalConnectedChannelInfo` API reference}.
+             */
+            listOriginalConnectedChannelInfo: bindApiCallWithOptionalArgument(this, "admin.conversations.ekm.listOriginalConnectedChannelInfo")
+          },
+          /**
+           * @description Get conversation preferences for a public or private channel.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.getConversationPrefs `admin.conversations.getConversationPrefs` API reference}.
+           */
+          getConversationPrefs: bindApiCall(this, "admin.conversations.getConversationPrefs"),
+          /**
+           * @description Get a conversation's retention policy.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.getCustomRetention `admin.conversations.getCustomRetention` API reference}.
+           */
+          getCustomRetention: bindApiCall(this, "admin.conversations.getCustomRetention"),
+          /**
+           * @description Get all the workspaces a given public or private channel is connected to within
+           * this Enterprise org.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.getTeams `admin.conversations.getTeams` API reference}.
+           */
+          getTeams: bindApiCall(this, "admin.conversations.getTeams"),
+          /**
+           * @description Invite a user to a public or private channel.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.invite `admin.conversations.invite` API reference}.
+           */
+          invite: bindApiCall(this, "admin.conversations.invite"),
+          /**
+           * @description Returns channels on the given team using the filters.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.lookup `admin.conversations.lookup` API reference}.
+           */
+          lookup: bindApiCall(this, "admin.conversations.lookup"),
+          /**
+           * @description Remove a conversation's retention policy.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.removeCustomRetention `admin.conversations.removeCustomRetention` API reference}.
+           */
+          removeCustomRetention: bindApiCall(this, "admin.conversations.removeCustomRetention"),
+          /**
+           * @description Rename a public or private channel.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.rename `admin.conversations.rename` API reference}.
+           */
+          rename: bindApiCall(this, "admin.conversations.rename"),
+          restrictAccess: {
+            /**
+             * @description Add an allowlist of IDP groups for accessing a channel.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.restrictAccess.addGroup `admin.conversations.restrictAccess.addGroup` API reference}.
+             */
+            addGroup: bindApiCall(this, "admin.conversations.restrictAccess.addGroup"),
+            /**
+             * @description List all IDP Groups linked to a channel.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.restrictAccess.listGroups `admin.conversations.restrictAccess.listGroups` API reference}.
+             */
+            listGroups: bindApiCall(this, "admin.conversations.restrictAccess.listGroups"),
+            /**
+             * @description Remove a linked IDP group linked from a private channel.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.restrictAccess.removeGroup `admin.conversations.restrictAccess.removeGroup` API reference}.
+             */
+            removeGroup: bindApiCall(this, "admin.conversations.restrictAccess.removeGroup")
+          },
+          /**
+           * @description Search for public or private channels in an Enterprise organization.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.search `admin.conversations.search` API reference}.
+           */
+          search: bindApiCallWithOptionalArgument(this, "admin.conversations.search"),
+          /**
+           * @description Set the posting permissions for a public or private channel.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.setConversationPrefs `admin.conversations.setConversationPrefs` API reference}.
+           */
+          setConversationPrefs: bindApiCall(this, "admin.conversations.setConversationPrefs"),
+          /**
+           * @description Set a conversation's retention policy.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.setCustomRetention `admin.conversations.setCustomRetention` API reference}.
+           */
+          setCustomRetention: bindApiCall(this, "admin.conversations.setCustomRetention"),
+          /**
+           * @description Set the workspaces in an Enterprise grid org that connect to a public or private channel.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.setTeams `admin.conversations.setTeams` API reference}.
+           */
+          setTeams: bindApiCall(this, "admin.conversations.setTeams"),
+          /**
+           * @description Unarchive a public or private channel.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.conversations.unarchive `admin.conversations.unarchive` API reference}.
+           */
+          unarchive: bindApiCall(this, "admin.conversations.unarchive")
+        },
+        emoji: {
+          /**
+           * @description Add an emoji.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.emoji.add `admin.emoji.add` API reference}.
+           */
+          add: bindApiCall(this, "admin.emoji.add"),
+          /**
+           * @description Add an emoji alias.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.emoji.addAlias `admin.emoji.addAlias` API reference}.
+           */
+          addAlias: bindApiCall(this, "admin.emoji.addAlias"),
+          /**
+           * @description List emoji for an Enterprise Grid organization.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.emoji.list `admin.emoji.list` API reference}.
+           */
+          list: bindApiCallWithOptionalArgument(this, "admin.emoji.list"),
+          /**
+           * @description Remove an emoji across an Enterprise Grid organization.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.emoji.remove `admin.emoji.remove` API reference}.
+           */
+          remove: bindApiCall(this, "admin.emoji.remove"),
+          /**
+           * @description Rename an emoji.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.emoji.rename `admin.emoji.rename` API reference}.
+           */
+          rename: bindApiCall(this, "admin.emoji.rename")
+        },
+        functions: {
+          /**
+           * @description Look up functions by a set of apps.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.functions.list `admin.functions.list` API reference}.
+           */
+          list: bindApiCall(this, "admin.functions.list"),
+          permissions: {
+            /**
+             * @description Lookup the visibility of multiple Slack functions and include the users if
+             * it is limited to particular named entities.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.functions.permissions.lookup `admin.functions.permissions.lookup` API reference}.
+             */
+            lookup: bindApiCall(this, "admin.functions.permissions.lookup"),
+            /**
+             * @description Set the visibility of a Slack function and define the users or workspaces if
+             * it is set to named_entities.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.functions.permissions.set `admin.functions.permissions.set` API reference}.
+             */
+            set: bindApiCall(this, "admin.functions.permissions.set")
+          }
+        },
+        inviteRequests: {
+          /**
+           * @description Approve a workspace invite request.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.inviteRequests.approve `admin.inviteRequests.approve` API reference}.
+           */
+          approve: bindApiCall(this, "admin.inviteRequests.approve"),
+          approved: {
+            /**
+             * @description List all approved workspace invite requests.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.inviteRequests.approved.list `admin.inviteRequests.approved.list` API reference}.
+             */
+            list: bindApiCall(this, "admin.inviteRequests.approved.list")
+          },
+          denied: {
+            /**
+             * @description List all denied workspace invite requests.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.inviteRequests.denied.list `admin.inviteRequests.denied.list` API reference}.
+             */
+            list: bindApiCall(this, "admin.inviteRequests.denied.list")
+          },
+          /**
+           * @description Deny a workspace invite request.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.inviteRequests.deny `admin.inviteRequests.deny` API reference}.
+           */
+          deny: bindApiCall(this, "admin.inviteRequests.deny"),
+          /**
+           * @description List all pending workspace invite requests.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.inviteRequests.list `admin.inviteRequests.list` API reference}.
+           */
+          list: bindApiCall(this, "admin.inviteRequests.list")
+        },
+        roles: {
+          /**
+           * @description Adds members to the specified role with the specified scopes.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.roles.addAssignments `admin.roles.addAssignments` API reference}.
+           */
+          addAssignments: bindApiCall(this, "admin.roles.addAssignments"),
+          /**
+           * @description Lists assignments for all roles across entities.
+           * Options to scope results by any combination of roles or entities.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.roles.listAssignments `admin.roles.listAssignments` API reference}.
+           */
+          listAssignments: bindApiCallWithOptionalArgument(this, "admin.roles.listAssignments"),
+          /**
+           * @description Removes a set of users from a role for the given scopes and entities.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.roles.removeAssignments `admin.roles.removeAssignments` API reference}.
+           */
+          removeAssignments: bindApiCall(this, "admin.roles.removeAssignments")
+        },
+        teams: {
+          admins: {
+            /**
+             * @description List all of the admins on a given workspace.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.teams.admins.list `admin.teams.admins.list` API reference}.
+             */
+            list: bindApiCall(this, "admin.teams.admins.list")
+          },
+          /**
+           * @description Create an Enterprise team.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.teams.create `admin.teams.create` API reference}.
+           */
+          create: bindApiCall(this, "admin.teams.create"),
+          /**
+           * @description List all teams on an Enterprise organization.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.teams.list `admin.teams.list` API reference}.
+           */
+          list: bindApiCallWithOptionalArgument(this, "admin.teams.list"),
+          owners: {
+            /**
+             * @description List all of the owners on a given workspace.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.teams.owners.list `admin.teams.owners.list` API reference}.
+             */
+            list: bindApiCall(this, "admin.teams.owners.list")
+          },
+          settings: {
+            /**
+             * @description Fetch information about settings in a workspace.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.teams.settings.info `admin.teams.settings.info` API reference}.
+             */
+            info: bindApiCall(this, "admin.teams.settings.info"),
+            /**
+             * @description Set the default channels of a workspace.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.teams.settings.setDefaultChannels `admin.teams.settings.setDefaultChannels` API reference}.
+             */
+            setDefaultChannels: bindApiCall(this, "admin.teams.settings.setDefaultChannels"),
+            /**
+             * @description Set the description of a given workspace.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.teams.settings.setDescription `admin.teams.settings.setDescription` API reference}.
+             */
+            setDescription: bindApiCall(this, "admin.teams.settings.setDescription"),
+            /**
+             * @description Set the discoverability of a given workspace.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.teams.settings.setDiscoverability `admin.teams.settings.setDiscoverability` API reference}.
+             */
+            setDiscoverability: bindApiCall(this, "admin.teams.settings.setDiscoverability"),
+            /**
+             * @description Sets the icon of a workspace.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.teams.settings.setIcon `admin.teams.settings.setIcon` API reference}.
+             */
+            setIcon: bindApiCall(this, "admin.teams.settings.setIcon"),
+            /**
+             * @description Set the name of a given workspace.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.teams.settings.setName `admin.teams.settings.setName` API reference}.
+             */
+            setName: bindApiCall(this, "admin.teams.settings.setName")
+          }
+        },
+        usergroups: {
+          /**
+           * @description Add up to one hundred default channels to an IDP group.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.usergroups.addChannels `admin.teams.usergroups.addChannels` API reference}.
+           */
+          addChannels: bindApiCall(this, "admin.usergroups.addChannels"),
+          /**
+           * @description Associate one or more default workspaces with an organization-wide IDP group.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.usergroups.addTeams `admin.teams.usergroups.addTeams` API reference}.
+           */
+          addTeams: bindApiCall(this, "admin.usergroups.addTeams"),
+          /**
+           * @description List the channels linked to an org-level IDP group (user group).
+           * @see {@link https://docs.slack.dev/reference/methods/admin.usergroups.listChannels `admin.teams.usergroups.listChannels` API reference}.
+           */
+          listChannels: bindApiCall(this, "admin.usergroups.listChannels"),
+          /**
+           * @description Remove one or more default channels from an org-level IDP group (user group).
+           * @see {@link https://docs.slack.dev/reference/methods/admin.usergroups.removeChannels `admin.teams.usergroups.removeChannels` API reference}.
+           */
+          removeChannels: bindApiCall(this, "admin.usergroups.removeChannels")
+        },
+        users: {
+          /**
+           * @description Add an Enterprise user to a workspace.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.users.assign `admin.users.assign` API reference}.
+           */
+          assign: bindApiCall(this, "admin.users.assign"),
+          /**
+           * @description Fetches the expiration timestamp for a guest.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.users.getExpiration `admin.users.getExpiration` API reference}.
+           */
+          getExpiration: bindApiCall(this, "admin.users.getExpiration"),
+          /**
+           * @description Invite a user to a workspace.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.users.invite `admin.users.invite` API reference}.
+           */
+          invite: bindApiCall(this, "admin.users.invite"),
+          /**
+           * @description List users on a workspace.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.users.list `admin.users.list` API reference}.
+           */
+          list: bindApiCallWithOptionalArgument(this, "admin.users.list"),
+          /**
+           * @description Remove a user from a workspace.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.users.remove `admin.users.remove` API reference}.
+           */
+          remove: bindApiCall(this, "admin.users.remove"),
+          session: {
+            /**
+             * @description Clear user-specific session settings—the session duration and what happens when the client
+             * closes—for a list of users.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.users.session.clearSettings `admin.users.session.clearSettings` API reference}.
+             */
+            clearSettings: bindApiCall(this, "admin.users.session.clearSettings"),
+            /**
+             * @description Get user-specific session settings—the session duration and what happens when the client
+             * closes—given a list of users.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.users.session.getSettings `admin.users.session.getSettings` API reference}.
+             */
+            getSettings: bindApiCall(this, "admin.users.session.getSettings"),
+            /**
+             * @description Revoke a single session for a user. The user will be forced to login to Slack.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.users.session.invalidate `admin.users.session.invalidate` API reference}.
+             */
+            invalidate: bindApiCall(this, "admin.users.session.invalidate"),
+            /**
+             * @description List active user sessions for an organization.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.users.session.list `admin.users.session.list` API reference}.
+             */
+            list: bindApiCallWithOptionalArgument(this, "admin.users.session.list"),
+            /**
+             * @description Wipes all valid sessions on all devices for a given user.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.users.session.reset `admin.users.session.reset` API reference}.
+             */
+            reset: bindApiCall(this, "admin.users.session.reset"),
+            /**
+             * @description Enqueues an asynchronous job to wipe all valid sessions on all devices for a given user list.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.users.session.resetBulk `admin.users.session.resetBulk` API reference}.
+             */
+            resetBulk: bindApiCall(this, "admin.users.session.resetBulk"),
+            /**
+             * @description Configure the user-level session settings—the session duration and what happens when the client
+             * closes—for one or more users.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.users.session.setSettings `admin.users.session.setSettings` API reference}.
+             */
+            setSettings: bindApiCall(this, "admin.users.session.setSettings")
+          },
+          /**
+           * @description Set an existing guest, regular user, or owner to be an admin user.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.users.setAdmin `admin.users.setAdmin` API reference}.
+           */
+          setAdmin: bindApiCall(this, "admin.users.setAdmin"),
+          /**
+           * @description Set an expiration for a guest user.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.users.setExpiration `admin.users.setExpiration` API reference}.
+           */
+          setExpiration: bindApiCall(this, "admin.users.setExpiration"),
+          /**
+           * @description Set an existing guest, regular user, or admin user to be a workspace owner.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.users.setOwner `admin.users.setOwner` API reference}.
+           */
+          setOwner: bindApiCall(this, "admin.users.setOwner"),
+          /**
+           * @description Set an existing guest user, admin user, or owner to be a regular user.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.users.setRegular `admin.users.setRegular` API reference}.
+           */
+          setRegular: bindApiCall(this, "admin.users.setRegular"),
+          unsupportedVersions: {
+            /**
+             * @description Ask Slackbot to send you an export listing all workspace members using unsupported software,
+             * presented as a zipped CSV file.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.users.unsupportedVersions.export `admin.users.unsupportedVersions.export` API reference}.
+             */
+            export: bindApiCall(this, "admin.users.unsupportedVersions.export")
+          }
+        },
+        workflows: {
+          collaborators: {
+            /**
+             * @description Add collaborators to workflows within the team or enterprise.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.workflows.collaborators.add `admin.workflows.collaborators.add` API reference}.
+             */
+            add: bindApiCall(this, "admin.workflows.collaborators.add"),
+            /**
+             * @description Remove collaborators from workflows within the team or enterprise.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.workflows.collaborators.remove `admin.workflows.collaborators.remove` API reference}.
+             */
+            remove: bindApiCall(this, "admin.workflows.collaborators.remove")
+          },
+          permissions: {
+            /**
+             * @description Look up the permissions for a set of workflows.
+             * @see {@link https://docs.slack.dev/reference/methods/admin.workflows.permissions.lookup `admin.workflows.permissions.lookup` API reference}.
+             */
+            lookup: bindApiCall(this, "admin.workflows.permissions.lookup")
+          },
+          /**
+           * @description Search workflows within the team or enterprise.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.workflows.search `admin.workflows.search` API reference}.
+           */
+          search: bindApiCallWithOptionalArgument(this, "admin.workflows.search"),
+          /**
+           * @description Unpublish workflows within the team or enterprise.
+           * @see {@link https://docs.slack.dev/reference/methods/admin.workflows.unpublish `admin.workflows.unpublish` API reference}.
+           */
+          unpublish: bindApiCall(this, "admin.workflows.unpublish")
+        }
+      };
+      agents = {
+        conversations: {
+          /**
+           * @description Archive a code channel.
+           * @see {@link https://docs.slack.dev/reference/methods/agents.conversations.archive `agents.conversations.archive` API reference}.
+           */
+          archive: bindApiCall(this, "agents.conversations.archive"),
+          /**
+           * @description Create a dedicated code channel for an agent session.
+           * @see {@link https://docs.slack.dev/reference/methods/agents.conversations.create `agents.conversations.create` API reference}.
+           */
+          create: bindApiCall(this, "agents.conversations.create"),
+          /**
+           * @description Fetch a canvas attached to a code channel.
+           * @see {@link https://docs.slack.dev/reference/methods/agents.conversations.getCanvas `agents.conversations.getCanvas` API reference}.
+           */
+          getCanvas: bindApiCall(this, "agents.conversations.getCanvas"),
+          /**
+           * @description List the views currently attached to a code channel.
+           * @see {@link https://docs.slack.dev/reference/methods/agents.conversations.listViews `agents.conversations.listViews` API reference}.
+           */
+          listViews: bindApiCall(this, "agents.conversations.listViews"),
+          /**
+           * @description Remove a view from a code channel.
+           * @see {@link https://docs.slack.dev/reference/methods/agents.conversations.removeView `agents.conversations.removeView` API reference}.
+           */
+          removeView: bindApiCall(this, "agents.conversations.removeView"),
+          /**
+           * @description Replace the full markdown content of a plan canvas attached to a code channel.
+           * @see {@link https://docs.slack.dev/reference/methods/agents.conversations.setCanvasContent `agents.conversations.setCanvasContent` API reference}.
+           */
+          setCanvasContent: bindApiCall(this, "agents.conversations.setCanvasContent"),
+          /**
+           * @description Register the set of agent-defined slash commands for the calling agent in a code channel.
+           * @see {@link https://docs.slack.dev/reference/methods/agents.conversations.setCommands `agents.conversations.setCommands` API reference}.
+           */
+          setCommands: bindApiCall(this, "agents.conversations.setCommands"),
+          /**
+           * @description Set properties on a code channel.
+           * @see {@link https://docs.slack.dev/reference/methods/agents.conversations.setProperties `agents.conversations.setProperties` API reference}.
+           */
+          setProperties: bindApiCall(this, "agents.conversations.setProperties"),
+          /**
+           * @description Create or update a view in a code channel.
+           * @see {@link https://docs.slack.dev/reference/methods/agents.conversations.setView `agents.conversations.setView` API reference}.
+           */
+          setView: bindApiCall(this, "agents.conversations.setView")
+        },
+        sessions: {
+          /**
+           * @description Rename an agent session.
+           * @see {@link https://docs.slack.dev/reference/methods/agents.sessions.rename `agents.sessions.rename` API reference}.
+           */
+          rename: bindApiCall(this, "agents.sessions.rename"),
+          /**
+           * @description Set an agent session's lifecycle status, creating the session if needed.
+           * @see {@link https://docs.slack.dev/reference/methods/agents.sessions.setStatus `agents.sessions.setStatus` API reference}.
+           */
+          setStatus: bindApiCall(this, "agents.sessions.setStatus")
+        }
+      };
+      api = {
+        /**
+         * @description Checks API calling code.
+         * @see {@link https://docs.slack.dev/reference/methods/api.test `api.test` API reference}.
+         */
+        test: bindApiCallWithOptionalArgument(this, "api.test")
+      };
+      assistant = {
+        threads: {
+          /**
+           * @description Set loading status to indicate that the app is building a response.
+           * @see {@link https://docs.slack.dev/reference/methods/assistant.threads.setStatus `assistant.threads.setStatus` API reference}.
+           */
+          setStatus: bindApiCall(this, "assistant.threads.setStatus"),
+          /**
+           * @description Set suggested prompts for the user. Can suggest up to four prompts.
+           * @see {@link https://docs.slack.dev/reference/methods/assistant.threads.setSuggestedPrompts `assistant.threads.setSuggestedPrompts` API reference}.
+           */
+          setSuggestedPrompts: bindApiCall(this, "assistant.threads.setSuggestedPrompts"),
+          /**
+           * @description Set the title of the thread. This is shown when a user views the app's chat history.
+           * @see {@link https://docs.slack.dev/reference/methods/assistant.threads.setTitle `assistant.threads.setTitle` API reference}.
+           */
+          setTitle: bindApiCall(this, "assistant.threads.setTitle")
+        }
+      };
+      apps = {
+        connections: {
+          /**
+           * @description Generate a temporary Socket Mode WebSocket URL that your app can connect to in order to receive
+           * events and interactive payloads over.
+           * @see {@link https://docs.slack.dev/reference/methods/apps.connections.open `apps.connections.open` API reference}.
+           */
+          open: bindApiCallWithOptionalArgument(this, "apps.connections.open")
+        },
+        event: {
+          authorizations: {
+            /**
+             * @description Get a list of authorizations for the given event context.
+             * Each authorization represents an app installation that the event is visible to.
+             * @see {@link https://docs.slack.dev/reference/methods/apps.event.authorizations.list `apps.event.authorizations.list` API reference}.
+             */
+            list: bindApiCall(this, "apps.event.authorizations.list")
+          }
+        },
+        manifest: {
+          /**
+           * @description Create an app from an app manifest.
+           * @see {@link https://docs.slack.dev/reference/methods/apps.manifest.create `apps.manifest.create` API reference}.
+           */
+          create: bindApiCall(this, "apps.manifest.create"),
+          /**
+           * @description Permanently deletes an app created through app manifests.
+           * @see {@link https://docs.slack.dev/reference/methods/apps.manifest.delete `apps.manifest.delete` API reference}.
+           */
+          delete: bindApiCall(this, "apps.manifest.delete"),
+          /**
+           * @description Export an app manifest from an existing app.
+           * @see {@link https://docs.slack.dev/reference/methods/apps.manifest.export `apps.manifest.export` API reference}.
+           */
+          export: bindApiCall(this, "apps.manifest.export"),
+          /**
+           * @description Update an app from an app manifest.
+           * @see {@link https://docs.slack.dev/reference/methods/apps.manifest.update `apps.manifest.update` API reference}.
+           */
+          update: bindApiCall(this, "apps.manifest.update"),
+          /**
+           * @description Validate an app manifest.
+           * @see {@link https://docs.slack.dev/reference/methods/apps.manifest.validate `apps.manifest.validate` API reference}.
+           */
+          validate: bindApiCall(this, "apps.manifest.validate")
+        },
+        /**
+         * @description Uninstalls your app from a workspace.
+         * @see {@link https://docs.slack.dev/reference/methods/apps.uninstall `apps.uninstall` API reference}.
+         */
+        uninstall: bindApiCall(this, "apps.uninstall"),
+        user: {
+          connection: {
+            /**
+             * @description Updates the connection status between a user and an app.
+             * @see {@link https://docs.slack.dev/reference/methods/apps.user.connection.update `apps.user.connection.update` API reference}.
+             */
+            update: bindApiCall(this, "apps.user.connection.update")
+          }
+        }
+      };
+      auth = {
+        /**
+         * @description Revokes a token.
+         * @see {@link https://docs.slack.dev/reference/methods/auth.revoke `auth.revoke` API reference}.
+         */
+        revoke: bindApiCallWithOptionalArgument(this, "auth.revoke"),
+        teams: {
+          /**
+           * @description Obtain a full list of workspaces your org-wide app has been approved for.
+           * @see {@link https://docs.slack.dev/reference/methods/auth.teams.list `auth.teams.list` API reference}.
+           */
+          list: bindApiCallWithOptionalArgument(this, "auth.teams.list")
+        },
+        test: bindApiCallWithOptionalArgument(this, "auth.test")
+      };
+      bookmarks = {
+        /**
+         * @description Add bookmark to a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/bookmarks.add `bookmarks.add` API reference}.
+         */
+        add: bindApiCall(this, "bookmarks.add"),
+        /**
+         * @description Edit bookmark.
+         * @see {@link https://docs.slack.dev/reference/methods/bookmarks.edit `bookmarks.edit` API reference}.
+         */
+        edit: bindApiCall(this, "bookmarks.edit"),
+        /**
+         * @description List bookmarks for a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/bookmarks.list `bookmarks.list` API reference}.
+         */
+        list: bindApiCall(this, "bookmarks.list"),
+        /**
+         * @description Remove bookmark from a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/bookmarks.remove `bookmarks.remove` API reference}.
+         */
+        remove: bindApiCall(this, "bookmarks.remove")
+      };
+      blocks = {
+        /**
+         * @description Validates blocks, messages, and views Block Kit JSON payloads.
+         * @see {@link https://docs.slack.dev/reference/methods/blocks.validate `blocks.validate` API reference}.
+         */
+        validate: bindApiCallWithOptionalArgument(this, "blocks.validate")
+      };
+      bots = {
+        /**
+         * @description Gets information about a bot user.
+         * @see {@link https://docs.slack.dev/reference/methods/bots.info `bots.info` API reference}.
+         */
+        info: bindApiCallWithOptionalArgument(this, "bots.info")
+      };
+      calls = {
+        /**
+         * @description Registers a new Call.
+         * @see {@link https://docs.slack.dev/reference/methods/calls.add `calls.add` API reference}.
+         */
+        add: bindApiCall(this, "calls.add"),
+        /**
+         * @description Ends a Call.
+         * @see {@link https://docs.slack.dev/reference/methods/calls.end `calls.end` API reference}.
+         */
+        end: bindApiCall(this, "calls.end"),
+        /**
+         * @description Returns information about a Call.
+         * @see {@link https://docs.slack.dev/reference/methods/calls.info `calls.info` API reference}.
+         */
+        info: bindApiCall(this, "calls.info"),
+        /**
+         * @description Updates information about a Call.
+         * @see {@link https://docs.slack.dev/reference/methods/calls.update `calls.update` API reference}.
+         */
+        update: bindApiCall(this, "calls.update"),
+        participants: {
+          /**
+           * @description Registers new participants added to a Call.
+           * @see {@link https://docs.slack.dev/reference/methods/calls.participants.add `calls.participants.add` API reference}.
+           */
+          add: bindApiCall(this, "calls.participants.add"),
+          remove: bindApiCall(this, "calls.participants.remove")
+        }
+      };
+      canvases = {
+        access: {
+          /**
+           * @description Remove access to a canvas for specified entities.
+           * @see {@link https://docs.slack.dev/reference/methods/canvases.access.delete `canvases.access.delete` API reference}.
+           */
+          delete: bindApiCall(this, "canvases.access.delete"),
+          /**
+           * @description Sets the access level to a canvas for specified entities.
+           * @see {@link https://docs.slack.dev/reference/methods/canvases.access.set `canvases.access.set` API reference}.
+           */
+          set: bindApiCall(this, "canvases.access.set")
+        },
+        /**
+         * @description Create Canvas for a user.
+         * @see {@link https://docs.slack.dev/reference/methods/canvases.create `canvases.create` API reference}.
+         */
+        create: bindApiCallWithOptionalArgument(this, "canvases.create"),
+        /**
+         * @description Deletes a canvas.
+         * @see {@link https://docs.slack.dev/reference/methods/canvases.delete `canvases.delete` API reference}.
+         */
+        delete: bindApiCall(this, "canvases.delete"),
+        /**
+         * @description Update an existing canvas.
+         * @see {@link https://docs.slack.dev/reference/methods/canvases.edit `canvases.edit` API reference}.
+         */
+        edit: bindApiCall(this, "canvases.edit"),
+        sections: {
+          /**
+           * @description Find sections matching the provided criteria.
+           * @see {@link https://docs.slack.dev/reference/methods/canvases.sections.lookup `canvases.sections.lookup` API reference}.
+           */
+          lookup: bindApiCall(this, "canvases.sections.lookup")
+        }
+      };
+      chat = {
+        /**
+         * @description Appends text to an existing streaming conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.appendStream `chat.appendStream` API reference}.
+         */
+        appendStream: bindApiCall(this, "chat.appendStream"),
+        /**
+         * @description Deletes a message.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.delete `chat.delete` API reference}.
+         */
+        delete: bindApiCall(this, "chat.delete"),
+        /**
+         * @description Deletes a pending scheduled message from the queue.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.deleteScheduledMessage `chat.deleteScheduledMessage` API reference}.
+         */
+        deleteScheduledMessage: bindApiCall(this, "chat.deleteScheduledMessage"),
+        /**
+         * @description Retrieve a permalink URL for a specific extant message.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.getPermalink `chat.getPermalink` API reference}.
+         */
+        getPermalink: bindApiCall(this, "chat.getPermalink"),
+        /**
+         * @description Share a me message into a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.meMessage `chat.meMessage` API reference}.
+         */
+        meMessage: bindApiCall(this, "chat.meMessage"),
+        /**
+         * @description Sends an ephemeral message to a user in a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.postEphemeral `chat.postEphemeral` API reference}.
+         */
+        postEphemeral: bindApiCall(this, "chat.postEphemeral"),
+        /**
+         * @description Sends a message to a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.postMessage `chat.postMessage` API reference}.
+         */
+        postMessage: bindApiCall(this, "chat.postMessage"),
+        /**
+         * @description Schedules a message to be sent to a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.scheduleMessage `chat.scheduleMessage` API reference}.
+         */
+        scheduleMessage: bindApiCall(this, "chat.scheduleMessage"),
+        scheduledMessages: {
+          /**
+           * @description Returns a list of scheduled messages.
+           * @see {@link https://docs.slack.dev/reference/methods/chat.scheduledMessages.list `chat.scheduledMessages.list` API reference}.
+           */
+          list: bindApiCallWithOptionalArgument(this, "chat.scheduledMessages.list")
+        },
+        /**
+         * @description Starts a new streaming conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.startStream `chat.startStream` API reference}.
+         */
+        startStream: bindApiCall(this, "chat.startStream"),
+        /**
+         * @description Stops a streaming conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.stopStream `chat.stopStream` API reference}.
+         */
+        stopStream: bindApiCall(this, "chat.stopStream"),
+        /**
+         * @description Provide custom unfurl behavior for user-posted URLs.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.unfurl `chat.unfurl` API reference}.
+         */
+        unfurl: bindApiCall(this, "chat.unfurl"),
+        /**
+         * @description Updates a message.
+         * @see {@link https://docs.slack.dev/reference/methods/chat.update `chat.update` API reference}.
+         */
+        update: bindApiCall(this, "chat.update")
+      };
+      conversations = {
+        /**
+         * @description Accepts an invitation to a Slack Connect channel.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.acceptSharedInvite `conversations.acceptSharedInvite` API reference}.
+         */
+        acceptSharedInvite: bindApiCall(this, "conversations.acceptSharedInvite"),
+        /**
+         * @description Approves an invitation to a Slack Connect channel.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.approveSharedInvite `conversations.approveSharedInvite` API reference}.
+         */
+        approveSharedInvite: bindApiCall(this, "conversations.approveSharedInvite"),
+        /**
+         * @description Archives a conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.archive `conversations.archive` API reference}.
+         */
+        archive: bindApiCall(this, "conversations.archive"),
+        canvases: {
+          /**
+           * @description Create a Channel Canvas for a channel.
+           * @see {@link https://docs.slack.dev/reference/methods/conversations.canvases.create `conversations.canvases.create` API reference}.
+           */
+          create: bindApiCall(this, "conversations.canvases.create")
+        },
+        /**
+         * @description Closes a direct message or multi-person direct message.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.close `conversations.close` API reference}.
+         */
+        close: bindApiCall(this, "conversations.close"),
+        /**
+         * @description Initiates a public or private channel-based conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.create `conversations.create` API reference}.
+         */
+        create: bindApiCall(this, "conversations.create"),
+        /**
+         * @description Declines an invitation to a Slack Connect channel.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.declineSharedInvite `conversations.declineSharedInvite` API reference}.
+         */
+        declineSharedInvite: bindApiCall(this, "conversations.declineSharedInvite"),
+        externalInvitePermissions: {
+          /**
+           * @description Convert a team in a shared channel from an External Limited channel to a fully shared Slack
+           * Connect channel or vice versa.
+           * @see {@link https://docs.slack.dev/reference/methods/conversations.externalInvitePermissions.set `conversations.externalInvitePermissions.set` API reference}.
+           */
+          set: bindApiCall(this, "conversations.externalInvitePermissions.set")
+        },
+        /**
+         * @description Fetches a conversation's history of messages and events.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.history `conversations.history` API reference}.
+         */
+        history: bindApiCall(this, "conversations.history"),
+        /**
+         * @description Retrieve information about a conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.info `conversations.info` API reference}.
+         */
+        info: bindApiCall(this, "conversations.info"),
+        /**
+         * @description Invites users to a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.invite `conversations.invite` API reference}.
+         */
+        invite: bindApiCall(this, "conversations.invite"),
+        /**
+         * @description Sends an invitation to a Slack Connect channel.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.inviteShared `conversations.inviteShared` API reference}.
+         */
+        inviteShared: bindApiCall(this, "conversations.inviteShared"),
+        /**
+         * @description Joins an existing conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.join `conversations.join` API reference}.
+         */
+        join: bindApiCall(this, "conversations.join"),
+        /**
+         * @description Removes a user from a conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.kick `conversations.kick` API reference}.
+         */
+        kick: bindApiCall(this, "conversations.kick"),
+        /**
+         * @description Leaves a conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.leave `conversations.leave` API reference}.
+         */
+        leave: bindApiCall(this, "conversations.leave"),
+        /**
+         * @description List all channels in a Slack team.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.list `conversations.list` API reference}.
+         */
+        list: bindApiCallWithOptionalArgument(this, "conversations.list"),
+        /**
+         * @description Lists shared channel invites that have been generated or received but have not been approved by
+         * all parties.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.listConnectInvites `conversations.listConnectInvites` API reference}.
+         */
+        listConnectInvites: bindApiCallWithOptionalArgument(this, "conversations.listConnectInvites"),
+        /**
+         * @description Sets the read cursor in a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.mark `conversations.mark` API reference}.
+         */
+        mark: bindApiCall(this, "conversations.mark"),
+        /**
+         * @description Retrieve members of a conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.members `conversations.members` API reference}.
+         */
+        members: bindApiCall(this, "conversations.members"),
+        /**
+         * @description Opens or resumes a direct message or multi-person direct message.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.open `conversations.open` API reference}.
+         */
+        open: bindApiCall(this, "conversations.open"),
+        /**
+         * @description Renames a conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.rename `conversations.rename` API reference}.
+         */
+        rename: bindApiCall(this, "conversations.rename"),
+        /**
+         * @description Retrieve a thread of messages posted to a conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.replies `conversations.replies` API reference}.
+         */
+        replies: bindApiCall(this, "conversations.replies"),
+        requestSharedInvite: {
+          /**
+           * @description Approves a request to add an external user to a channel and sends them a Slack Connect invite.
+           * @see {@link https://docs.slack.dev/reference/methods/conversations.requestSharedInvite.approve `conversations.requestSharedInvite.approve` API reference}.
+           */
+          approve: bindApiCall(this, "conversations.requestSharedInvite.approve"),
+          /**
+           * @description Denies a request to invite an external user to a channel.
+           * @see {@link https://docs.slack.dev/reference/methods/conversations.requestSharedInvite.deny `conversations.requestSharedInvite.deny` API reference}.
+           */
+          deny: bindApiCall(this, "conversations.requestSharedInvite.deny"),
+          /**
+           * @description Lists requests to add external users to channels with ability to filter.
+           * @see {@link https://docs.slack.dev/reference/methods/conversations.requestSharedInvite.list `conversations.requestSharedInvite.list` API reference}.
+           */
+          list: bindApiCallWithOptionalArgument(this, "conversations.requestSharedInvite.list")
+        },
+        /**
+         * @description Sets the purpose for a conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.setPurpose `conversations.setPurpose` API reference}.
+         */
+        setPurpose: bindApiCall(this, "conversations.setPurpose"),
+        /**
+         * @description Sets the topic for a conversation.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.setTopic `conversations.setTopic` API reference}.
+         */
+        setTopic: bindApiCall(this, "conversations.setTopic"),
+        /**
+         * @description Reverses conversation archival.
+         * @see {@link https://docs.slack.dev/reference/methods/conversations.unarchive `conversations.unarchive` API reference}.
+         */
+        unarchive: bindApiCall(this, "conversations.unarchive")
+      };
+      dialog = {
+        /**
+         * @description Open a dialog with a user.
+         * @see {@link https://docs.slack.dev/reference/methods/dialog.open `dialog.open` API reference}.
+         */
+        open: bindApiCall(this, "dialog.open")
+      };
+      dnd = {
+        /**
+         * @description Ends the current user's Do Not Disturb session immediately.
+         * @see {@link https://docs.slack.dev/reference/methods/dnd.endDnd `dnd.endDnd` API reference}.
+         */
+        endDnd: bindApiCallWithOptionalArgument(this, "dnd.endDnd"),
+        /**
+         * @description Ends the current user's snooze mode immediately.
+         * @see {@link https://docs.slack.dev/reference/methods/dnd.endSnooze `dnd.endSnooze` API reference}.
+         */
+        endSnooze: bindApiCallWithOptionalArgument(this, "dnd.endSnooze"),
+        /**
+         * @description Retrieves a user's current Do Not Disturb status.
+         * @see {@link https://docs.slack.dev/reference/methods/dnd.info `dnd.info` API reference}.
+         */
+        info: bindApiCallWithOptionalArgument(this, "dnd.info"),
+        /**
+         * @description Turns on Do Not Disturb mode for the current user, or changes its duration.
+         * @see {@link https://docs.slack.dev/reference/methods/dnd.setSnooze `dnd.setSnooze` API reference}.
+         */
+        setSnooze: bindApiCall(this, "dnd.setSnooze"),
+        /**
+         * @description Retrieves the Do Not Disturb status for up to 50 users on a team.
+         * @see {@link https://docs.slack.dev/reference/methods/dnd.teamInfo `dnd.teamInfo` API reference}.
+         */
+        teamInfo: bindApiCall(this, "dnd.teamInfo")
+      };
+      emoji = {
+        /**
+         * @description Lists custom emoji for a team.
+         * @see {@link https://docs.slack.dev/reference/methods/emoji.list `emoji.list` API reference}.
+         */
+        list: bindApiCallWithOptionalArgument(this, "emoji.list")
+      };
+      entity = {
+        /**
+         * @description Provide information about the entity to be displayed in the flexpane.
+         * @see {@link https://docs.slack.dev/reference/methods/entity.presentDetails}
+         */
+        presentDetails: bindApiCall(this, "entity.presentDetails")
+      };
+      files = {
+        /**
+         * @description Finishes an upload started with {@link https://docs.slack.dev/reference/methods/files.getUploadURLExternal `files.getUploadURLExternal`}.
+         * @see {@link https://docs.slack.dev/reference/methods/files.completeUploadExternal `files.completeUploadExternal` API reference}.
+         */
+        completeUploadExternal: bindApiCall(this, "files.completeUploadExternal"),
+        /**
+         * @description Deletes a file.
+         * @see {@link https://docs.slack.dev/reference/methods/files.delete `files.delete` API reference}.
+         */
+        delete: bindApiCall(this, "files.delete"),
+        /**
+         * @description Gets a URL for an edge external file upload.
+         * @see {@link https://docs.slack.dev/reference/methods/files.getUploadURLExternal `files.getUploadURLExternal` API reference}.
+         */
+        getUploadURLExternal: bindApiCall(this, "files.getUploadURLExternal"),
+        /**
+         * @description Gets information about a file.
+         * @see {@link https://docs.slack.dev/reference/methods/files.info `files.info` API reference}.
+         */
+        info: bindApiCall(this, "files.info"),
+        /**
+         * @description List files for a team, in a channel, or from a user with applied filters.
+         * @see {@link https://docs.slack.dev/reference/methods/files.list `files.list` API reference}.
+         */
+        list: bindApiCall(this, "files.list"),
+        /**
+         * @description Revokes public/external sharing access for a file.
+         * @see {@link https://docs.slack.dev/reference/methods/files.revokePublicURL `files.revokePublicURL` API reference}.
+         */
+        revokePublicURL: bindApiCall(this, "files.revokePublicURL"),
+        /**
+         * @description Enables a file for public/external sharing.
+         * @see {@link https://docs.slack.dev/reference/methods/files.sharedPublicURL `files.sharedPublicURL` API reference}.
+         */
+        sharedPublicURL: bindApiCall(this, "files.sharedPublicURL"),
+        /**
+         * @description Custom method to support a new way of uploading files to Slack.
+         * Supports a single file upload
+         * Supply:
+         * - (required) single file or content
+         * - (optional) channel, alt_text, snippet_type,
+         * Supports multiple file uploads
+         * Supply:
+         * - multiple upload_files
+         * Will try to honor both single file or content data supplied as well
+         * as multiple file uploads property.
+         * @see {@link https://docs.slack.dev/tools/node-slack-sdk/web-api/#upload-a-file `@slack/web-api` Upload a file documentation}.
+         */
+        uploadV2: bindFilesUploadV2(this),
+        comments: {
+          /**
+           * @description Deletes an existing comment on a file.
+           * @see {@link https://docs.slack.dev/reference/methods/files.comments.delete `files.comments.delete` API reference}.
+           */
+          delete: bindApiCall(this, "files.comments.delete")
+        },
+        remote: {
+          /**
+           * @description Adds a file from a remote service.
+           * @see {@link https://docs.slack.dev/reference/methods/files.remote.add `files.remote.add` API reference}.
+           */
+          add: bindApiCall(this, "files.remote.add"),
+          /**
+           * @description Retrieve information about a remote file added to Slack.
+           * @see {@link https://docs.slack.dev/reference/methods/files.remote.info `files.remote.info` API reference}.
+           */
+          info: bindApiCall(this, "files.remote.info"),
+          /**
+           * @description List remote files added to Slack.
+           * @see {@link https://docs.slack.dev/reference/methods/files.remote.list `files.remote.list` API reference}.
+           */
+          list: bindApiCall(this, "files.remote.list"),
+          /**
+           * @description Remove a remote file.
+           * @see {@link https://docs.slack.dev/reference/methods/files.remote.remove `files.remote.remove` API reference}.
+           */
+          remove: bindApiCall(this, "files.remote.remove"),
+          /**
+           * @description Share a remote file into a channel.
+           * @see {@link https://docs.slack.dev/reference/methods/files.remote.share `files.remote.share` API reference}.
+           */
+          share: bindApiCall(this, "files.remote.share"),
+          /**
+           * @description Updates an existing remote file.
+           * @see {@link https://docs.slack.dev/reference/methods/files.remote.update `files.remote.update` API reference}.
+           */
+          update: bindApiCall(this, "files.remote.update")
+        }
+      };
+      functions = {
+        /**
+         * @description Signal the failure to execute a Custom Function.
+         * @see {@link https://docs.slack.dev/reference/methods/functions.completeError `functions.completeError` API reference}.
+         */
+        completeError: bindApiCall(this, "functions.completeError"),
+        /**
+         * @description Signal the successful completion of a Custom Function.
+         * @see {@link https://docs.slack.dev/reference/methods/functions.completeSuccess `functions.completeSuccess` API reference}.
+         */
+        completeSuccess: bindApiCall(this, "functions.completeSuccess")
+      };
+      migration = {
+        /**
+         * @description For Enterprise Grid workspaces, map local user IDs to global user IDs.
+         * @see {@link https://docs.slack.dev/reference/methods/migration.exchange `migration.exchange` API reference}.
+         */
+        exchange: bindApiCall(this, "migration.exchange")
+      };
+      oauth = {
+        /**
+         * @description Exchanges a temporary OAuth verifier code for an access token.
+         * @deprecated This is a legacy method only used by classic Slack apps. Use `oauth.v2.access` for new Slack apps.
+         * @see {@link https://docs.slack.dev/reference/methods/oauth.access `oauth.access` API reference}.
+         */
+        access: bindApiCall(this, "oauth.access"),
+        v2: {
+          /**
+           * @description Exchanges a temporary OAuth verifier code for an access token.
+           * @see {@link https://docs.slack.dev/reference/methods/oauth.v2.access `oauth.v2.access` API reference}.
+           */
+          access: bindApiCall(this, "oauth.v2.access"),
+          /**
+           * @description Exchanges a legacy access token for a new expiring access token and refresh token.
+           * @see {@link https://docs.slack.dev/reference/methods/oauth.v2.exchange `oauth.v2.exchange` API reference}.
+           */
+          exchange: bindApiCall(this, "oauth.v2.exchange")
+        }
+      };
+      openid = {
+        connect: {
+          /**
+           * @description Exchanges a temporary OAuth verifier code for an access token for {@link https://docs.slack.dev/authentication/sign-in-with-slack Sign in with Slack}.
+           * @see {@link https://docs.slack.dev/reference/methods/openid.connect.token `openid.connect.token` API reference}.
+           */
+          token: bindApiCall(this, "openid.connect.token"),
+          /**
+           * @description Get the identity of a user who has authorized {@link https://docs.slack.dev/authentication/sign-in-with-slack Sign in with Slack}.
+           * @see {@link https://docs.slack.dev/reference/methods/openid.connect.userInfo `openid.connect.userInfo` API reference}.
+           */
+          userInfo: bindApiCallWithOptionalArgument(this, "openid.connect.userInfo")
+        }
+      };
+      pins = {
+        /**
+         * @description Pins an item to a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/pins.add `pins.add` API reference}.
+         */
+        add: bindApiCall(this, "pins.add"),
+        /**
+         * @description Lists items pinned to a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/pins.list `pins.list` API reference}.
+         */
+        list: bindApiCall(this, "pins.list"),
+        /**
+         * @description Un-pins an item from a channel.
+         * @see {@link https://docs.slack.dev/reference/methods/pins.remove `pins.remove` API reference}.
+         */
+        remove: bindApiCall(this, "pins.remove")
+      };
+      reactions = {
+        /**
+         * @description Adds a reaction to an item.
+         * @see {@link https://docs.slack.dev/reference/methods/reactions.add `reactions.add` API reference}.
+         */
+        add: bindApiCall(this, "reactions.add"),
+        /**
+         * @description Gets reactions for an item.
+         * @see {@link https://docs.slack.dev/reference/methods/reactions.get `reactions.get` API reference}.
+         */
+        get: bindApiCall(this, "reactions.get"),
+        /**
+         * @description List reactions made by a user.
+         * @see {@link https://docs.slack.dev/reference/methods/reactions.list `reactions.list` API reference}.
+         */
+        list: bindApiCallWithOptionalArgument(this, "reactions.list"),
+        /**
+         * @description Removes a reaction from an item.
+         * @see {@link https://docs.slack.dev/reference/methods/reactions.remove `reactions.remove` API reference}.
+         */
+        remove: bindApiCall(this, "reactions.remove")
+      };
+      // TODO: keep tabs on reminders APIs, may be deprecated once Later list APIs land
+      // See: https://docs.slack.dev/changelog/2023-07-its-later-already-for-stars-and-reminders
+      reminders = {
+        /**
+         * @description Creates a reminder.
+         * @see {@link https://docs.slack.dev/reference/methods/reminders.add `reminders.add` API reference}.
+         */
+        add: bindApiCall(this, "reminders.add"),
+        /**
+         * @description Marks a reminder as complete.
+         * @see {@link https://docs.slack.dev/reference/methods/reminders.complete `reminders.complete` API reference}.
+         */
+        complete: bindApiCall(this, "reminders.complete"),
+        /**
+         * @description Deletes a reminder.
+         * @see {@link https://docs.slack.dev/reference/methods/reminders.delete `reminders.delete` API reference}.
+         */
+        delete: bindApiCall(this, "reminders.delete"),
+        /**
+         * @description Gets information about a reminder.
+         * @see {@link https://docs.slack.dev/reference/methods/reminders.info `reminders.info` API reference}.
+         */
+        info: bindApiCall(this, "reminders.info"),
+        /**
+         * @description Lists all reminders created by or for a given user.
+         * @see {@link https://docs.slack.dev/reference/methods/reminders.list `reminders.list` API reference}.
+         */
+        list: bindApiCallWithOptionalArgument(this, "reminders.list")
+      };
+      rtm = {
+        /**
+         * @description Starts a Real Time Messaging session.
+         * @see {@link https://docs.slack.dev/reference/methods/rtm.connect `rtm.connect` API reference}.
+         */
+        connect: bindApiCallWithOptionalArgument(this, "rtm.connect")
+      };
+      search = {
+        /**
+         * @description Searches for messages and files matching a query.
+         * @see {@link https://docs.slack.dev/reference/methods/search.all search.all` API reference}.
+         */
+        all: bindApiCall(this, "search.all"),
+        /**
+         * @description Searches for files matching a query.
+         * @see {@link https://docs.slack.dev/reference/methods/search.files search.files` API reference}.
+         */
+        files: bindApiCall(this, "search.files"),
+        /**
+         * @description Searches for messages matching a query.
+         * @see {@link https://docs.slack.dev/reference/methods/search.messages search.messages` API reference}.
+         */
+        messages: bindApiCall(this, "search.messages")
+      };
+      slackLists = {
+        access: {
+          /**
+           * @description Delete access for specified entities.
+           * @see {@link https://docs.slack.dev/reference/methods/slackLists.access.delete `slackLists.access.delete` API reference}.
+           */
+          delete: bindApiCall(this, "slackLists.access.delete"),
+          /**
+           * @description Set access level for specified entities.
+           * @see {@link https://docs.slack.dev/reference/methods/slackLists.access.set `slackLists.access.set` API reference}.
+           */
+          set: bindApiCall(this, "slackLists.access.set")
+        },
+        /**
+         * @description Create a List.
+         * @see {@link https://docs.slack.dev/reference/methods/slackLists.create `slackLists.create` API reference}.
+         */
+        create: bindApiCall(this, "slackLists.create"),
+        download: {
+          /**
+           * @description Get download job status.
+           * @see {@link https://docs.slack.dev/reference/methods/slackLists.download.get `slackLists.download.get` API reference}.
+           */
+          get: bindApiCall(this, "slackLists.download.get"),
+          /**
+           * @description Start a download job for a list.
+           * @see {@link https://docs.slack.dev/reference/methods/slackLists.download.start `slackLists.download.start` API reference}.
+           */
+          start: bindApiCall(this, "slackLists.download.start")
+        },
+        items: {
+          /**
+           * @description Create a list item.
+           * @see {@link https://docs.slack.dev/reference/methods/slackLists.items.create `slackLists.items.create` API reference}.
+           */
+          create: bindApiCall(this, "slackLists.items.create"),
+          /**
+           * @description Delete a list item.
+           * @see {@link https://docs.slack.dev/reference/methods/slackLists.items.delete `slackLists.items.delete` API reference}.
+           */
+          delete: bindApiCall(this, "slackLists.items.delete"),
+          /**
+           * @description Delete multiple list items.
+           * @see {@link https://docs.slack.dev/reference/methods/slackLists.items.deleteMultiple `slackLists.items.deleteMultiple` API reference}.
+           */
+          deleteMultiple: bindApiCall(this, "slackLists.items.deleteMultiple"),
+          /**
+           * @description Get info about a list item.
+           * @see {@link https://docs.slack.dev/reference/methods/slackLists.items.info `slackLists.items.info` API reference}.
+           */
+          info: bindApiCall(this, "slackLists.items.info"),
+          /**
+           * @description Get records from a List.
+           * @see {@link https://docs.slack.dev/reference/methods/slackLists.items.list `slackLists.items.list` API reference}.
+           */
+          list: bindApiCall(this, "slackLists.items.list"),
+          /**
+           * @description Update a list item.
+           * @see {@link https://docs.slack.dev/reference/methods/slackLists.items.update `slackLists.items.update` API reference}.
+           */
+          update: bindApiCall(this, "slackLists.items.update")
+        },
+        /**
+         * @description Update a list.
+         * @see {@link https://docs.slack.dev/reference/methods/slackLists.update `slackLists.update` API reference}.
+         */
+        update: bindApiCall(this, "slackLists.update")
+      };
+      team = {
+        /**
+         * @description Gets the access logs for the current team.
+         * @see {@link https://docs.slack.dev/reference/methods/team.accessLogs `team.accessLogs` API reference}.
+         */
+        accessLogs: bindApiCallWithOptionalArgument(this, "team.accessLogs"),
+        /**
+         * @description Gets billable users information for the current team.
+         * @see {@link https://docs.slack.dev/reference/methods/team.billableInfo `team.billableInfo` API reference}.
+         */
+        billableInfo: bindApiCallWithOptionalArgument(this, "team.billableInfo"),
+        billing: {
+          /**
+           * @description Reads a workspace's billing plan information.
+           * @see {@link https://docs.slack.dev/reference/methods/team.billing.info `team.billing.info` API reference}.
+           */
+          info: bindApiCall(this, "team.billing.info")
+        },
+        externalTeams: {
+          /**
+           * @description Disconnect an external organization.
+           * @see {@link https://docs.slack.dev/reference/methods/team.externalTeams.disconnect `team.externalTeams.disconnect` API reference}.
+           */
+          disconnect: bindApiCall(this, "team.externalTeams.disconnect"),
+          /**
+           * @description Returns a list of all the external teams connected and details about the connection.
+           * @see {@link https://docs.slack.dev/reference/methods/team.externalTeams.list `team.externalTeams.list` API reference}.
+           */
+          list: bindApiCall(this, "team.externalTeams.list")
+        },
+        /**
+         * @description Gets information about the current team.
+         * @see {@link https://docs.slack.dev/reference/methods/team.info `team.info` API reference}.
+         */
+        info: bindApiCallWithOptionalArgument(this, "team.info"),
+        /**
+         * @description Gets the integration logs for the current team.
+         * @see {@link https://docs.slack.dev/reference/methods/team.integrationLogs `team.integrationLogs` API reference}.
+         */
+        integrationLogs: bindApiCallWithOptionalArgument(this, "team.integrationLogs"),
+        preferences: {
+          /**
+           * @description Retrieve a list of a workspace's team preferences.
+           * @see {@link https://docs.slack.dev/reference/methods/team.preferences.list `team.preferences.list` API reference}.
+           */
+          list: bindApiCallWithOptionalArgument(this, "team.preferences.list")
+        },
+        profile: {
+          /**
+           * @description Retrieve a team's profile.
+           * @see {@link https://docs.slack.dev/reference/methods/team.profile.get `team.profile.get` API reference}.
+           */
+          get: bindApiCallWithOptionalArgument(this, "team.profile.get")
+        }
+      };
+      tooling = {
+        tokens: {
+          /**
+           * @description Exchanges a refresh token for a new app configuration token.
+           * @see {@link https://docs.slack.dev/reference/methods/tooling.tokens.rotate `tooling.tokens.rotate` API reference}.
+           */
+          rotate: bindApiCall(this, "tooling.tokens.rotate")
+        }
+      };
+      usergroups = {
+        /**
+         * @description Create a User Group.
+         * @see {@link https://docs.slack.dev/reference/methods/usergroups.create `usergroups.create` API reference}.
+         */
+        create: bindApiCall(this, "usergroups.create"),
+        /**
+         * @description Disable an existing User Group.
+         * @see {@link https://docs.slack.dev/reference/methods/usergroups.disable `usergroups.disable` API reference}.
+         */
+        disable: bindApiCall(this, "usergroups.disable"),
+        /**
+         * @description Enable an existing User Group.
+         * @see {@link https://docs.slack.dev/reference/methods/usergroups.enable `usergroups.enable` API reference}.
+         */
+        enable: bindApiCall(this, "usergroups.enable"),
+        /**
+         * @description List all User Groups for a team.
+         * @see {@link https://docs.slack.dev/reference/methods/usergroups.list `usergroups.list` API reference}.
+         */
+        list: bindApiCallWithOptionalArgument(this, "usergroups.list"),
+        /**
+         * @description Update an existing User Group.
+         * @see {@link https://docs.slack.dev/reference/methods/usergroups.update `usergroups.update` API reference}.
+         */
+        update: bindApiCall(this, "usergroups.update"),
+        users: {
+          /**
+           * @description List all users in a User Group.
+           * @see {@link https://docs.slack.dev/reference/methods/usergroups.users.list `usergroups.users.list` API reference}.
+           */
+          list: bindApiCall(this, "usergroups.users.list"),
+          /**
+           * @description Update the list of users in a User Group.
+           * @see {@link https://docs.slack.dev/reference/methods/usergroups.users.update `usergroups.users.update` API reference}.
+           */
+          update: bindApiCall(this, "usergroups.users.update")
+        }
+      };
+      users = {
+        /**
+         * @description List conversations the calling user may access.
+         * @see {@link https://docs.slack.dev/reference/methods/users.conversations `users.conversations` API reference}.
+         */
+        conversations: bindApiCall(this, "users.conversations"),
+        /**
+         * @description Delete the user profile photo.
+         * @see {@link https://docs.slack.dev/reference/methods/users.deletePhoto `users.deletePhoto` API reference}.
+         */
+        deletePhoto: bindApiCall(this, "users.deletePhoto"),
+        discoverableContacts: {
+          /**
+           * @description Lookup an email address to see if someone is on Slack.
+           * @see {@link https://docs.slack.dev/reference/methods/users.discoverableContacts.lookup `users.discoverableContacts.lookup` API reference}.
+           */
+          lookup: bindApiCall(this, "users.discoverableContacts.lookup")
+        },
+        /**
+         * @description Gets user presence information.
+         * @see {@link https://docs.slack.dev/reference/methods/users.getPresence `users.getPresence` API reference}.
+         */
+        getPresence: bindApiCall(this, "users.getPresence"),
+        /**
+         * @description Get a user's identity.
+         * @see {@link https://docs.slack.dev/reference/methods/users.identity `users.identity` API reference}.
+         */
+        identity: bindApiCall(this, "users.identity"),
+        /**
+         * @description Gets information about a user.
+         * @see {@link https://docs.slack.dev/reference/methods/users.info `users.info` API reference}.
+         */
+        info: bindApiCall(this, "users.info"),
+        /**
+         * @description Lists all users in a Slack team.
+         * @see {@link https://docs.slack.dev/reference/methods/users.list `users.list` API reference}.
+         */
+        list: bindApiCall(this, "users.list"),
+        /**
+         * @description Find a user with an email address.
+         * @see {@link https://docs.slack.dev/reference/methods/users.lookupByEmail `users.lookupByEmail` API reference}.
+         */
+        lookupByEmail: bindApiCall(this, "users.lookupByEmail"),
+        /**
+         * @description Set the user profile photo.
+         * @see {@link https://docs.slack.dev/reference/methods/users.setPhoto `users.setPhoto` API reference}.
+         */
+        setPhoto: bindApiCall(this, "users.setPhoto"),
+        /**
+         * @description Manually sets user presence.
+         * @see {@link https://docs.slack.dev/reference/methods/users.setPresence `users.setPresence` API reference}.
+         */
+        setPresence: bindApiCall(this, "users.setPresence"),
+        profile: {
+          /**
+           * @description Retrieve a user's profile information, including their custom status.
+           * @see {@link https://docs.slack.dev/reference/methods/users.profile.get `users.profile.get` API reference}.
+           */
+          get: bindApiCall(this, "users.profile.get"),
+          /**
+           * @description Set a user's profile information, including custom status.
+           * @see {@link https://docs.slack.dev/reference/methods/users.profile.set `users.profile.set` API reference}.
+           */
+          set: bindApiCall(this, "users.profile.set")
+        }
+      };
+      views = {
+        /**
+         * @description Open a view for a user.
+         * @see {@link https://docs.slack.dev/reference/methods/views.open `views.open` API reference}.
+         */
+        open: bindApiCall(this, "views.open"),
+        /**
+         * @description Publish a static view for a user.
+         * @see {@link https://docs.slack.dev/reference/methods/views.publish `views.publish` API reference}.
+         */
+        publish: bindApiCall(this, "views.publish"),
+        /**
+         * @description Push a view onto the stack of a root view.
+         * @see {@link https://docs.slack.dev/reference/methods/views.push `views.push` API reference}.
+         */
+        push: bindApiCall(this, "views.push"),
+        /**
+         * @description Update an existing view.
+         * @see {@link https://docs.slack.dev/reference/methods/views.update `views.update` API reference}.
+         */
+        update: bindApiCall(this, "views.update")
+      };
+      // ------------------
+      // Deprecated methods
+      // ------------------
+      // TODO: breaking changes for future majors:
+      // - stars.* methods are marked as deprecated; once Later has APIs, these will see an official sunsetting timeline
+      stars = {
+        /**
+         * @description Save an item for later. Formerly known as adding a star.
+         * @deprecated Stars can still be added but they can no longer be viewed or interacted with by end-users.
+         * See {@link https://docs.slack.dev/changelog/2023-07-its-later-already-for-stars-and-reminders our post on stars and the Later list}.
+         * @see {@link https://docs.slack.dev/reference/methods/stars.add `stars.add` API reference}.
+         */
+        add: bindApiCall(this, "stars.add"),
+        /**
+         * @description List a user's saved items, formerly known as stars.
+         * @deprecated Stars can still be listed but they can no longer be viewed or interacted with by end-users.
+         * See {@link https://docs.slack.dev/changelog/2023-07-its-later-already-for-stars-and-reminders our post on stars and the Later list}.
+         * @see {@link https://docs.slack.dev/reference/methods/stars.list `stars.list` API reference}.
+         */
+        list: bindApiCall(this, "stars.list"),
+        /**
+         * @description Remove a saved item from a user's saved items, formerly known as stars.
+         * @deprecated Stars can still be removed but they can no longer be viewed or interacted with by end-users.
+         * See {@link https://docs.slack.dev/changelog/2023-07-its-later-already-for-stars-and-reminders our post on stars and the Later list}.
+         * @see {@link https://docs.slack.dev/reference/methods/stars.remove `stars.remove` API reference}.
+         */
+        remove: bindApiCall(this, "stars.remove")
+      };
+      workflows = {
+        featured: {
+          /**
+           * @description Add featured workflows to a channel.
+           * @see {@link https://docs.slack.dev/reference/methods/workflows.featured.add `workflows.featured.add` API reference}.
+           */
+          add: bindApiCall(this, "workflows.featured.add"),
+          /**
+           * @description List the featured workflows for specified channels.
+           * @see {@link https://docs.slack.dev/reference/methods/workflows.featured.list `workflows.featured.list` API reference}.
+           */
+          list: bindApiCall(this, "workflows.featured.list"),
+          /**
+           * @description Remove featured workflows from a channel.
+           * @see {@link https://docs.slack.dev/reference/methods/workflows.featured.remove `workflows.featured.remove` API reference}.
+           */
+          remove: bindApiCall(this, "workflows.featured.remove"),
+          /**
+           * @description Set featured workflows for a channel.
+           * @see {@link https://docs.slack.dev/reference/methods/workflows.featured.set `workflows.featured.set` API reference}.
+           */
+          set: bindApiCall(this, "workflows.featured.set")
+        }
+      };
+    };
+    exports2.Methods = Methods;
+    __exportStar(require_dist3(), exports2);
+  }
+});
+
+// node_modules/@slack/web-api/dist/WebClient.js
+var require_WebClient = __commonJS({
+  "node_modules/@slack/web-api/dist/WebClient.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
+      var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function(o2) {
+          var ar = [];
+          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+          return ar;
+        };
+        return ownKeys(o);
+      };
+      return function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
+    })();
+    var __importDefault = exports2 && exports2.__importDefault || function(mod) {
+      return mod && mod.__esModule ? mod : { "default": mod };
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.WebClient = exports2.WebClientEvent = void 0;
+    exports2.buildThreadTsWarningMessage = buildThreadTsWarningMessage;
+    var node_path_1 = require("node:path");
+    var node_querystring_1 = require("node:querystring");
+    var node_util_1 = require("node:util");
+    var node_zlib_1 = __importDefault(require("node:zlib"));
+    var p_queue_1 = __importDefault(require_dist2());
+    var p_retry_1 = __importStar(require_p_retry());
+    var chat_stream_1 = require_chat_stream();
+    var errors_1 = require_errors2();
+    var file_upload_1 = require_file_upload();
+    var helpers_1 = __importDefault(require_helpers());
+    var instrument_1 = require_instrument();
+    var logger_1 = require_logger();
+    var methods_1 = require_methods();
+    var retry_policies_1 = require_retry_policies();
+    var defaultFilename = "Untitled";
+    var defaultPageSize = 200;
+    var noopPageReducer = () => void 0;
+    var WebClientEvent;
+    (function(WebClientEvent2) {
+      WebClientEvent2["RATE_LIMITED"] = "rate_limited";
+    })(WebClientEvent || (exports2.WebClientEvent = WebClientEvent = {}));
+    var WebClient2 = class _WebClient extends methods_1.Methods {
+      /**
+       * The base URL for reaching Slack's Web API. Consider changing this value for testing purposes.
+       */
+      slackApiUrl;
+      /**
+       * Authentication and authorization token for accessing Slack Web API (usually begins with `xoxp` or `xoxb`)
+       */
+      token;
+      /**
+       * Configuration for retry operations. See {@link https://github.com/tim-kos/node-retry|node-retry} for more details.
+       */
+      retryConfig;
+      /**
+       * Queue of requests in which a maximum of {@link WebClientOptions.maxRequestConcurrency} can concurrently be
+       * in-flight.
+       */
+      requestQueue;
+      /**
+       * The fetch function used for HTTP requests
+       */
+      fetchFn;
+      /**
+       * Request timeout in milliseconds
+       */
+      timeout;
+      /**
+       * Default headers sent with every request
+       */
+      defaultHeaders;
+      /**
+       * Preference for immediately rejecting API calls which result in a rate-limited response
+       */
+      rejectRateLimitedCalls;
+      /**
+       * The name used to prefix all logging generated from this object
+       */
+      static loggerName = "WebClient";
+      /**
+       * This object's logger instance
+       */
+      logger;
+      /**
+       * This object's teamId value
+       */
+      teamId;
+      allowAbsoluteUrls;
+      /**
+       * @param token - An API token to authenticate/authorize with Slack (usually start with `xoxp`, `xoxb`)
+       * @param {Object} [webClientOptions] - Configuration options.
+       */
+      constructor(token, { slackApiUrl = "https://slack.com/api/", logger = void 0, logLevel = void 0, maxRequestConcurrency = 100, retryConfig = retry_policies_1.tenRetriesInAboutThirtyMinutes, fetch: fetch2 = void 0, timeout = 0, rejectRateLimitedCalls = false, headers = {}, teamId = void 0, allowAbsoluteUrls = true } = {}) {
+        super();
+        this.token = token;
+        this.slackApiUrl = slackApiUrl;
+        if (!this.slackApiUrl.endsWith("/")) {
+          this.slackApiUrl += "/";
+        }
+        this.retryConfig = retryConfig;
+        this.requestQueue = new p_queue_1.default({ concurrency: maxRequestConcurrency });
+        this.rejectRateLimitedCalls = rejectRateLimitedCalls;
+        this.teamId = teamId;
+        this.allowAbsoluteUrls = allowAbsoluteUrls;
+        if (typeof logger !== "undefined") {
+          this.logger = logger;
+          if (typeof logLevel !== "undefined") {
+            this.logger.debug("The logLevel given to WebClient was ignored as you also gave logger");
+          }
+        } else {
+          this.logger = (0, logger_1.getLogger)(_WebClient.loggerName, logLevel ?? logger_1.LogLevel.INFO, logger);
+        }
+        if (this.token && !headers.Authorization)
+          headers.Authorization = `Bearer ${this.token}`;
+        this.fetchFn = fetch2 ?? globalThis.fetch;
+        this.timeout = timeout;
+        this.defaultHeaders = { "User-Agent": (0, instrument_1.getUserAgent)(), Accept: "application/json", ...headers };
+        this.logger.debug("initialized");
+      }
+      /**
+       * Generic method for calling a Web API method
+       * @param method - the Web API method to call {@link https://docs.slack.dev/reference/methods}
+       * @param options - arguments for the Web API method
+       */
+      async apiCall(method, options = {}) {
+        this.logger.debug(`apiCall('${method}') start`);
+        warnDeprecations(method, this.logger);
+        warnIfFallbackIsMissing(method, this.logger, options);
+        warnIfThreadTsIsNotString(method, this.logger, options);
+        if (typeof options === "string" || typeof options === "number" || typeof options === "boolean") {
+          throw new TypeError(`Expected an options argument but instead received a ${typeof options}`);
+        }
+        if (method === "files.uploadV2")
+          return this.filesUploadV2(options);
+        const headers = {};
+        if (options.token)
+          headers.Authorization = `Bearer ${options.token}`;
+        const url = this.deriveRequestUrl(method);
+        const response = await this.makeRequest(url, {
+          team_id: this.teamId,
+          ...options
+        }, headers);
+        const result = await this.buildResult(response);
+        this.logger.debug(`http request result: ${JSON.stringify(redact(result))}`);
+        if (result.response_metadata !== void 0 && result.response_metadata.warnings !== void 0) {
+          result.response_metadata.warnings.forEach(this.logger.warn.bind(this.logger));
+        }
+        if (result.response_metadata !== void 0 && result.response_metadata.messages !== void 0) {
+          for (const msg of result.response_metadata.messages) {
+            const errReg = /\[ERROR\](.*)/;
+            const warnReg = /\[WARN\](.*)/;
+            if (errReg.test(msg)) {
+              const errMatch = msg.match(errReg);
+              if (errMatch != null) {
+                this.logger.error(errMatch[1].trim());
+              }
+            } else if (warnReg.test(msg)) {
+              const warnMatch = msg.match(warnReg);
+              if (warnMatch != null) {
+                this.logger.warn(warnMatch[1].trim());
+              }
+            }
+          }
+        }
+        if (!result.ok && response.headers.get("content-type") !== "application/gzip") {
+          throw new errors_1.WebAPIPlatformError(result);
+        }
+        if ("ok" in result && result.ok === false) {
+          throw new errors_1.WebAPIPlatformError(result);
+        }
+        this.logger.debug(`apiCall('${method}') end`);
+        return result;
+      }
+      paginate(method, options, shouldStop, reduce) {
+        const pageSize = (() => {
+          if (options !== void 0 && typeof options.limit === "number") {
+            const { limit } = options;
+            options.limit = void 0;
+            return limit;
+          }
+          return defaultPageSize;
+        })();
+        async function* generatePages() {
+          let result;
+          let paginationOptions = {
+            limit: pageSize
+          };
+          if (options !== void 0 && options.cursor !== void 0) {
+            paginationOptions.cursor = options.cursor;
+          }
+          while (result === void 0 || paginationOptions !== void 0) {
+            result = await this.apiCall(method, Object.assign(options !== void 0 ? options : {}, paginationOptions));
+            yield result;
+            paginationOptions = paginationOptionsForNextPage(result, pageSize);
+          }
+        }
+        if (shouldStop === void 0) {
+          return generatePages.call(this);
+        }
+        const pageReducer = reduce !== void 0 ? reduce : noopPageReducer;
+        let index = 0;
+        return (async () => {
+          const pageIterator = generatePages.call(this);
+          const firstIteratorResult = await pageIterator.next(void 0);
+          const firstPage = firstIteratorResult.value;
+          let accumulator = pageReducer(void 0, firstPage, index);
+          index += 1;
+          if (shouldStop(firstPage)) {
+            return accumulator;
+          }
+          for await (const page of pageIterator) {
+            accumulator = pageReducer(accumulator, page, index);
+            if (shouldStop(page)) {
+              return accumulator;
+            }
+            index += 1;
+          }
+          return accumulator;
+        })();
+      }
+      /**
+       * Stream markdown text into a conversation.
+       *
+       * @description The "chatStream" method starts a new chat stream in a conversation that can be appended to. After appending an entire message, the stream can be stopped with concluding arguments such as "blocks" for gathering feedback.
+       *
+       * The "markdown_text" content is appended to a buffer before being sent to the recipient, with a default buffer size of "256" characters. Setting the "buffer_size" value to a smaller number sends more frequent updates for the same amount of characters, but might reach rate limits more often.
+       *
+       * @example
+       * const streamer = client.chatStream({
+       *   channel: "C0123456789",
+       *   thread_ts: "1700000001.123456",
+       *   recipient_team_id: "T0123456789",
+       *   recipient_user_id: "U0123456789",
+       * });
+       * await streamer.append({
+       *   markdown_text: "**hello wo",
+       * });
+       * await streamer.append({
+       *   markdown_text: "rld!**",
+       * });
+       * await streamer.stop();
+       *
+       * @see {@link https://docs.slack.dev/reference/methods/chat.startStream}
+       * @see {@link https://docs.slack.dev/reference/methods/chat.appendStream}
+       * @see {@link https://docs.slack.dev/reference/methods/chat.stopStream}
+       */
+      chatStream(params) {
+        const { buffer_size, ...args } = params;
+        const options = {
+          buffer_size
+        };
+        return new chat_stream_1.ChatStreamer(this, this.logger, args, options);
+      }
+      /**
+       * This wrapper method provides an easy way to upload files using the following endpoints:
+       *
+       * **#1**: For each file submitted with this method, submit filenames
+       * and file metadata to {@link https://docs.slack.dev/reference/methods/files.getuploadurlexternal files.getUploadURLExternal} to request a URL to
+       * which to send the file data to and an id for the file
+       *
+       * **#2**: for each returned file `upload_url`, upload corresponding file to
+       * URLs returned from step 1 (e.g. https://files.slack.com/upload/v1/...\")
+       *
+       * **#3**: Complete uploads {@link https://docs.slack.dev/reference/methods/files.completeuploadexternal files.completeUploadExternal}
+       * @param options
+       */
+      async filesUploadV2(options) {
+        this.logger.debug("files.uploadV2() start");
+        const fileUploads = await this.getAllFileUploads(options);
+        const fileUploadsURLRes = await this.fetchAllUploadURLExternal(fileUploads);
+        fileUploadsURLRes.forEach((res, idx) => {
+          fileUploads[idx].upload_url = res.upload_url;
+          fileUploads[idx].file_id = res.file_id;
+        });
+        await this.postFileUploadsToExternalURL(fileUploads, options);
+        const completion = await this.completeFileUploads(fileUploads);
+        return { ok: true, files: completion };
+      }
+      /**
+       * For each file submitted with this method, submits filenames
+       * and file metadata to files.getUploadURLExternal to request a URL to
+       * which to send the file data to and an id for the file
+       * @param fileUploads
+       */
+      async fetchAllUploadURLExternal(fileUploads) {
+        return Promise.all(fileUploads.map((upload) => {
+          const options = {
+            filename: upload.filename,
+            length: upload.length,
+            alt_text: upload.alt_text,
+            snippet_type: upload.snippet_type
+          };
+          if ("token" in upload) {
+            options.token = upload.token;
+          }
+          return this.files.getUploadURLExternal(options);
+        }));
+      }
+      /**
+       * Complete uploads.
+       * @param fileUploads
+       * @returns
+       */
+      async completeFileUploads(fileUploads) {
+        const toComplete = Object.values((0, file_upload_1.getAllFileUploadsToComplete)(fileUploads));
+        return Promise.all(toComplete.map((job) => this.files.completeUploadExternal(job)));
+      }
+      /**
+       * for each returned file upload URL, upload corresponding file
+       * @param fileUploads
+       * @returns
+       */
+      async postFileUploadsToExternalURL(fileUploads, options) {
+        return Promise.all(fileUploads.map(async (upload) => {
+          const { upload_url, file_id, filename, data } = upload;
+          const body = data;
+          if (upload_url) {
+            const headers = {};
+            if (options.token)
+              headers.Authorization = `Bearer ${options.token}`;
+            const uploadRes = await this.makeRequest(upload_url, {
+              body
+            }, headers);
+            if (uploadRes.status !== 200) {
+              return Promise.reject(Error(`Failed to upload file (id:${file_id}, filename: ${filename})`));
+            }
+            const responseBody = await uploadRes.text();
+            const returnData = { ok: true, body: responseBody };
+            return Promise.resolve(returnData);
+          }
+          return Promise.reject(Error(`No upload url found for file (id: ${file_id}, filename: ${filename}`));
+        }));
+      }
+      /**
+       * @param options All file uploads arguments
+       * @returns An array of file upload entries
+       */
+      async getAllFileUploads(options) {
+        let fileUploads = [];
+        if ("file" in options || "content" in options) {
+          fileUploads.push(await (0, file_upload_1.getFileUploadJob)(options, this.logger));
+        }
+        if ("file_uploads" in options) {
+          fileUploads = fileUploads.concat(await (0, file_upload_1.getMultipleFileUploadJobs)(options, this.logger));
+        }
+        return fileUploads;
+      }
+      /**
+       * Low-level function to make a single API request. handles queuing, retries, and http-level errors
+       */
+      async makeRequest(url, body, headers = {}) {
+        const task = () => this.requestQueue.add(async () => {
+          if (url.endsWith("/apps.event.authorizations.list")) {
+            body.token = void 0;
+          }
+          this.logger.debug(`http request url: ${url}`);
+          this.logger.debug(`http request body: ${JSON.stringify(redact(body))}`);
+          const { serializedBody, contentHeaders } = this.serializeBody(body);
+          const allHeaders = { ...this.defaultHeaders, ...contentHeaders, ...headers };
+          this.logger.debug(`http request headers: ${JSON.stringify(redact(allHeaders))}`);
+          const signal = this.timeout > 0 ? AbortSignal.timeout(this.timeout) : void 0;
+          try {
+            const response = await this.fetchFn(url, {
+              method: "POST",
+              headers: allHeaders,
+              body: serializedBody,
+              redirect: "error",
+              signal
+            });
+            this.logger.debug("http response received");
+            if (response.status === 429) {
+              const retrySec = parseRetryHeaders(response);
+              if (retrySec !== void 0) {
+                this.emit(WebClientEvent.RATE_LIMITED, retrySec, { url, body });
+                if (this.rejectRateLimitedCalls) {
+                  throw new p_retry_1.AbortError(new errors_1.WebAPIRateLimitedError(retrySec));
+                }
+                this.logger.info(`API Call failed due to rate limiting. Will retry in ${retrySec} seconds.`);
+                this.requestQueue.pause();
+                await (0, helpers_1.default)(retrySec * 1e3);
+                this.requestQueue.start();
+                throw new Error(`A rate limit was exceeded (url: ${url}, retry-after: ${retrySec})`);
+              }
+              throw new p_retry_1.AbortError(new Error(`Retry header did not contain a valid timeout (url: ${url}, retry-after header: ${response.headers.get("retry-after")})`));
+            }
+            if (response.status !== 200) {
+              const responseBody = await response.text();
+              throw new errors_1.WebAPIHTTPError(response.status, response.statusText, Object.fromEntries(response.headers.entries()), responseBody);
+            }
+            return response;
+          } catch (error2) {
+            if (error2 instanceof p_retry_1.AbortError) {
+              throw error2;
+            }
+            if (error2 instanceof errors_1.SlackError) {
+              throw error2;
+            }
+            const message = error2 instanceof Error ? error2.message : String(error2);
+            this.logger.warn("http request failed", message);
+            throw new errors_1.WebAPIRequestError(error2 instanceof Error ? error2 : new Error(String(error2)));
+          }
+        });
+        return (0, p_retry_1.default)(task, this.retryConfig);
+      }
+      /**
+       * Get the complete request URL for the provided URL.
+       * @param url - The resource to POST to. Either a Slack API method or absolute URL.
+       */
+      deriveRequestUrl(url) {
+        const isAbsoluteURL = url.startsWith("https://") || url.startsWith("http://");
+        if (isAbsoluteURL && this.allowAbsoluteUrls) {
+          return url;
+        }
+        return `${this.slackApiUrl}${url}`;
+      }
+      /**
+       * Transforms a key-value object into a serialized body suitable for fetch.
+       * Flattens complex objects into JSON-encoded strings, detects binary content,
+       * and returns either a FormData (for binary uploads) or a URL-encoded string,
+       * along with any content-type headers that should be set.
+       */
+      serializeBody(data) {
+        let containsBinaryData = false;
+        const flattened = Object.entries(data).map(([key, value]) => {
+          if (value === void 0 || value === null) {
+            return [];
+          }
+          let serializedValue = value;
+          if (Buffer.isBuffer(value)) {
+            containsBinaryData = true;
+          } else if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") {
+            serializedValue = JSON.stringify(value);
+          }
+          return [key, serializedValue];
+        });
+        if (containsBinaryData) {
+          this.logger.debug("Request arguments contain binary data");
+          const form = new FormData();
+          for (const [key, value] of flattened) {
+            if (key === void 0 || value === void 0)
+              continue;
+            if (Buffer.isBuffer(value)) {
+              const streamOrBuffer = value;
+              let filename = defaultFilename;
+              if (typeof streamOrBuffer.name === "string") {
+                filename = (0, node_path_1.basename)(streamOrBuffer.name);
+              } else if (typeof streamOrBuffer.path === "string") {
+                filename = (0, node_path_1.basename)(streamOrBuffer.path);
+              }
+              form.append(key, new Blob([new Uint8Array(value)]), filename);
+            } else {
+              form.append(key, String(value));
+            }
+          }
+          return { serializedBody: form, contentHeaders: {} };
+        }
+        const initialValue = {};
+        const encoded = (0, node_querystring_1.stringify)(flattened.reduce((accumulator, [key, value]) => {
+          if (key !== void 0 && value !== void 0) {
+            accumulator[key] = value;
+          }
+          return accumulator;
+        }, initialValue));
+        return {
+          serializedBody: encoded,
+          contentHeaders: { "Content-Type": "application/x-www-form-urlencoded" }
+        };
+      }
+      /**
+       * Processes an HTTP response into a WebAPICallResult by performing JSON parsing on the body and merging relevant
+       * HTTP headers into the object.
+       * @param response - an http response
+       */
+      async buildResult(response) {
+        const contentType = response.headers.get("content-type");
+        const isGzipResponse = contentType === "application/gzip";
+        let data;
+        if (isGzipResponse) {
+          try {
+            const buffer = Buffer.from(await response.arrayBuffer());
+            const unzippedData = await new Promise((resolve, reject) => {
+              node_zlib_1.default.unzip(buffer, (err, buf) => {
+                if (err) {
+                  return reject(err);
+                }
+                return resolve(buf.toString().split("\n"));
+              });
+            });
+            const fileData = [];
+            if (Array.isArray(unzippedData)) {
+              for (const dataset of unzippedData) {
+                if (dataset && dataset.length > 0) {
+                  fileData.push(JSON.parse(dataset));
+                }
+              }
+            }
+            data = { file_data: fileData };
+          } catch (err) {
+            data = { ok: false, error: err };
+          }
+        } else if (!isGzipResponse && response.url.endsWith("/admin.analytics.getFile")) {
+          const buffer = await response.arrayBuffer();
+          data = JSON.parse(new node_util_1.TextDecoder().decode(buffer));
+        } else {
+          const text = await response.text();
+          try {
+            data = JSON.parse(text);
+          } catch (_) {
+            data = { ok: false, error: text };
+          }
+        }
+        if (data.response_metadata === void 0) {
+          data.response_metadata = {};
+        }
+        const oauthScopes = response.headers.get("x-oauth-scopes");
+        if (oauthScopes !== null) {
+          data.response_metadata.scopes = oauthScopes.trim().split(/\s*,\s*/);
+        }
+        const acceptedOauthScopes = response.headers.get("x-accepted-oauth-scopes");
+        if (acceptedOauthScopes !== null) {
+          data.response_metadata.acceptedScopes = acceptedOauthScopes.trim().split(/\s*,\s*/);
+        }
+        const retrySec = parseRetryHeaders(response);
+        if (retrySec !== void 0) {
+          data.response_metadata.retryAfter = retrySec;
+        }
+        return data;
+      }
+    };
+    exports2.WebClient = WebClient2;
+    exports2.default = WebClient2;
+    function paginationOptionsForNextPage(previousResult, pageSize) {
+      if (previousResult !== void 0 && previousResult.response_metadata !== void 0 && previousResult.response_metadata.next_cursor !== void 0 && previousResult.response_metadata.next_cursor !== "") {
+        return {
+          limit: pageSize,
+          cursor: previousResult.response_metadata.next_cursor
+        };
+      }
+      return void 0;
+    }
+    function parseRetryHeaders(response) {
+      const retryAfterHeader = response.headers.get("retry-after");
+      if (retryAfterHeader !== null) {
+        const retryAfter = Number.parseInt(retryAfterHeader, 10);
+        if (!Number.isNaN(retryAfter)) {
+          return retryAfter;
+        }
+      }
+      return void 0;
+    }
+    function warnDeprecations(method, logger) {
+      const deprecatedMethods = ["oauth.access"];
+      const isDeprecated = deprecatedMethods.some((depMethod) => {
+        const re = new RegExp(`^${depMethod}`);
+        return re.test(method);
+      });
+      if (isDeprecated) {
+        logger.warn(`${method} is deprecated. Please check on https://docs.slack.dev/reference/methods for an alternative.`);
+      }
+    }
+    function warnIfFallbackIsMissing(method, logger, options) {
+      const targetMethods = ["chat.postEphemeral", "chat.postMessage", "chat.scheduleMessage"];
+      const isTargetMethod = targetMethods.includes(method);
+      const hasAttachments = (args) => Array.isArray(args.attachments) && args.attachments.length;
+      const missingAttachmentFallbackDetected = (args) => Array.isArray(args.attachments) && args.attachments.some((attachment) => !attachment.fallback || attachment.fallback.trim() === "");
+      const isEmptyText = (args) => (args.text === void 0 || args.text === null || args.text === "") && (args.markdown_text === void 0 || args.markdown === null || args.markdown_text === "");
+      const buildMissingTextWarning = () => `The top-level \`text\` argument is missing in the request payload for a ${method} call - It's a best practice to always provide a \`text\` argument when posting a message. The \`text\` is used in places where the content cannot be rendered such as: system push notifications, assistive technology such as screen readers, etc.`;
+      const buildMissingFallbackWarning = () => `Additionally, the attachment-level \`fallback\` argument is missing in the request payload for a ${method} call - To avoid this warning, it is recommended to always provide a top-level \`text\` argument when posting a message. Alternatively, you can provide an attachment-level \`fallback\` argument, though this is now considered a legacy field (see https://docs.slack.dev/legacy/legacy-messaging/legacy-secondary-message-attachments for more details).`;
+      if (isTargetMethod && typeof options === "object") {
+        if (hasAttachments(options)) {
+          if (missingAttachmentFallbackDetected(options) && isEmptyText(options)) {
+            logger.warn(buildMissingTextWarning());
+            logger.warn(buildMissingFallbackWarning());
+          }
+        } else if (isEmptyText(options)) {
+          logger.warn(buildMissingTextWarning());
+        }
+      }
+    }
+    function warnIfThreadTsIsNotString(method, logger, options) {
+      const targetMethods = ["chat.postEphemeral", "chat.postMessage", "chat.scheduleMessage"];
+      const isTargetMethod = targetMethods.includes(method);
+      if (isTargetMethod && options?.thread_ts !== void 0 && typeof options?.thread_ts !== "string") {
+        logger.warn(buildThreadTsWarningMessage(method));
+      }
+    }
+    function buildThreadTsWarningMessage(method) {
+      return `The given thread_ts value in the request payload for a ${method} call is a float value. We highly recommend using a string value instead.`;
+    }
+    function redact(body) {
+      const flattened = Object.entries(body).map(([key, value]) => {
+        if (value === void 0 || value === null) {
+          return [];
+        }
+        let serializedValue = value;
+        if (key.match(/.*token.*/) !== null || key.match(/[Aa]uthorization/)) {
+          serializedValue = "[[REDACTED]]";
+        }
+        if (Buffer.isBuffer(value)) {
+          serializedValue = "[[BINARY VALUE OMITTED]]";
+        } else if (typeof value === "object") {
+          serializedValue = redact(value);
+        }
+        return [key, serializedValue];
+      });
+      const initialValue = {};
+      return flattened.reduce((accumulator, [key, value]) => {
+        if (key !== void 0 && value !== void 0) {
+          accumulator[key] = value;
+        }
+        return accumulator;
+      }, initialValue);
+    }
+  }
+});
+
+// node_modules/@slack/web-api/dist/index.js
+var require_dist4 = __commonJS({
+  "node_modules/@slack/web-api/dist/index.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __exportStar = exports2 && exports2.__exportStar || function(m, exports3) {
+      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports3, p)) __createBinding(exports3, m, p);
+    };
+    var __importDefault = exports2 && exports2.__importDefault || function(mod) {
+      return mod && mod.__esModule ? mod : { "default": mod };
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.WebClientEvent = exports2.WebClient = exports2.ChatStreamer = exports2.retryPolicies = exports2.LogLevel = exports2.addAppMetadata = exports2.WebAPIRequestError = exports2.WebAPIRateLimitedError = exports2.WebAPIPlatformError = exports2.WebAPIHTTPError = exports2.WebAPIFileUploadReadFileDataError = exports2.WebAPIFileUploadInvalidArgumentsError = exports2.SlackError = exports2.ErrorCode = void 0;
+    var errors_1 = require_errors2();
+    Object.defineProperty(exports2, "ErrorCode", { enumerable: true, get: function() {
+      return errors_1.ErrorCode;
+    } });
+    Object.defineProperty(exports2, "SlackError", { enumerable: true, get: function() {
+      return errors_1.SlackError;
+    } });
+    Object.defineProperty(exports2, "WebAPIFileUploadInvalidArgumentsError", { enumerable: true, get: function() {
+      return errors_1.WebAPIFileUploadInvalidArgumentsError;
+    } });
+    Object.defineProperty(exports2, "WebAPIFileUploadReadFileDataError", { enumerable: true, get: function() {
+      return errors_1.WebAPIFileUploadReadFileDataError;
+    } });
+    Object.defineProperty(exports2, "WebAPIHTTPError", { enumerable: true, get: function() {
+      return errors_1.WebAPIHTTPError;
+    } });
+    Object.defineProperty(exports2, "WebAPIPlatformError", { enumerable: true, get: function() {
+      return errors_1.WebAPIPlatformError;
+    } });
+    Object.defineProperty(exports2, "WebAPIRateLimitedError", { enumerable: true, get: function() {
+      return errors_1.WebAPIRateLimitedError;
+    } });
+    Object.defineProperty(exports2, "WebAPIRequestError", { enumerable: true, get: function() {
+      return errors_1.WebAPIRequestError;
+    } });
+    var instrument_1 = require_instrument();
+    Object.defineProperty(exports2, "addAppMetadata", { enumerable: true, get: function() {
+      return instrument_1.addAppMetadata;
+    } });
+    var logger_1 = require_logger();
+    Object.defineProperty(exports2, "LogLevel", { enumerable: true, get: function() {
+      return logger_1.LogLevel;
+    } });
+    var retry_policies_1 = require_retry_policies();
+    Object.defineProperty(exports2, "retryPolicies", { enumerable: true, get: function() {
+      return __importDefault(retry_policies_1).default;
+    } });
+    __exportStar(require_request3(), exports2);
+    __exportStar(require_response2(), exports2);
+    var chat_stream_1 = require_chat_stream();
+    Object.defineProperty(exports2, "ChatStreamer", { enumerable: true, get: function() {
+      return chat_stream_1.ChatStreamer;
+    } });
+    var WebClient_1 = require_WebClient();
+    Object.defineProperty(exports2, "WebClient", { enumerable: true, get: function() {
+      return WebClient_1.WebClient;
+    } });
+    Object.defineProperty(exports2, "WebClientEvent", { enumerable: true, get: function() {
+      return WebClient_1.WebClientEvent;
+    } });
+    __exportStar(require_methods(), exports2);
+  }
+});
+
 // node_modules/fast-content-type-parse/index.js
 var require_fast_content_type_parse = __commonJS({
   "node_modules/fast-content-type-parse/index.js"(exports2, module2) {
@@ -22471,7 +27196,7 @@ var require_names = __commonJS({
 });
 
 // node_modules/ajv/dist/compile/errors.js
-var require_errors2 = __commonJS({
+var require_errors3 = __commonJS({
   "node_modules/ajv/dist/compile/errors.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
@@ -22598,7 +27323,7 @@ var require_boolSchema = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.boolOrEmptySchema = exports2.topBoolOrEmptySchema = void 0;
-    var errors_1 = require_errors2();
+    var errors_1 = require_errors3();
     var codegen_1 = require_codegen();
     var names_1 = require_names();
     var boolError = {
@@ -22705,7 +27430,7 @@ var require_dataType = __commonJS({
     exports2.reportTypeError = exports2.checkDataTypes = exports2.checkDataType = exports2.coerceAndCheckDataType = exports2.getJSONTypes = exports2.getSchemaTypes = exports2.DataType = void 0;
     var rules_1 = require_rules();
     var applicability_1 = require_applicability();
-    var errors_1 = require_errors2();
+    var errors_1 = require_errors3();
     var codegen_1 = require_codegen();
     var util_1 = require_util9();
     var DataType;
@@ -23060,7 +27785,7 @@ var require_keyword = __commonJS({
     var codegen_1 = require_codegen();
     var names_1 = require_names();
     var code_1 = require_code2();
-    var errors_1 = require_errors2();
+    var errors_1 = require_errors3();
     function macroKeywordCode(cxt, def) {
       const { gen, keyword, schema, parentSchema, it } = cxt;
       const macroSchema = def.macro.call(it.self, schema, parentSchema, it);
@@ -23548,7 +28273,7 @@ var require_validate = __commonJS({
     var names_1 = require_names();
     var resolve_1 = require_resolve();
     var util_1 = require_util9();
-    var errors_1 = require_errors2();
+    var errors_1 = require_errors3();
     function validateFunctionCode(it) {
       if (isSchemaObj(it)) {
         checkKeywords(it);
@@ -31764,7 +36489,7 @@ var require_Document = __commonJS({
 });
 
 // node_modules/yaml/dist/errors.js
-var require_errors3 = __commonJS({
+var require_errors4 = __commonJS({
   "node_modules/yaml/dist/errors.js"(exports2) {
     "use strict";
     var YAMLError = class extends Error {
@@ -33170,7 +37895,7 @@ var require_composer = __commonJS({
     var node_process = require("process");
     var directives = require_directives();
     var Document = require_Document();
-    var errors = require_errors3();
+    var errors = require_errors4();
     var identity = require_identity();
     var composeDoc = require_compose_doc();
     var resolveEnd = require_resolve_end();
@@ -33377,7 +38102,7 @@ var require_cst_scalar = __commonJS({
     "use strict";
     var resolveBlockScalar = require_resolve_block_scalar();
     var resolveFlowScalar = require_resolve_flow_scalar();
-    var errors = require_errors3();
+    var errors = require_errors4();
     var stringifyString = require_stringifyString();
     function resolveAsScalar(token, strict = true, onError) {
       if (token) {
@@ -35281,7 +40006,7 @@ var require_public_api = __commonJS({
     "use strict";
     var composer = require_composer();
     var Document = require_Document();
-    var errors = require_errors3();
+    var errors = require_errors4();
     var log = require_log();
     var identity = require_identity();
     var lineCounter = require_line_counter();
@@ -35373,13 +40098,13 @@ var require_public_api = __commonJS({
 });
 
 // node_modules/yaml/dist/index.js
-var require_dist = __commonJS({
+var require_dist5 = __commonJS({
   "node_modules/yaml/dist/index.js"(exports2) {
     "use strict";
     var composer = require_composer();
     var Document = require_Document();
     var Schema = require_Schema();
-    var errors = require_errors3();
+    var errors = require_errors4();
     var Alias = require_Alias();
     var identity = require_identity();
     var Pair = require_Pair();
@@ -35495,36 +40220,8 @@ function escapeProperty(s) {
   return toCommandValue(s).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A").replace(/:/g, "%3A").replace(/,/g, "%2C");
 }
 
-// node_modules/@actions/core/lib/file-command.js
-var crypto = __toESM(require("crypto"), 1);
-var fs = __toESM(require("fs"), 1);
-var os2 = __toESM(require("os"), 1);
-function issueFileCommand(command, message) {
-  const filePath = process.env[`GITHUB_${command}`];
-  if (!filePath) {
-    throw new Error(`Unable to find environment variable for file command ${command}`);
-  }
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Missing file at path: ${filePath}`);
-  }
-  fs.appendFileSync(filePath, `${toCommandValue(message)}${os2.EOL}`, {
-    encoding: "utf8"
-  });
-}
-function prepareKeyValueMessage(key, value) {
-  const delimiter = `ghadelimiter_${crypto.randomUUID()}`;
-  const convertedValue = toCommandValue(value);
-  if (key.includes(delimiter)) {
-    throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
-  }
-  if (convertedValue.includes(delimiter)) {
-    throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
-  }
-  return `${key}<<${delimiter}${os2.EOL}${convertedValue}${os2.EOL}${delimiter}`;
-}
-
 // node_modules/@actions/core/lib/core.js
-var os4 = __toESM(require("os"), 1);
+var os3 = __toESM(require("os"), 1);
 
 // node_modules/@actions/http-client/lib/index.js
 var tunnel = __toESM(require_tunnel2(), 1);
@@ -35869,10 +40566,10 @@ var _summary = new Summary();
 var import_os2 = __toESM(require("os"), 1);
 
 // node_modules/@actions/io/lib/io-util.js
-var fs2 = __toESM(require("fs"), 1);
-var { chmod, copyFile, lstat, mkdir, open, readdir, rename, rm, rmdir, stat, symlink, unlink } = fs2.promises;
+var fs = __toESM(require("fs"), 1);
+var { chmod, copyFile, lstat, mkdir, open, readdir, rename, rm, rmdir, stat, symlink, unlink } = fs.promises;
 var IS_WINDOWS = process.platform === "win32";
-var READONLY = fs2.constants.O_RDONLY;
+var READONLY = fs.constants.O_RDONLY;
 
 // node_modules/@actions/exec/lib/toolrunner.js
 var IS_WINDOWS2 = process.platform === "win32";
@@ -35897,14 +40594,6 @@ function getInput(name, options) {
   }
   return val.trim();
 }
-function setOutput(name, value) {
-  const filePath = process.env["GITHUB_OUTPUT"] || "";
-  if (filePath) {
-    return issueFileCommand("OUTPUT", prepareKeyValueMessage(name, value));
-  }
-  process.stdout.write(os4.EOL);
-  issueCommand("set-output", { name }, toCommandValue(value));
-}
 function setFailed(message) {
   process.exitCode = ExitCode.Failure;
   error(message);
@@ -35916,7 +40605,7 @@ function warning(message, properties = {}) {
   issueCommand("warning", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 function info(message) {
-  process.stdout.write(message + os4.EOL);
+  process.stdout.write(message + os3.EOL);
 }
 
 // node_modules/@octokit/plugin-throttling/dist-bundle/index.js
@@ -36148,6 +40837,9 @@ function throttling(octokit, octokitOptions) {
 }
 throttling.VERSION = VERSION;
 throttling.triggersNotification = triggersNotification;
+
+// index.ts
+var import_web_api = __toESM(require_dist4(), 1);
 
 // node_modules/universal-user-agent/index.js
 function getUserAgent() {
@@ -46143,6 +50835,9 @@ var getOctokitThrottleConfig = () => {
   return throttle;
 };
 
+// notifications.ts
+var fs2 = __toESM(require("node:fs"), 1);
+
 // github-issues.ts
 var sendIssueComment = async (issue2, body, octokit) => {
   try {
@@ -46201,108 +50896,35 @@ var removeIssueComment = async (issue2, subtext, octokit) => {
   }
 };
 
-// outputs.ts
-var outputBool = (value) => value ? "True" : "False";
-var getGithubRepository = () => {
-  return `${context2.repo.owner}/${context2.repo.repo}`;
-};
-var toTextList = (object) => {
-  return Object.entries(object).map(([key, value]) => `- ${key}: ${value} `).join("\n");
-};
-var createMarkdown = (scannerNotifications) => {
-  const scannerReport = getScannerReport(scannerNotifications);
-  return `## ${scannerReport.header}
-### Results
-${scannerReport.resultsList}  
-
-${scannerReport.scannerTypeName} Report can be found [here](${scannerReport.resultsUrl})
-### Allowlist
-Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
-See the [${scannerReport.scannerTypeName} documentation](${scannerReport.allowListDocumentationUrl}) on how to use allowlist.
-<!-- gha-security:${scannerNotifications.scannerType} -->`;
-};
-var getScannerReport = (scannerNotifications) => {
-  const scannerType = scannerNotifications.scannerType;
-  const scannerTypeName = scannerType === "dockerscan" ? "Docker Scan" : "Code Scan";
-  const githubRef = context2.ref;
-  const githubRepository = getGithubRepository();
-  const notificationOverviewList = toTextList(scannerNotifications.overview);
-  const githubCodeScanningReportUrl = `https://github.com/${githubRepository}/security/code-scanning?query=is:open+ref:${githubRef}+tool:${scannerNotifications.toolName}`;
-  const allowlistReadme = scannerType === "dockerscan" ? "README-docker-scan.md#allowlisting-vulnerabilities" : "README-code-scan.md#allowlists";
-  return {
-    header: `${scannerTypeName} - Alert(s) found with threshold matching severity ${scannerNotifications.severityThreshold}`,
-    resultsList: notificationOverviewList,
-    resultsUrl: githubCodeScanningReportUrl,
-    allowListDocumentationUrl: `https://github.com/entur/gha-security/blob/main/${allowlistReadme}`,
-    scannerTypeName
-  };
-};
-var createSlackBlock = (scannerNotifications) => {
-  const scannerReport = getScannerReport(scannerNotifications);
-  const githubRepository = getGithubRepository();
-  const blocks = [
-    {
-      type: "header",
-      text: {
-        type: "plain_text",
-        text: `${scannerReport.header} on ${githubRepository}`
-      }
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Results*
-${scannerReport.resultsList}  
-${scannerReport.scannerTypeName} Report can be found <${scannerReport.resultsUrl}|here>`
-      }
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Allowlist*
-Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. 
-See the <${scannerReport.allowListDocumentationUrl}|${scannerReport.scannerTypeName} documentation> on how to use allowlist.`
-      }
-    }
-  ];
-  return JSON.stringify(blocks, null, " ");
-};
-var setNotificationOutputs = (scannerNotifications) => {
-  setOutput("notification_severity_alert_found", outputBool(scannerNotifications.alertsFound));
-  setOutput("notification_severity_overview", scannerNotifications.overview);
-  setOutput("notification_severity_threshold", scannerNotifications.severityThreshold);
-  setOutput("notification_severity_filter", scannerNotifications.severityFilter.join(","));
-  setOutput("notification_slack_channel_id", scannerNotifications.config.outputs?.slack?.channelId ?? "");
-  setOutput("notification_slack_enabled", outputBool(scannerNotifications.config.outputs?.slack?.enabled ?? false));
-  setOutput("notification_slack_block", createSlackBlock(scannerNotifications));
-  setOutput("notification_markdown", createMarkdown(scannerNotifications));
-};
-
-// notifications.ts
-var ScannerNotifications = class {
-  severityThreshold;
+// scanner-report.ts
+var ScannerReport = class {
   octokit;
-  scannerType;
-  fetchedNotificationAlerts;
-  notificationAlerts;
-  severityList;
-  toolName;
-  config;
-  constructor(octokit, scannerType, config) {
-    this.fetchedNotificationAlerts = false;
-    this.notificationAlerts = [];
-    this.scannerType = scannerType;
+  scanner;
+  codeScanningAlerts;
+  fetchedAlerts;
+  severityLevels;
+  notificationsConfig;
+  constructor(octokit, scanner, config) {
     this.octokit = octokit;
-    this.severityList = ["low", "medium", "high", "critical"];
-    this.toolName = this.scannerType === "dockerscan" ? "grype" : "codeql";
-    this.config = config;
-    this.severityThreshold = config.severityThreshold;
+    this.severityLevels = ["low", "medium", "high", "critical"];
+    this.codeScanningAlerts = [];
+    this.fetchedAlerts = false;
+    this.scanner = scanner;
+    this.notificationsConfig = config;
   }
-  get severityFilter() {
-    const severityIndex = this.severityList.indexOf(this.severityThreshold);
-    return this.severityList.slice(severityIndex);
+  get allowListDocumentationUrl() {
+    const fileNameWithSectionEnd = this.scanner.name === "dockerscan" ? "README-docker-scan.md#allowlisting-vulnerabilities" : "README-code-scan.md#allowlists";
+    return `https://github.com/entur/gha-security/blob/main/${fileNameWithSectionEnd}`;
+  }
+  get header() {
+    return `${this.scanner.name} - Alert(s) found with threshold matching severity ${this.notificationsConfig.severityThreshold}`;
+  }
+  get overviewAsList() {
+    return Object.entries(this.overview).map(([key, value]) => `- ${key}: ${value} `).join("\n");
+  }
+  get codeScanningResultUrl() {
+    const githubRepository = `${context2.repo.owner}/${context2.repo.repo}`;
+    return `https://github.com/${githubRepository}/security/code-scanning?query=is:open+ref:${context2.ref}+tool:${this.scanner.tool}`;
   }
   get overview() {
     const overview = {
@@ -46311,54 +50933,144 @@ var ScannerNotifications = class {
       medium: 0,
       low: 0
     };
-    const alertsWithSecurityLevel = this.notificationAlerts.filter((it) => it.rule.security_severity_level !== null && it.rule.security_severity_level !== void 0).map((it) => it.rule.security_severity_level);
-    for (const severity of this.severityList) {
+    const alertsWithSecurityLevel = this.codeScanningAlerts.filter((it) => it.rule.security_severity_level !== null && it.rule.security_severity_level !== void 0).map((it) => it.rule.security_severity_level);
+    for (const severity of this.severityLevels) {
       overview[severity] = alertsWithSecurityLevel.filter((it) => it === severity).length;
     }
     return overview;
   }
-  get alertsFound() {
+  get severityFilter() {
+    const severityIndex = this.severityLevels.indexOf(this.notificationsConfig.severityThreshold);
+    return this.severityLevels.slice(severityIndex);
+  }
+  async fetchAlerts() {
+    this.codeScanningAlerts = await getAlerts(this.octokit, context2.ref, context2.repo, this.scanner.tool) ?? [];
+    this.fetchedAlerts = true;
+  }
+  async initialize() {
+    if (!this.fetchedAlerts) await this.fetchAlerts();
+  }
+  get hasAlertWithinThreshold() {
     return this.severityFilter.some((it) => this.overview[it] > 0);
   }
-  async fetchNotificationAlerts() {
-    const alerts = await getAlerts(this.octokit, context2.ref, context2.repo, this.toolName);
-    if (alerts) {
-      this.notificationAlerts = alerts;
-      return true;
+  get scannerComment() {
+    return `<!-- gha-security:${this.scanner.name} -->`;
+  }
+  get markdown() {
+    return `## ${this.header}
+### Results
+${this.overviewAsList}  
+
+${this.scanner.prettyName} Report can be found [here](${this.codeScanningResultUrl})
+### Allowlist
+Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
+See the [${this.scanner.prettyName} documentation](${this.allowListDocumentationUrl}) on how to use allowlist.
+${this.scannerComment}`;
+  }
+  get slackBlocks() {
+    const githubRepository = `${context2.repo.owner}/${context2.repo.repo}`;
+    const blocks = [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: `${this.header} on ${githubRepository}`
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*Results*
+	${this.overviewAsList}  
+	${this.scanner.name} Report can be found <${this.codeScanningResultUrl}|here>`
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*Allowlist*
+	Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. 
+	See the <${this.allowListDocumentationUrl}|${this.scanner.name} documentation> on how to use allowlist.`
+        }
+      }
+    ];
+    return blocks;
+  }
+};
+
+// notifications.ts
+var ScannerNotifications = class {
+  octokit;
+  config;
+  slackWebClient;
+  scannerReport;
+  constructor(octokit, scanner, config, slackWebClient) {
+    this.octokit = octokit;
+    this.config = config;
+    this.slackWebClient = slackWebClient;
+    this.scannerReport = new ScannerReport(octokit, scanner, config);
+  }
+  get slackEnabled() {
+    return this.config.outputs?.slack?.enabled ?? false;
+  }
+  get pullRequestEnabled() {
+    return this.config.outputs?.pullRequest?.enabled ?? true;
+  }
+  get slackChannelId() {
+    return this.config.outputs?.slack?.channelId ?? void 0;
+  }
+  get isPullRequest() {
+    return this.pullRequestEnabled && context2.eventName === "pull_request";
+  }
+  get pullRequestIssue() {
+    return { issue_number: context2.issue.number, owner: context2.issue.owner, repo: context2.issue.repo };
+  }
+  async sendSlackNotification() {
+    if (!this.slackWebClient || !this.slackChannelId) return;
+    await this.slackWebClient.chat.postMessage({
+      channel: this.slackChannelId,
+      blocks: this.scannerReport.slackBlocks
+    });
+  }
+  writeJobSummary() {
+    const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+    if (summaryFile) {
+      fs2.appendFileSync(summaryFile, this.scannerReport.markdown, "utf8");
     }
-    return false;
+  }
+  async handleNotifications() {
+    this.scannerReport.initialize();
+    if (this.scannerReport.hasAlertWithinThreshold) {
+      info("Writing to job summary");
+      this.writeJobSummary();
+      if (this.isPullRequest) {
+        await sendIssueComment(this.pullRequestIssue, this.scannerReport.markdown, this.octokit);
+      }
+      if (this.slackEnabled) {
+        await this.sendSlackNotification();
+      }
+    }
+    if (this.isPullRequest) {
+      await removeIssueComment(this.pullRequestIssue, this.scannerReport.scannerComment, this.octokit);
+    }
   }
 };
-var runNotifications = async (octokitAction, scannerType, scannerConfig) => {
-  const notifications = scannerConfig.spec?.notifications;
-  if (!notifications) {
-    throw Error("Notification is undefined, unexpected!");
-  }
-  const scannerNotifications = new ScannerNotifications(octokitAction, scannerType, notifications);
-  info("Fetching notification alerts");
-  const fetchedAlerts = await scannerNotifications.fetchNotificationAlerts();
-  if (!fetchedAlerts) return;
-  info("Setting notification outputs");
-  setNotificationOutputs(scannerNotifications);
-  info("Sending pull request notification");
-  await sendPullRequestNotification(scannerNotifications, octokitAction);
-};
-var sendPullRequestNotification = async (scannerNotifications, octokit) => {
-  const isPullRequestEnabled = scannerNotifications.config.outputs?.pullRequest?.enabled ?? true;
-  const skipNotification = !isPullRequestEnabled || context2.eventName !== "pull_request";
-  if (skipNotification) return;
-  const notificationOutput = createMarkdown(scannerNotifications);
-  const issue2 = { issue_number: context2.issue.number, owner: context2.issue.owner, repo: context2.issue.repo };
-  await removeIssueComment(issue2, `<!-- gha-security:${scannerNotifications.scannerType} -->`, octokit);
-  if (scannerNotifications.alertsFound) {
-    await sendIssueComment(issue2, notificationOutput, octokit);
-  }
+
+// scanner.ts
+var ScannerFromType = (type) => {
+  return {
+    name: type,
+    tool: type === "dockerscan" ? "grype" : "codeql",
+    prettyName: type === "dockerscan" ? "Docker Scan" : "Code Scan"
+  };
 };
 
 // scanner-config.ts
 var fs3 = __toESM(require("node:fs"), 1);
 var import_ajv = __toESM(require_ajv(), 1);
-var yaml = __toESM(require_dist(), 1);
+var yaml = __toESM(require_dist5(), 1);
 var parseYamlConfig = (config) => {
   try {
     return yaml.parse(config);
@@ -46629,15 +51341,20 @@ var getScannerConfig = async (scannerType, octokitExternal) => {
 // index.ts
 var main = async () => {
   try {
-    const TOKEN = getInput("token");
+    const GITHUB_TOKEN = getInput("gh_token");
     const SCANNER_TYPE = getInput("scanner");
-    const EXTERNAL_REPOSITORY_TOKEN = getInput("external-repository-token");
+    const SLACK_BOT_TOKEN = getInput("slack_bot_token");
+    const EXTERNAL_REPOSITORY_TOKEN = getInput("external_repository_token");
     const VALID_SCANNERS = ["dockerscan", "codescan"];
     const ThrottledOctokit = Octokit4.plugin(throttling);
     let octokitExternal;
+    let slackWebClient;
     if (!VALID_SCANNERS.includes(SCANNER_TYPE)) {
       setFailed(`Invalid scanner defined ${SCANNER_TYPE}`);
       return;
+    }
+    if (SLACK_BOT_TOKEN !== "") {
+      slackWebClient = new import_web_api.WebClient(SLACK_BOT_TOKEN);
     }
     if (EXTERNAL_REPOSITORY_TOKEN !== "") {
       octokitExternal = new ThrottledOctokit({
@@ -46646,12 +51363,18 @@ var main = async () => {
       });
     }
     const octokitAction = new ThrottledOctokit({
-      auth: TOKEN,
+      auth: GITHUB_TOKEN,
       throttle: getOctokitThrottleConfig()
     });
+    const scanner = ScannerFromType(SCANNER_TYPE);
     const config = await getScannerConfig(SCANNER_TYPE, octokitExternal);
     await runAllowlist(octokitAction, SCANNER_TYPE, config);
-    await runNotifications(octokitAction, SCANNER_TYPE, config);
+    if (config.spec?.notifications) {
+      const scannerNotifications = new ScannerNotifications(octokitAction, scanner, config.spec?.notifications, slackWebClient);
+      await scannerNotifications.handleNotifications();
+    } else {
+      throw Error("Notification is undefined, unexpected!");
+    }
   } catch (error2) {
     if (error2 instanceof Error) {
       setFailed(error2.message);
