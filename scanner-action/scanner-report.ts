@@ -84,48 +84,14 @@ class ScannerReport {
 
 	public get markdown() {
 		return `## ${this.header}
-### Results
-${this.overviewAsList}  
+### Results  
+${this.overviewAsList}
 
-${this.scanner.prettyName} Report can be found [here](${this.codeScanningResultUrl})
-### Allowlist
-Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
-See the [${this.scanner.prettyName} documentation](${this.allowListDocumentationUrl}) on how to use allowlist.
+${this.scanner.prettyName} Report can be found [here](${this.codeScanningResultUrl})  
+### Allowlist  
+Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
+See the [${this.scanner.prettyName} documentation](${this.allowListDocumentationUrl}) on how to use allowlist.  
 ${this.scannerComment}`;
-	}
-
-	get slackBlocks() {
-		const githubRepository = `${github.context.repo.owner}/${github.context.repo.repo}`;
-
-		const blocks = [
-			{
-				type: "header",
-				text: {
-					type: "plain_text",
-					text: `${this.header} on ${githubRepository}`,
-				},
-			},
-			{
-				type: "section",
-				text: {
-					type: "mrkdwn",
-					text: `*Results*
-	${this.overviewAsList}  
-	${this.scanner.name} Report can be found <${this.codeScanningResultUrl}|here>`,
-				},
-			},
-			{
-				type: "section",
-				text: {
-					type: "mrkdwn",
-					text: `*Allowlist*
-	Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. 
-	See the <${this.allowListDocumentationUrl}|${this.scanner.name} documentation> on how to use allowlist.`,
-				},
-			},
-		];
-
-		return blocks;
 	}
 }
 

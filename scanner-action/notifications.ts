@@ -65,7 +65,12 @@ class ScannerNotifications {
 
 		await this.slackWebClient.chat.postMessage({
 			channel: this.slackChannelId,
-			blocks: this.scannerReport.slackBlocks,
+			blocks: [
+				{
+					type: "markdown",
+					text: this.scannerReport.markdown,
+				},
+			],
 		});
 	}
 
