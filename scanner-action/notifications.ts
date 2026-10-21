@@ -78,7 +78,7 @@ class ScannerNotifications {
 	}
 
 	public async handleNotifications() {
-		this.scannerReport.initialize();
+		await this.scannerReport.initialize();
 
 		if (this.scannerReport.hasAlertWithinThreshold) {
 			core.info("Writing to job summary");

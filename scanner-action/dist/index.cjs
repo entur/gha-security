@@ -51041,7 +51041,7 @@ var ScannerNotifications = class {
     }
   }
   async handleNotifications() {
-    this.scannerReport.initialize();
+    await this.scannerReport.initialize();
     if (this.scannerReport.hasAlertWithinThreshold) {
       info("Writing to job summary");
       this.writeJobSummary();
