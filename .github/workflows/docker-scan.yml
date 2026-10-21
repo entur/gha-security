@@ -46,11 +46,6 @@ jobs:
       pull-requests: write # required for creating comments on pull requests
       security-events: write # required for uploading SARIF file to GitHub
       actions: read #required for uploading SARIF file to GitHub (workflows in private repositories)
-    outputs:
-      notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
-      notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
-      notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
-      notification_slack_block: ${{ steps.scanner-action.outputs.notification_slack_block }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
@@ -136,21 +131,6 @@ jobs:
         uses: $/scanner-action
         with:
           scanner: 'dockerscan'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          external-repository-token: ${{ secrets.external_repository_token }}
-
-      - name: "Send job summary notification"
-        if: ${{ steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-        env:
-          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
-        run: |
-          echo "$NOTIFICATION_MARKDOWN" >> "$GITHUB_STEP_SUMMARY"
-
-  send-slack-notification:
-    needs: docker-scan
-    if: ${{ needs.docker-scan.outputs.notification_slack_enabled == 'True' && needs.docker-scan.outputs.notification_severity_alert_found == 'True' }}
-    uses: entur/gha-slack/.github/workflows/post.yml@v3
-    with:
-      channel_id: ${{ needs.docker-scan.outputs.notification_slack_channel_id }}
-      blocks: ${{ needs.docker-scan.outputs.notification_slack_block }}
-    secrets: inherit
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          external_repository_token: ${{ secrets.external_repository_token }}
+          slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}

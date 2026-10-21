@@ -370,11 +370,8 @@ jobs:
           path: "/home/runner/work/${{ github.event.repository.name }}/results"
           overwrite: true
 
-  scanner-action:
-    needs: [codeql-analysis, semgrep-analysis]
-    # If needs jobs have not failed or been cancelled,
-    # and if at least one of the needs has successful run
-    if: ${{ (!failure() && !cancelled()) && (needs.codeql-analysis.result == 'success' || needs.semgrep-analysis.result == 'success') }}
+  scanner-action-codeql:
+    needs: [codeql-analysis]
     runs-on: ubuntu-24.04
     permissions:
       # required to read and update code scan alerts
@@ -383,11 +380,6 @@ jobs:
       contents: read
       issues: write # required for creating issues, and/or adding issue comments
       pull-requests: write # required for creating comments on pull requests
-    outputs:
-      notification_slack_enabled: ${{ steps.scanner-action.outputs.notification_slack_enabled }}
-      notification_severity_alert_found: ${{ steps.scanner-action.outputs.notification_severity_alert_found }}
-      notification_slack_channel_id: ${{ steps.scanner-action.outputs.notification_slack_channel_id }}
-      notification_slack_block: ${{ steps.scanner-action.outputs.notification_slack_block }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -399,24 +391,34 @@ jobs:
         uses: $/scanner-action
         with:
           scanner: 'codescan'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          external-repository-token: ${{ secrets.external_repository_token }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          external_repository_token: ${{ secrets.external_repository_token }}
+          slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
 
-      - name: "Send job summary notification"
-        if: ${{ steps.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-        env:
-          NOTIFICATION_MARKDOWN: ${{ steps.scanner-action.outputs.notification_markdown }}
-        run: |
-          echo "$NOTIFICATION_MARKDOWN" >> "$GITHUB_STEP_SUMMARY"
+  scanner-action-semgrep:
+    needs: [semgrep-analysis]
+    runs-on: ubuntu-24.04
+    permissions:
+      # required to read and update code scan alerts
+      security-events: write
+      # required to checkout the repository
+      contents: read
+      issues: write # required for creating issues, and/or adding issue comments
+      pull-requests: write # required for creating comments on pull requests
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-  send-slack-notification:
-    needs: scanner-action
-    if: ${{ needs.scanner-action.outputs.notification_slack_enabled == 'True' && needs.scanner-action.outputs.notification_severity_alert_found == 'True' }}
-    uses: entur/gha-slack/.github/workflows/post.yml@v3
-    with:
-      channel_id: ${{ needs.scanner-action.outputs.notification_slack_channel_id }}
-      blocks: ${{ needs.scanner-action.outputs.notification_slack_block }}
-    secrets: inherit
+      - name: Scanner Action
+        id: scanner-action
+        uses: $/scanner-action
+        with:
+          scanner: 'codescan'
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          external_repository_token: ${{ secrets.external_repository_token }}
+          slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
 
   # fallback if no dependency-graph artifactory exists from a pull request, and CodeQL/Semgrep analysis was running under default branch
   upload-dependency-graph:
