@@ -4,43 +4,21 @@ Scanner Action is used for dismissing vulnerabilities for DockerScan and CodeSca
 
 ## Inputs
 
-### `token`
+### `gh_token`
 
 **Required** GitHub Token.
 
-### `external-repository-token`
+### `slack_bot_token`
+
+**Required** Slack Bot Token.
+
+### `external_repository_token`
 
 **Required** External Repository GitHub Token.
 
 ### `scanner`
 
 **Required** Type of scanner
-
-## Outputs
-
-### `notification_severity_alert_found`
-
-Alert with specified threshold severity has been found
-
-### `notification_severity_overview`
-
-Overview of amount of alerts with severity found
-
-### `notification_severity_filter`
-
-Severity filter for fetching alerts
-
-### `notification_severity_threshold`
-
-Alerts with threshold matching severity triggers notifications
-
-### `notification_slack_channel_id`
-
-Slack channel id for notifications
-
-### `notification_slack_enabled`
-
-Enabled Slack notifications
 
 ## Setup
 
