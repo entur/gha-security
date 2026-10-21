@@ -85,21 +85,24 @@ class ScannerNotifications {
 	public async handleNotifications() {
 		await this.scannerReport.initialize();
 
+		if (this.isPullRequest) {
+			core.info("notifications: remove previous issue comment");
+			await removeIssueComment(this.pullRequestIssue, this.scannerReport.scannerComment, this.octokit);
+		}
+
 		if (this.scannerReport.hasAlertWithinThreshold) {
-			core.info("Writing to job summary");
+			core.info("notifications: write job summary");
 			this.writeJobSummary();
 
 			if (this.isPullRequest) {
+				core.info("notifications: create pull request comment");
 				await sendIssueComment(this.pullRequestIssue, this.scannerReport.markdown, this.octokit);
 			}
 
 			if (this.slackEnabled) {
+				core.info("notifications: create slack message");
 				await this.sendSlackNotification();
 			}
-		}
-
-		if (this.isPullRequest) {
-			await removeIssueComment(this.pullRequestIssue, this.scannerReport.scannerComment, this.octokit);
 		}
 	}
 }
