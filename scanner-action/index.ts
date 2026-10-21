@@ -1,6 +1,5 @@
 import * as core from "@actions/core";
 import { throttling } from "@octokit/plugin-throttling";
-import { WebClient } from "@slack/web-api";
 import { Octokit } from "octokit";
 import { runAllowlist } from "./allowlist.js";
 import { getOctokitThrottleConfig } from "./config.js";
@@ -19,15 +18,10 @@ const main = async () => {
 		const ThrottledOctokit = Octokit.plugin(throttling);
 
 		let octokitExternal: Octokit | undefined;
-		let slackWebClient: WebClient | undefined;
 
 		if (!VALID_SCANNERS.includes(SCANNER_TYPE)) {
 			core.setFailed(`Invalid scanner defined ${SCANNER_TYPE}`);
 			return;
-		}
-
-		if (SLACK_BOT_TOKEN !== "") {
-			slackWebClient = new WebClient(SLACK_BOT_TOKEN);
 		}
 
 		if (EXTERNAL_REPOSITORY_TOKEN !== "") {
@@ -47,7 +41,7 @@ const main = async () => {
 		await runAllowlist(octokitAction, SCANNER_TYPE, config);
 
 		if (config.spec?.notifications) {
-			const scannerNotifications = new ScannerNotifications(octokitAction, scanner, config.spec?.notifications, slackWebClient);
+			const scannerNotifications = new ScannerNotifications(octokitAction, scanner, config.spec?.notifications, SLACK_BOT_TOKEN);
 			await scannerNotifications.handleNotifications();
 		} else {
 			throw Error("Notification is undefined, unexpected!");

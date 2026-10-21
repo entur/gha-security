@@ -1,7 +1,6 @@
 import * as fs from "node:fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import type { WebClient } from "@slack/web-api";
 import type { Octokit } from "octokit";
 import { removeIssueComment, sendIssueComment } from "./github-issues.js";
 import type { SeverityLevel } from "./github-security.js";
@@ -30,13 +29,13 @@ interface Notifications {
 class ScannerNotifications {
 	private octokit: Octokit;
 	private config: Notifications;
-	private slackWebClient?: WebClient;
+	private slackToken: string;
 	private scannerReport: ScannerReport;
 
-	constructor(octokit: Octokit, scanner: Scanner, config: Notifications, slackWebClient?: WebClient) {
+	constructor(octokit: Octokit, scanner: Scanner, config: Notifications, slackToken: string) {
 		this.octokit = octokit;
 		this.config = config;
-		this.slackWebClient = slackWebClient;
+		this.slackToken = slackToken;
 		this.scannerReport = new ScannerReport(octokit, scanner, config);
 	}
 
@@ -61,17 +60,28 @@ class ScannerNotifications {
 	}
 
 	private async sendSlackNotification() {
-		if (!this.slackWebClient || !this.slackChannelId) return;
+		if (!this.slackToken || !this.slackChannelId) return;
 
-		await this.slackWebClient.chat.postMessage({
-			channel: this.slackChannelId,
-			blocks: [
-				{
-					type: "markdown",
-					text: this.scannerReport.markdown,
-				},
-			],
+		const response = await fetch("https://slack.com/api/chat.postMessage", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${this.slackToken}`,
+				"Content-Type": "application/json; charset=utf-8",
+			},
+			body: JSON.stringify({
+				channel: this.slackChannelId,
+				blocks: [{ type: "markdown", text: this.scannerReport.markdown }],
+			}),
 		});
+
+		if (!response.ok) {
+			throw new Error(`slack: HTTP ${response.status} ${response.statusText}`);
+		}
+
+		const data = (await response.json()) as { ok: boolean; error?: string };
+		if (!data.ok) {
+			throw new Error(`slack: chat.postMessage failed: ${data.error}`);
+		}
 	}
 
 	private writeJobSummary() {
