@@ -46189,7 +46189,7 @@ var ScannerReport = class {
     return `https://github.com/entur/gha-security/blob/main/${fileNameWithSectionEnd}`;
   }
   get header() {
-    return `${this.scanner.name} - Alert(s) found with threshold matching severity ${this.notificationsConfig.severityThreshold}`;
+    return `${this.scanner.prettyName} - Alert(s) found with threshold matching severity ${this.notificationsConfig.severityThreshold}`;
   }
   get overviewAsList() {
     return Object.entries(this.overview).map(([key, value]) => `- ${key}: ${value} `).join("\n");
