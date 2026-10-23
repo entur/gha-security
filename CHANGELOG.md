@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.17.1](https://github.com/entur/gha-security/compare/v2.17.0...v2.17.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* **SIK-2107:** Slack notification not being sent out for code-scan ([#280](https://github.com/entur/gha-security/issues/280)) ([ce31216](https://github.com/entur/gha-security/commit/ce312167fc1cb7005952db92757de7c4f99f7a3c))
+
 ## [2.17.0](https://github.com/entur/gha-security/compare/v2.16.0...v2.17.0) (2026-09-30)
 
 
