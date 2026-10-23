@@ -4,22 +4,21 @@ import { Octokit } from "octokit";
 import { runAllowlist } from "./allowlist.js";
 import { getOctokitThrottleConfig } from "./config.js";
 import { ScannerNotifications } from "./notifications.js";
-import { type Scanner, ScannerFromType } from "./scanner.js";
+import { isScanType, type Scanner, scannerFromType } from "./scanner.js";
 import { getScannerConfig } from "./scanner-config.js";
 
 const main = async () => {
 	try {
 		const GITHUB_TOKEN = core.getInput("gh_token");
-		const SCANNER_TYPE = core.getInput("scanner") as "dockerscan" | "codescan";
+		const SCANNER_TYPE = core.getInput("scanner");
 		const SLACK_BOT_TOKEN = core.getInput("slack_bot_token");
 		const EXTERNAL_REPOSITORY_TOKEN = core.getInput("external_repository_token");
-		const VALID_SCANNERS = ["dockerscan", "codescan"];
 
 		const ThrottledOctokit = Octokit.plugin(throttling);
 
 		let octokitExternal: Octokit | undefined;
 
-		if (!VALID_SCANNERS.includes(SCANNER_TYPE)) {
+		if (!isScanType(SCANNER_TYPE)) {
 			core.setFailed(`Invalid scanner defined ${SCANNER_TYPE}`);
 			return;
 		}
@@ -36,7 +35,7 @@ const main = async () => {
 			throttle: getOctokitThrottleConfig(),
 		});
 
-		const scanner: Scanner = ScannerFromType(SCANNER_TYPE);
+		const scanner: Scanner = scannerFromType(SCANNER_TYPE);
 		const config = await getScannerConfig(SCANNER_TYPE, octokitExternal);
 		await runAllowlist(octokitAction, SCANNER_TYPE, config);
 

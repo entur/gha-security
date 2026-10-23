@@ -3,13 +3,21 @@ interface Scanner {
 	tool: string;
 	prettyName: string;
 }
+const VALID_SCANNERS = ["dockerscan", "codescan"] as const;
+type ScanType = (typeof VALID_SCANNERS)[number];
 
-const ScannerFromType = (type: "dockerscan" | "codescan") => {
-	return {
-		name: type,
-		tool: type === "dockerscan" ? "grype" : "codeql",
-		prettyName: type === "dockerscan" ? "Docker Scan" : "Code Scan",
-	};
+function isScanType(value: string): value is ScanType {
+	return VALID_SCANNERS.includes(value as ScanType);
+}
+
+const SCANNER_DETAILS: Record<ScanType, Omit<Scanner, "name">> = {
+	dockerscan: { tool: "grype", prettyName: "Docker Scan" },
+	codescan: { tool: "codeql", prettyName: "Code Scan" },
 };
 
-export { type Scanner, ScannerFromType };
+const scannerFromType = (type: ScanType): Scanner => ({
+	name: type,
+	...SCANNER_DETAILS[type],
+});
+
+export { isScanType, type Scanner, type ScanType, scannerFromType };

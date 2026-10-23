@@ -46317,13 +46317,18 @@ var ScannerNotifications = class {
 };
 
 // scanner.ts
-var ScannerFromType = (type) => {
-  return {
-    name: type,
-    tool: type === "dockerscan" ? "grype" : "codeql",
-    prettyName: type === "dockerscan" ? "Docker Scan" : "Code Scan"
-  };
+var VALID_SCANNERS = ["dockerscan", "codescan"];
+function isScanType(value) {
+  return VALID_SCANNERS.includes(value);
+}
+var SCANNER_DETAILS = {
+  dockerscan: { tool: "grype", prettyName: "Docker Scan" },
+  codescan: { tool: "codeql", prettyName: "Code Scan" }
 };
+var scannerFromType = (type) => ({
+  name: type,
+  ...SCANNER_DETAILS[type]
+});
 
 // scanner-config.ts
 var fs3 = __toESM(require("node:fs"), 1);
@@ -46603,10 +46608,9 @@ var main = async () => {
     const SCANNER_TYPE = getInput("scanner");
     const SLACK_BOT_TOKEN = getInput("slack_bot_token");
     const EXTERNAL_REPOSITORY_TOKEN = getInput("external_repository_token");
-    const VALID_SCANNERS = ["dockerscan", "codescan"];
     const ThrottledOctokit = Octokit4.plugin(throttling);
     let octokitExternal;
-    if (!VALID_SCANNERS.includes(SCANNER_TYPE)) {
+    if (!isScanType(SCANNER_TYPE)) {
       setFailed(`Invalid scanner defined ${SCANNER_TYPE}`);
       return;
     }
@@ -46620,7 +46624,7 @@ var main = async () => {
       auth: GITHUB_TOKEN,
       throttle: getOctokitThrottleConfig()
     });
-    const scanner = ScannerFromType(SCANNER_TYPE);
+    const scanner = scannerFromType(SCANNER_TYPE);
     const config = await getScannerConfig(SCANNER_TYPE, octokitExternal);
     await runAllowlist(octokitAction, SCANNER_TYPE, config);
     if (config.spec?.notifications) {
