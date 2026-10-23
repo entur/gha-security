@@ -27,7 +27,7 @@ class ScannerReport {
 	}
 
 	private get header() {
-		return `${this.scanner.name} - Alert(s) found with threshold matching severity ${this.notificationsConfig.severityThreshold}`;
+		return `${this.scanner.prettyName} - Alert(s) found with threshold matching severity ${this.notificationsConfig.severityThreshold}`;
 	}
 
 	private get overviewAsList() {
