@@ -1,32 +1,18 @@
 name: 'Scanner Action'
 description: ''
 inputs:
-  token:
+  gh_token:
     description: "GitHub Token"
     required: true
-  external-repository-token:
+  slack_bot_token:
+    description: "Slack bot Token"
+    required: true
+  external_repository_token:
     description: "External Repository GitHub Token"
-    required: false
+    required: true
   scanner:
     description: "Type of scanner"
     required: true
-outputs:
-  notification_severity_alert_found:
-    description: "Alert with specified threshold severity has been found"
-  notification_severity_overview:
-    description: "Overview of amount of alerts with severity found"
-  notification_severity_filter:
-    description: "Severity filter for fetching alerts"
-  notification_severity_threshold:
-    description: "Alerts with threshold matching severity triggers notifications"
-  notification_slack_channel_id:
-    description: 'Slack channel id for notifications'
-  notification_slack_enabled:
-    description: 'Enabled Slack notifications'
-  notification_slack_block:
-    description: 'Notification in Slack Block format'
-  notification_markdown:
-    description: 'Notification in markdown format'
 runs:
   using: 'node24'
   main: 'dist/index.cjs'

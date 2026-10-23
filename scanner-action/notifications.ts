@@ -1,10 +1,11 @@
+import * as fs from "node:fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import type { Octokit } from "octokit";
 import { removeIssueComment, sendIssueComment } from "./github-issues.js";
-import { getAlerts, type PartialCodeScanningAlert, type SeverityLevel } from "./github-security.js";
-import { createMarkdown, setNotificationOutputs } from "./outputs.js";
-import type { ScannerConfig } from "./scanner-config.js";
+import type { SeverityLevel } from "./github-security.js";
+import type { Scanner } from "./scanner.js";
+import { ScannerReport } from "./scanner-report.js";
 
 interface SlackNotification {
 	enabled?: boolean;
@@ -26,101 +27,94 @@ interface Notifications {
 }
 
 class ScannerNotifications {
-	severityThreshold: SeverityLevel;
-	octokit: Octokit;
-	scannerType: string;
-	fetchedNotificationAlerts: boolean;
-	notificationAlerts: PartialCodeScanningAlert[];
-	severityList: SeverityLevel[];
-	toolName: string;
-	config: Notifications;
+	private octokit: Octokit;
+	private config: Notifications;
+	private slackToken: string;
+	private scannerReport: ScannerReport;
 
-	constructor(octokit: Octokit, scannerType: string, config: Notifications) {
-		this.fetchedNotificationAlerts = false;
-		this.notificationAlerts = [];
-		this.scannerType = scannerType;
+	constructor(octokit: Octokit, scanner: Scanner, config: Notifications, slackToken: string) {
 		this.octokit = octokit;
-		this.severityList = ["low", "medium", "high", "critical"];
-		this.toolName = this.scannerType === "dockerscan" ? "grype" : "codeql";
 		this.config = config;
-		this.severityThreshold = config.severityThreshold;
+		this.slackToken = slackToken;
+		this.scannerReport = new ScannerReport(octokit, scanner, config);
 	}
 
-	get severityFilter() {
-		const severityIndex = this.severityList.indexOf(<"low" | "medium" | "high" | "critical">this.severityThreshold);
-		return this.severityList.slice(severityIndex) as SeverityLevel[];
+	private get slackEnabled() {
+		return this.config.outputs?.slack?.enabled ?? false;
 	}
 
-	get overview() {
-		const overview = {
-			critical: 0,
-			high: 0,
-			medium: 0,
-			low: 0,
-		};
+	private get pullRequestEnabled() {
+		return this.config.outputs?.pullRequest?.enabled ?? true;
+	}
 
-		const alertsWithSecurityLevel = this.notificationAlerts
-			.filter((it) => it.rule.security_severity_level !== null && it.rule.security_severity_level !== undefined)
-			.map((it) => it.rule.security_severity_level);
+	private get slackChannelId() {
+		return this.config.outputs?.slack?.channelId ?? undefined;
+	}
 
-		for (const severity of this.severityList) {
-			overview[severity] = alertsWithSecurityLevel.filter((it) => it === severity).length;
+	private get isPullRequest() {
+		return this.pullRequestEnabled && github.context.eventName === "pull_request";
+	}
+
+	private get pullRequestIssue() {
+		return { issue_number: github.context.issue.number, owner: github.context.issue.owner, repo: github.context.issue.repo };
+	}
+
+	private async sendSlackNotification() {
+		if (!this.slackToken || !this.slackChannelId) return;
+
+		const response = await fetch("https://slack.com/api/chat.postMessage", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${this.slackToken}`,
+				"Content-Type": "application/json; charset=utf-8",
+			},
+			body: JSON.stringify({
+				channel: this.slackChannelId,
+				blocks: [{ type: "markdown", text: this.scannerReport.markdown }],
+			}),
+		});
+
+		if (!response.ok) {
+			throw new Error(`slack: HTTP ${response.status} ${response.statusText}`);
 		}
 
-		return overview;
+		const data = (await response.json()) as { ok: boolean; error?: string };
+		if (!data.ok) {
+			throw new Error(`slack: chat.postMessage failed: ${data.error}`);
+		}
 	}
 
-	get alertsFound() {
-		return this.severityFilter.some((it) => this.overview[it] > 0);
+	private writeJobSummary() {
+		const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+
+		if (summaryFile) {
+			fs.appendFileSync(summaryFile, this.scannerReport.markdown, "utf8");
+		}
 	}
 
-	async fetchNotificationAlerts() {
-		const alerts = await getAlerts(this.octokit, github.context.ref, github.context.repo, this.toolName);
+	public async handleNotifications() {
+		await this.scannerReport.initialize();
 
-		if (alerts) {
-			this.notificationAlerts = alerts;
-			return true;
+		if (this.isPullRequest) {
+			core.info("notifications: remove previous issue comment");
+			await removeIssueComment(this.pullRequestIssue, this.scannerReport.scannerComment, this.octokit);
 		}
 
-		return false;
+		if (this.scannerReport.hasAlertWithinThreshold) {
+			core.info("notifications: write job summary");
+			this.writeJobSummary();
+
+			if (this.isPullRequest) {
+				core.info("notifications: create pull request comment");
+				await sendIssueComment(this.pullRequestIssue, this.scannerReport.markdown, this.octokit);
+			}
+
+			if (this.slackEnabled) {
+				core.info("notifications: create slack message");
+				await this.sendSlackNotification();
+			}
+		}
 	}
 }
 
-const runNotifications = async (octokitAction: Octokit, scannerType: string, scannerConfig: ScannerConfig) => {
-	const notifications = scannerConfig.spec?.notifications;
-
-	if (!notifications) {
-		throw Error("Notification is undefined, unexpected!");
-	}
-
-	const scannerNotifications = new ScannerNotifications(octokitAction, scannerType, notifications);
-
-	core.info("Fetching notification alerts");
-	const fetchedAlerts = await scannerNotifications.fetchNotificationAlerts();
-	if (!fetchedAlerts) return;
-
-	core.info("Setting notification outputs");
-	setNotificationOutputs(scannerNotifications);
-
-	core.info("Sending pull request notification");
-	await sendPullRequestNotification(scannerNotifications, octokitAction);
-};
-
-const sendPullRequestNotification = async (scannerNotifications: ScannerNotifications, octokit: Octokit) => {
-	const isPullRequestEnabled = scannerNotifications.config.outputs?.pullRequest?.enabled ?? true;
-
-	const skipNotification = !isPullRequestEnabled || github.context.eventName !== "pull_request";
-
-	if (skipNotification) return;
-
-	const notificationOutput = createMarkdown(scannerNotifications);
-
-	const issue = { issue_number: github.context.issue.number, owner: github.context.issue.owner, repo: github.context.issue.repo };
-
-	await removeIssueComment(issue, `<!-- gha-security:${scannerNotifications.scannerType} -->`, octokit);
-	if (scannerNotifications.alertsFound) {
-		await sendIssueComment(issue, notificationOutput, octokit);
-	}
-};
-
-export { type Notifications, runNotifications, ScannerNotifications };
+export { type Notifications, ScannerNotifications };

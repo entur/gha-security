@@ -4073,11 +4073,11 @@ var require_util2 = __commonJS({
     var { isUint8Array } = require("node:util/types");
     var { webidl } = require_webidl();
     var supportedHashes = [];
-    var crypto2;
+    var crypto;
     try {
-      crypto2 = require("node:crypto");
+      crypto = require("node:crypto");
       const possibleRelevantHashes = ["sha256", "sha384", "sha512"];
-      supportedHashes = crypto2.getHashes().filter((hash) => possibleRelevantHashes.includes(hash));
+      supportedHashes = crypto.getHashes().filter((hash) => possibleRelevantHashes.includes(hash));
     } catch {
     }
     function responseURL(response) {
@@ -4350,7 +4350,7 @@ var require_util2 = __commonJS({
       }
     }
     function bytesMatch(bytes, metadataList) {
-      if (crypto2 === void 0) {
+      if (crypto === void 0) {
         return true;
       }
       const parsedMetadata = parseMetadata(metadataList);
@@ -4365,7 +4365,7 @@ var require_util2 = __commonJS({
       for (const item of metadata) {
         const algorithm = item.algo;
         const expectedValue = item.hash;
-        let actualValue = crypto2.createHash(algorithm).update(bytes).digest("base64");
+        let actualValue = crypto.createHash(algorithm).update(bytes).digest("base64");
         if (actualValue[actualValue.length - 1] === "=") {
           if (actualValue[actualValue.length - 2] === "=") {
             actualValue = actualValue.slice(0, -2);
@@ -5429,8 +5429,8 @@ var require_body = __commonJS({
     var { multipartFormDataParser } = require_formdata_parser();
     var random;
     try {
-      const crypto2 = require("node:crypto");
-      random = (max) => crypto2.randomInt(0, max);
+      const crypto = require("node:crypto");
+      random = (max) => crypto.randomInt(0, max);
     } catch {
       random = (max) => Math.floor(Math.random(max));
     }
@@ -13592,7 +13592,7 @@ var require_fetch = __commonJS({
     function handleFetchDone(response) {
       finalizeAndReportTiming(response, "fetch");
     }
-    function fetch2(input, init = void 0) {
+    function fetch3(input, init = void 0) {
       webidl.argumentLengthCheck(arguments, 1, "globalThis.fetch");
       let p = createDeferredPromise();
       let requestObject;
@@ -14549,7 +14549,7 @@ var require_fetch = __commonJS({
       }
     }
     module2.exports = {
-      fetch: fetch2,
+      fetch: fetch3,
       Fetch,
       fetching,
       finalizeAndReportTiming
@@ -17070,13 +17070,13 @@ var require_frame = __commonJS({
     "use strict";
     var { maxUnsigned16Bit } = require_constants5();
     var BUFFER_SIZE = 16386;
-    var crypto2;
+    var crypto;
     var buffer = null;
     var bufIdx = BUFFER_SIZE;
     try {
-      crypto2 = require("node:crypto");
+      crypto = require("node:crypto");
     } catch {
-      crypto2 = {
+      crypto = {
         // not full compatibility, but minimum.
         randomFillSync: function randomFillSync(buffer2, _offset, _size) {
           for (let i = 0; i < buffer2.length; ++i) {
@@ -17089,7 +17089,7 @@ var require_frame = __commonJS({
     function generateMask() {
       if (bufIdx === BUFFER_SIZE) {
         bufIdx = 0;
-        crypto2.randomFillSync(buffer ??= Buffer.allocUnsafe(BUFFER_SIZE), 0, BUFFER_SIZE);
+        crypto.randomFillSync(buffer ??= Buffer.allocUnsafe(BUFFER_SIZE), 0, BUFFER_SIZE);
       }
       return [buffer[bufIdx++], buffer[bufIdx++], buffer[bufIdx++], buffer[bufIdx++]];
     }
@@ -17161,9 +17161,9 @@ var require_connection = __commonJS({
     var { Headers: Headers2, getHeadersList } = require_headers();
     var { getDecodeSplit } = require_util2();
     var { WebsocketFrameSend } = require_frame();
-    var crypto2;
+    var crypto;
     try {
-      crypto2 = require("node:crypto");
+      crypto = require("node:crypto");
     } catch {
     }
     function establishWebSocketConnection(url, protocols, client, ws, onEstablish, options) {
@@ -17183,7 +17183,7 @@ var require_connection = __commonJS({
         const headersList = getHeadersList(new Headers2(options.headers));
         request2.headersList = headersList;
       }
-      const keyValue = crypto2.randomBytes(16).toString("base64");
+      const keyValue = crypto.randomBytes(16).toString("base64");
       request2.headersList.append("sec-websocket-key", keyValue);
       request2.headersList.append("sec-websocket-version", "13");
       for (const protocol of protocols) {
@@ -17213,7 +17213,7 @@ var require_connection = __commonJS({
             return;
           }
           const secWSAccept = response.headersList.get("Sec-WebSocket-Accept");
-          const digest = crypto2.createHash("sha1").update(keyValue + uid).digest("base64");
+          const digest = crypto.createHash("sha1").update(keyValue + uid).digest("base64");
           if (secWSAccept !== digest) {
             failWebsocketConnection(ws, "Incorrect hash received in Sec-WebSocket-Accept header.");
             return;
@@ -19009,7 +19009,7 @@ var require_undici = __commonJS({
     module2.exports.setGlobalDispatcher = setGlobalDispatcher;
     module2.exports.getGlobalDispatcher = getGlobalDispatcher;
     var fetchImpl = require_fetch().fetch;
-    module2.exports.fetch = async function fetch2(init, options = void 0) {
+    module2.exports.fetch = async function fetch3(init, options = void 0) {
       try {
         return await fetchImpl(init, options);
       } catch (err) {
@@ -35495,36 +35495,8 @@ function escapeProperty(s) {
   return toCommandValue(s).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A").replace(/:/g, "%3A").replace(/,/g, "%2C");
 }
 
-// node_modules/@actions/core/lib/file-command.js
-var crypto = __toESM(require("crypto"), 1);
-var fs = __toESM(require("fs"), 1);
-var os2 = __toESM(require("os"), 1);
-function issueFileCommand(command, message) {
-  const filePath = process.env[`GITHUB_${command}`];
-  if (!filePath) {
-    throw new Error(`Unable to find environment variable for file command ${command}`);
-  }
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Missing file at path: ${filePath}`);
-  }
-  fs.appendFileSync(filePath, `${toCommandValue(message)}${os2.EOL}`, {
-    encoding: "utf8"
-  });
-}
-function prepareKeyValueMessage(key, value) {
-  const delimiter = `ghadelimiter_${crypto.randomUUID()}`;
-  const convertedValue = toCommandValue(value);
-  if (key.includes(delimiter)) {
-    throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
-  }
-  if (convertedValue.includes(delimiter)) {
-    throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
-  }
-  return `${key}<<${delimiter}${os2.EOL}${convertedValue}${os2.EOL}${delimiter}`;
-}
-
 // node_modules/@actions/core/lib/core.js
-var os4 = __toESM(require("os"), 1);
+var os3 = __toESM(require("os"), 1);
 
 // node_modules/@actions/http-client/lib/index.js
 var tunnel = __toESM(require_tunnel2(), 1);
@@ -35869,10 +35841,10 @@ var _summary = new Summary();
 var import_os2 = __toESM(require("os"), 1);
 
 // node_modules/@actions/io/lib/io-util.js
-var fs2 = __toESM(require("fs"), 1);
-var { chmod, copyFile, lstat, mkdir, open, readdir, rename, rm, rmdir, stat, symlink, unlink } = fs2.promises;
+var fs = __toESM(require("fs"), 1);
+var { chmod, copyFile, lstat, mkdir, open, readdir, rename, rm, rmdir, stat, symlink, unlink } = fs.promises;
 var IS_WINDOWS = process.platform === "win32";
-var READONLY = fs2.constants.O_RDONLY;
+var READONLY = fs.constants.O_RDONLY;
 
 // node_modules/@actions/exec/lib/toolrunner.js
 var IS_WINDOWS2 = process.platform === "win32";
@@ -35897,14 +35869,6 @@ function getInput(name, options) {
   }
   return val.trim();
 }
-function setOutput(name, value) {
-  const filePath = process.env["GITHUB_OUTPUT"] || "";
-  if (filePath) {
-    return issueFileCommand("OUTPUT", prepareKeyValueMessage(name, value));
-  }
-  process.stdout.write(os4.EOL);
-  issueCommand("set-output", { name }, toCommandValue(value));
-}
 function setFailed(message) {
   process.exitCode = ExitCode.Failure;
   error(message);
@@ -35916,7 +35880,7 @@ function warning(message, properties = {}) {
   issueCommand("warning", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 function info(message) {
-  process.stdout.write(message + os4.EOL);
+  process.stdout.write(message + os3.EOL);
 }
 
 // node_modules/@octokit/plugin-throttling/dist-bundle/index.js
@@ -36638,8 +36602,8 @@ function isPlainObject2(value) {
 }
 var noop2 = () => "";
 async function fetchWrapper(requestOptions) {
-  const fetch2 = requestOptions.request?.fetch || globalThis.fetch;
-  if (!fetch2) {
+  const fetch3 = requestOptions.request?.fetch || globalThis.fetch;
+  if (!fetch3) {
     throw new Error(
       "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
     );
@@ -36655,7 +36619,7 @@ async function fetchWrapper(requestOptions) {
   );
   let fetchResponse;
   try {
-    fetchResponse = await fetch2(requestOptions.url, {
+    fetchResponse = await fetch3(requestOptions.url, {
       method: requestOptions.method,
       body,
       redirect: requestOptions.request?.redirect,
@@ -46143,6 +46107,9 @@ var getOctokitThrottleConfig = () => {
   return throttle;
 };
 
+// notifications.ts
+var fs2 = __toESM(require("node:fs"), 1);
+
 // github-issues.ts
 var sendIssueComment = async (issue2, body, octokit) => {
   try {
@@ -46201,108 +46168,35 @@ var removeIssueComment = async (issue2, subtext, octokit) => {
   }
 };
 
-// outputs.ts
-var outputBool = (value) => value ? "True" : "False";
-var getGithubRepository = () => {
-  return `${context2.repo.owner}/${context2.repo.repo}`;
-};
-var toTextList = (object) => {
-  return Object.entries(object).map(([key, value]) => `- ${key}: ${value} `).join("\n");
-};
-var createMarkdown = (scannerNotifications) => {
-  const scannerReport = getScannerReport(scannerNotifications);
-  return `## ${scannerReport.header}
-### Results
-${scannerReport.resultsList}  
-
-${scannerReport.scannerTypeName} Report can be found [here](${scannerReport.resultsUrl})
-### Allowlist
-Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.
-See the [${scannerReport.scannerTypeName} documentation](${scannerReport.allowListDocumentationUrl}) on how to use allowlist.
-<!-- gha-security:${scannerNotifications.scannerType} -->`;
-};
-var getScannerReport = (scannerNotifications) => {
-  const scannerType = scannerNotifications.scannerType;
-  const scannerTypeName = scannerType === "dockerscan" ? "Docker Scan" : "Code Scan";
-  const githubRef = context2.ref;
-  const githubRepository = getGithubRepository();
-  const notificationOverviewList = toTextList(scannerNotifications.overview);
-  const githubCodeScanningReportUrl = `https://github.com/${githubRepository}/security/code-scanning?query=is:open+ref:${githubRef}+tool:${scannerNotifications.toolName}`;
-  const allowlistReadme = scannerType === "dockerscan" ? "README-docker-scan.md#allowlisting-vulnerabilities" : "README-code-scan.md#allowlists";
-  return {
-    header: `${scannerTypeName} - Alert(s) found with threshold matching severity ${scannerNotifications.severityThreshold}`,
-    resultsList: notificationOverviewList,
-    resultsUrl: githubCodeScanningReportUrl,
-    allowListDocumentationUrl: `https://github.com/entur/gha-security/blob/main/${allowlistReadme}`,
-    scannerTypeName
-  };
-};
-var createSlackBlock = (scannerNotifications) => {
-  const scannerReport = getScannerReport(scannerNotifications);
-  const githubRepository = getGithubRepository();
-  const blocks = [
-    {
-      type: "header",
-      text: {
-        type: "plain_text",
-        text: `${scannerReport.header} on ${githubRepository}`
-      }
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Results*
-${scannerReport.resultsList}  
-${scannerReport.scannerTypeName} Report can be found <${scannerReport.resultsUrl}|here>`
-      }
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Allowlist*
-Use the allowlist if you want to ignore vulnerabilities that do not affect the repository. 
-See the <${scannerReport.allowListDocumentationUrl}|${scannerReport.scannerTypeName} documentation> on how to use allowlist.`
-      }
-    }
-  ];
-  return JSON.stringify(blocks, null, " ");
-};
-var setNotificationOutputs = (scannerNotifications) => {
-  setOutput("notification_severity_alert_found", outputBool(scannerNotifications.alertsFound));
-  setOutput("notification_severity_overview", scannerNotifications.overview);
-  setOutput("notification_severity_threshold", scannerNotifications.severityThreshold);
-  setOutput("notification_severity_filter", scannerNotifications.severityFilter.join(","));
-  setOutput("notification_slack_channel_id", scannerNotifications.config.outputs?.slack?.channelId ?? "");
-  setOutput("notification_slack_enabled", outputBool(scannerNotifications.config.outputs?.slack?.enabled ?? false));
-  setOutput("notification_slack_block", createSlackBlock(scannerNotifications));
-  setOutput("notification_markdown", createMarkdown(scannerNotifications));
-};
-
-// notifications.ts
-var ScannerNotifications = class {
-  severityThreshold;
+// scanner-report.ts
+var ScannerReport = class {
   octokit;
-  scannerType;
-  fetchedNotificationAlerts;
-  notificationAlerts;
-  severityList;
-  toolName;
-  config;
-  constructor(octokit, scannerType, config) {
-    this.fetchedNotificationAlerts = false;
-    this.notificationAlerts = [];
-    this.scannerType = scannerType;
+  scanner;
+  codeScanningAlerts;
+  fetchedAlerts;
+  severityLevels;
+  notificationsConfig;
+  constructor(octokit, scanner, config) {
     this.octokit = octokit;
-    this.severityList = ["low", "medium", "high", "critical"];
-    this.toolName = this.scannerType === "dockerscan" ? "grype" : "codeql";
-    this.config = config;
-    this.severityThreshold = config.severityThreshold;
+    this.severityLevels = ["low", "medium", "high", "critical"];
+    this.codeScanningAlerts = [];
+    this.fetchedAlerts = false;
+    this.scanner = scanner;
+    this.notificationsConfig = config;
   }
-  get severityFilter() {
-    const severityIndex = this.severityList.indexOf(this.severityThreshold);
-    return this.severityList.slice(severityIndex);
+  get allowListDocumentationUrl() {
+    const fileNameWithSectionEnd = this.scanner.name === "dockerscan" ? "README-docker-scan.md#allowlisting-vulnerabilities" : "README-code-scan.md#allowlists";
+    return `https://github.com/entur/gha-security/blob/main/${fileNameWithSectionEnd}`;
+  }
+  get header() {
+    return `${this.scanner.name} - Alert(s) found with threshold matching severity ${this.notificationsConfig.severityThreshold}`;
+  }
+  get overviewAsList() {
+    return Object.entries(this.overview).map(([key, value]) => `- ${key}: ${value} `).join("\n");
+  }
+  get codeScanningResultUrl() {
+    const githubRepository = `${context2.repo.owner}/${context2.repo.repo}`;
+    return `https://github.com/${githubRepository}/security/code-scanning?query=is:open+ref:${context2.ref}+tool:${this.scanner.tool}`;
   }
   get overview() {
     const overview = {
@@ -46311,49 +46205,130 @@ var ScannerNotifications = class {
       medium: 0,
       low: 0
     };
-    const alertsWithSecurityLevel = this.notificationAlerts.filter((it) => it.rule.security_severity_level !== null && it.rule.security_severity_level !== void 0).map((it) => it.rule.security_severity_level);
-    for (const severity of this.severityList) {
+    const alertsWithSecurityLevel = this.codeScanningAlerts.filter((it) => it.rule.security_severity_level !== null && it.rule.security_severity_level !== void 0).map((it) => it.rule.security_severity_level);
+    for (const severity of this.severityLevels) {
       overview[severity] = alertsWithSecurityLevel.filter((it) => it === severity).length;
     }
     return overview;
   }
-  get alertsFound() {
+  get severityFilter() {
+    const severityIndex = this.severityLevels.indexOf(this.notificationsConfig.severityThreshold);
+    return this.severityLevels.slice(severityIndex);
+  }
+  async fetchAlerts() {
+    this.codeScanningAlerts = await getAlerts(this.octokit, context2.ref, context2.repo, this.scanner.tool) ?? [];
+    this.fetchedAlerts = true;
+  }
+  async initialize() {
+    if (!this.fetchedAlerts) await this.fetchAlerts();
+  }
+  get hasAlertWithinThreshold() {
     return this.severityFilter.some((it) => this.overview[it] > 0);
   }
-  async fetchNotificationAlerts() {
-    const alerts = await getAlerts(this.octokit, context2.ref, context2.repo, this.toolName);
-    if (alerts) {
-      this.notificationAlerts = alerts;
-      return true;
+  get scannerComment() {
+    return `<!-- gha-security:${this.scanner.name} -->`;
+  }
+  get markdown() {
+    return `## ${this.header}
+### Results  
+${this.overviewAsList}
+
+${this.scanner.prettyName} Report can be found [here](${this.codeScanningResultUrl})  
+### Allowlist  
+Use the allowlist if you want to ignore vulnerabilities that do not affect the repository.  
+See the [${this.scanner.prettyName} documentation](${this.allowListDocumentationUrl}) on how to use allowlist.  
+${this.scannerComment}`;
+  }
+};
+
+// notifications.ts
+var ScannerNotifications = class {
+  octokit;
+  config;
+  slackToken;
+  scannerReport;
+  constructor(octokit, scanner, config, slackToken) {
+    this.octokit = octokit;
+    this.config = config;
+    this.slackToken = slackToken;
+    this.scannerReport = new ScannerReport(octokit, scanner, config);
+  }
+  get slackEnabled() {
+    return this.config.outputs?.slack?.enabled ?? false;
+  }
+  get pullRequestEnabled() {
+    return this.config.outputs?.pullRequest?.enabled ?? true;
+  }
+  get slackChannelId() {
+    return this.config.outputs?.slack?.channelId ?? void 0;
+  }
+  get isPullRequest() {
+    return this.pullRequestEnabled && context2.eventName === "pull_request";
+  }
+  get pullRequestIssue() {
+    return { issue_number: context2.issue.number, owner: context2.issue.owner, repo: context2.issue.repo };
+  }
+  async sendSlackNotification() {
+    if (!this.slackToken || !this.slackChannelId) return;
+    const response = await fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.slackToken}`,
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify({
+        channel: this.slackChannelId,
+        blocks: [{ type: "markdown", text: this.scannerReport.markdown }]
+      })
+    });
+    if (!response.ok) {
+      throw new Error(`slack: HTTP ${response.status} ${response.statusText}`);
     }
-    return false;
+    const data = await response.json();
+    if (!data.ok) {
+      throw new Error(`slack: chat.postMessage failed: ${data.error}`);
+    }
+  }
+  writeJobSummary() {
+    const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+    if (summaryFile) {
+      fs2.appendFileSync(summaryFile, this.scannerReport.markdown, "utf8");
+    }
+  }
+  async handleNotifications() {
+    await this.scannerReport.initialize();
+    if (this.isPullRequest) {
+      info("notifications: remove previous issue comment");
+      await removeIssueComment(this.pullRequestIssue, this.scannerReport.scannerComment, this.octokit);
+    }
+    if (this.scannerReport.hasAlertWithinThreshold) {
+      info("notifications: write job summary");
+      this.writeJobSummary();
+      if (this.isPullRequest) {
+        info("notifications: create pull request comment");
+        await sendIssueComment(this.pullRequestIssue, this.scannerReport.markdown, this.octokit);
+      }
+      if (this.slackEnabled) {
+        info("notifications: create slack message");
+        await this.sendSlackNotification();
+      }
+    }
   }
 };
-var runNotifications = async (octokitAction, scannerType, scannerConfig) => {
-  const notifications = scannerConfig.spec?.notifications;
-  if (!notifications) {
-    throw Error("Notification is undefined, unexpected!");
-  }
-  const scannerNotifications = new ScannerNotifications(octokitAction, scannerType, notifications);
-  info("Fetching notification alerts");
-  const fetchedAlerts = await scannerNotifications.fetchNotificationAlerts();
-  if (!fetchedAlerts) return;
-  info("Setting notification outputs");
-  setNotificationOutputs(scannerNotifications);
-  info("Sending pull request notification");
-  await sendPullRequestNotification(scannerNotifications, octokitAction);
+
+// scanner.ts
+var VALID_SCANNERS = ["dockerscan", "codescan"];
+function isScanType(value) {
+  return VALID_SCANNERS.includes(value);
+}
+var SCANNER_DETAILS = {
+  dockerscan: { tool: "grype", prettyName: "Docker Scan" },
+  codescan: { tool: "codeql", prettyName: "Code Scan" }
 };
-var sendPullRequestNotification = async (scannerNotifications, octokit) => {
-  const isPullRequestEnabled = scannerNotifications.config.outputs?.pullRequest?.enabled ?? true;
-  const skipNotification = !isPullRequestEnabled || context2.eventName !== "pull_request";
-  if (skipNotification) return;
-  const notificationOutput = createMarkdown(scannerNotifications);
-  const issue2 = { issue_number: context2.issue.number, owner: context2.issue.owner, repo: context2.issue.repo };
-  await removeIssueComment(issue2, `<!-- gha-security:${scannerNotifications.scannerType} -->`, octokit);
-  if (scannerNotifications.alertsFound) {
-    await sendIssueComment(issue2, notificationOutput, octokit);
-  }
-};
+var scannerFromType = (type) => ({
+  name: type,
+  ...SCANNER_DETAILS[type]
+});
 
 // scanner-config.ts
 var fs3 = __toESM(require("node:fs"), 1);
@@ -46629,13 +46604,13 @@ var getScannerConfig = async (scannerType, octokitExternal) => {
 // index.ts
 var main = async () => {
   try {
-    const TOKEN = getInput("token");
+    const GITHUB_TOKEN = getInput("gh_token");
     const SCANNER_TYPE = getInput("scanner");
-    const EXTERNAL_REPOSITORY_TOKEN = getInput("external-repository-token");
-    const VALID_SCANNERS = ["dockerscan", "codescan"];
+    const SLACK_BOT_TOKEN = getInput("slack_bot_token");
+    const EXTERNAL_REPOSITORY_TOKEN = getInput("external_repository_token");
     const ThrottledOctokit = Octokit4.plugin(throttling);
     let octokitExternal;
-    if (!VALID_SCANNERS.includes(SCANNER_TYPE)) {
+    if (!isScanType(SCANNER_TYPE)) {
       setFailed(`Invalid scanner defined ${SCANNER_TYPE}`);
       return;
     }
@@ -46646,12 +46621,18 @@ var main = async () => {
       });
     }
     const octokitAction = new ThrottledOctokit({
-      auth: TOKEN,
+      auth: GITHUB_TOKEN,
       throttle: getOctokitThrottleConfig()
     });
+    const scanner = scannerFromType(SCANNER_TYPE);
     const config = await getScannerConfig(SCANNER_TYPE, octokitExternal);
     await runAllowlist(octokitAction, SCANNER_TYPE, config);
-    await runNotifications(octokitAction, SCANNER_TYPE, config);
+    if (config.spec?.notifications) {
+      const scannerNotifications = new ScannerNotifications(octokitAction, scanner, config.spec?.notifications, SLACK_BOT_TOKEN);
+      await scannerNotifications.handleNotifications();
+    } else {
+      throw Error("Notification is undefined, unexpected!");
+    }
   } catch (error2) {
     if (error2 instanceof Error) {
       setFailed(error2.message);
