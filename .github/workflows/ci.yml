@@ -26,6 +26,22 @@ jobs:
         with: 
             workflow_file: .github/workflows/docker-scan.yml
             readme_file: README-docker-scan.md
+    lockfile-check:
+      runs-on: ubuntu-24.04
+      permissions:
+        contents: read
+      steps:
+          - name: Checkout
+            uses: actions/checkout@v7.0.1
+            with:
+              persist-credentials: false
+          - name: Verify actions.lock
+            env:
+              GH_TOKEN: ${{ github.token }}
+              GH_ACTIONS_LOCK_VERSJON: v0.4.1
+            run: |
+              gh extension install github/gh-actions-lock --pin "$GH_ACTIONS_LOCK_VERSJON"
+              gh actions-lock --verify --no-interactive
     biome-check:
         runs-on: ubuntu-24.04
         steps:
