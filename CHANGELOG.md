@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.18.0](https://github.com/entur/gha-security/compare/v2.17.1...v2.18.0) (2026-11-11)
+
+
+### Features
+
+* **SIK-2103:** migrate to workflow dependency lockfiles ([#290](https://github.com/entur/gha-security/issues/290)) ([5fa410d](https://github.com/entur/gha-security/commit/5fa410df712b28257a50a16be3cefab494e4c14f))
+
 ## [2.17.1](https://github.com/entur/gha-security/compare/v2.17.0...v2.17.1) (2026-10-26)
 
 
