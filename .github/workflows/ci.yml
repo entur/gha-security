@@ -7,7 +7,7 @@ jobs:
     actionlint:
       runs-on: ubuntu-latest
       steps:
-        - uses: actions/checkout@v7
+        - uses: actions/checkout@v7.0.1
         - name: Check workflow files
           run: |
             echo "::add-matcher::.github/actionlint-matcher.json"
@@ -26,15 +26,31 @@ jobs:
         with: 
             workflow_file: .github/workflows/docker-scan.yml
             readme_file: README-docker-scan.md
+    lockfile-check:
+      runs-on: ubuntu-24.04
+      permissions:
+        contents: read
+      steps:
+          - name: Checkout
+            uses: actions/checkout@v7.0.1
+            with:
+              persist-credentials: false
+          - name: Verify actions.lock
+            env:
+              GH_TOKEN: ${{ github.token }}
+              GH_ACTIONS_LOCK_VERSJON: v0.4.1
+            run: |
+              gh extension install github/gh-actions-lock --pin "$GH_ACTIONS_LOCK_VERSJON"
+              gh actions-lock --verify --no-interactive
     biome-check:
         runs-on: ubuntu-24.04
         steps:
             - name: Checkout
-              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              uses: actions/checkout@v7.0.1
               with:
                 persist-credentials: false
             - name: Setup Biome
-              uses: biomejs/setup-biome@4c91541eaada48f67d7dbd7833600ce162b68f51 # v2.7.1
+              uses: biomejs/setup-biome@v2.7.1
               with:
                 working-dir: ./scanner-action
             - name: Run Biome
