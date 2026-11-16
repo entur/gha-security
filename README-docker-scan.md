@@ -9,13 +9,27 @@ jobs:
   docker-scan:
     name: Docker Scan
     uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
-    secrets: inherit  # Required for central allowlist access
     with:
         image_artifact: # The name of the image artifact to scan
-    
 ```
 
-**Important:** The `secrets: inherit` declaration is **strongly recommended** as it enables access to Entur's central allowlist. Without it, only local allowlists will be available.
+No secrets are needed by default. Pass only the secrets you need instead of using `secrets: inherit`:
+- `SLACK_BOT_TOKEN` for [Slack notifications](#notifications)
+- `GHA_SECURITY_CENTRAL_ALLOWLIST` for the [central allowlist](#central-allowlisting)
+- `external_repository_token` for an inherited config in another repository
+
+```yml
+jobs:
+  docker-scan:
+    name: Docker Scan
+    uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
+    secrets:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+    with:
+        image_artifact: # The name of the image artifact to scan
+```
+
+`secrets: inherit` still works, but passes every secret the repository has access to.
 
 Alternatively, you can add the Entur Shared Workflow _Docker Build and Push_. This will build, push and scan the Docker image.
 Go to the _Actions_ tab in your repository, click on _New workflow_ and select the button _Configure_ on the _Docker Build and Push_ workflow.
@@ -39,14 +53,13 @@ Go to the _Actions_ tab in your repository, click on _New workflow_ and select t
 
 |                                                            SECRET                                                            | REQUIRED |                                                                  DESCRIPTION                                                                   |
 |------------------------------------------------------------------------------------------------------------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| <a name="secret_GHA_SECURITY_CENTRAL_ALLOWLIST"></a>[GHA_SECURITY_CENTRAL_ALLOWLIST](#secret_GHA_SECURITY_CENTRAL_ALLOWLIST) |  false   | SSH keys to checkout the <br>central allowlist repository. Secret is <br>fetched from Entur GitHub organization <br>if secrets are inherited.  |
-|                       <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                        |  false   |       Slack bot token is used <br>for notifications. Secret is fetched <br>from Entur GitHub organization if <br>secrets are inherited.        |
+| <a name="secret_GHA_SECURITY_CENTRAL_ALLOWLIST"></a>[GHA_SECURITY_CENTRAL_ALLOWLIST](#secret_GHA_SECURITY_CENTRAL_ALLOWLIST) |  false   | SSH keys to checkout the <br>central allowlist repository. Organization secret, pass it <br>explicitly (recommended) or with <br>`secrets: inherit`.  |
+|                       <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                        |  false   |       Slack bot token is used <br>for notifications. Organization secret, pass it <br>explicitly (recommended) or with <br>`secrets: inherit`.        |
 |        <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token)         |  false   |      Token to access the external <br>repository mentioned in the dockerscan.yml <br>file. Must have read access <br>to the repository.        |
 
 <!-- AUTO-DOC-SECRETS:END -->
 
-**Note:** When using `secrets: inherit` (recommended), additional secrets are automatically inherited from your workflow context, including:
-- `GHA_SECURITY_CENTRAL_ALLOWLIST` - SSH key for accessing Entur's central allowlist repository (managed by Team Sikkerhet).
+**Note:** `GHA_SECURITY_CENTRAL_ALLOWLIST` is the SSH key for accessing Entur's central allowlist repository (managed by Team Sikkerhet).
 
 ## Golden Path
 
@@ -93,7 +106,6 @@ jobs:
     name: Scan Docker Image
     needs: docker-build
     uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
-    secrets: inherit
     with:
       image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
   docker-push:
@@ -120,12 +132,11 @@ jobs:
   docker-scan:
     needs: docker-build
     uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
-    secrets: inherit
     with:
         image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
 ```
 ### Central allowlisting
-Entur has a central allowlist located in the repository [central-allowlist](https://github.com/entur/central-allowlist), which is owned and maintained by Team Sikkerhet. If you want to use this allowlist in your project, you can do so by specifying `secrets: inherit` when calling the docker-scan reusable-workflow. If you would like to contribute to the central allowlist, please read through the following [documentation](https://github.com/entur/central-allowlist?tab=readme-ov-file#how-to-contribute). If both local and central allowlists are present, the local allowlist entries will override any matching entries from the central allowlist. 
+Entur has a central allowlist located in the repository [central-allowlist](https://github.com/entur/central-allowlist), which is owned and maintained by Team Sikkerhet. If you want to use this allowlist in your project, you can do so by passing `GHA_SECURITY_CENTRAL_ALLOWLIST: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}` under `secrets` when calling the docker-scan reusable-workflow. If you would like to contribute to the central allowlist, please read through the following [documentation](https://github.com/entur/central-allowlist?tab=readme-ov-file#how-to-contribute). If both local and central allowlists are present, the local allowlist entries will override any matching entries from the central allowlist. 
 
 ## Notifications
 
@@ -149,7 +160,7 @@ The threshold can be set to one of the following values:
 
 Slack notifications are by default disabled, but can be enabled by creating a scanner config in repository or inheriting a shared config.
 
-**Note:** The slack channel used for notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot. Additionally, you MUST specify `secrets: inherit` when calling the docker-scan reusable-workflow.
+**Note:** The slack channel used for notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot. Additionally, you MUST pass `SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}` under `secrets` when calling the docker-scan reusable-workflow.
 
 The format and location of the config can be found [in the section below](#docker-scan-config).
 
@@ -174,7 +185,6 @@ jobs:
   docker-scan:
     needs: ...
     uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
-    secrets: inherit
     with:
         image_artifact: ...
         include_docker_workdir: true

@@ -69,19 +69,19 @@ on:
         description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
         required: false
       SOFTPAY_NEXUS_USERNAME:
-        description: 'The username for Softpay. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        description: 'The username for Softpay. Organization secret, pass it explicitly (recommended) or with `secrets: inherit`.'
         required: false
       SOFTPAY_NEXUS_PASSWORD:
-        description: 'The password for Softpay. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        description: 'The password for Softpay. Organization secret, pass it explicitly (recommended) or with `secrets: inherit`.'
         required: false
       ARTIFACTORY_AUTH_USER:
-        description: 'The username for the Artifactory repository. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        description: 'The username for the Artifactory repository. Organization secret, pass it explicitly (recommended) or with `secrets: inherit`.'
         required: false
       ARTIFACTORY_AUTH_TOKEN:
-        description: 'Token for the Artifactory repository. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        description: 'Token for the Artifactory repository. Organization secret, pass it explicitly (recommended) or with `secrets: inherit`.'
         required: false
       SLACK_BOT_TOKEN:
-        description: 'Slack bot token is used for notifications. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        description: 'Slack bot token is used for notifications. Organization secret, pass it explicitly (recommended) or with `secrets: inherit`.'
         required: false
 jobs:
   input-validation:
