@@ -1,0 +1,27 @@
+name: 'Deny Inherited Secrets'
+description: 'Fail if the caller passes secrets that are not declared, which happens with "secrets: inherit"'
+inputs:
+  allowed-secrets:
+    description: 'Comma-separated list of secrets the workflow accepts'
+    required: true
+  secrets:
+    description: 'JSON object containing all secrets'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: "Deny inherited secrets"
+      uses: actions/github-script@v9.0.0
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        ALLOWED_SECRETS: ${{ inputs.allowed-secrets }}
+        SECRETS: ${{ inputs.secrets }}
+      with:
+        script: |
+          const denyInheritedSecrets = require(`${process.env.ACTION_PATH}/index.js`);
+
+          try {
+            await denyInheritedSecrets({ core });
+          } catch(error) {
+            core.setFailed(error.message)
+          }
