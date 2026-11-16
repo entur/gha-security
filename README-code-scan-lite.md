@@ -34,8 +34,8 @@ jobs:
 
 <!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
 
-|                                     INPUT                                     |  TYPE  | REQUIRED | DEFAULT |                                                                         DESCRIPTION                                                                          |
-|-------------------------------------------------------------------------------|--------|----------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                                     INPUT                                     |  TYPE  | REQUIRED | DEFAULT |                                                                       DESCRIPTION                                                                       |
+|-------------------------------------------------------------------------------|--------|----------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
 | <a name="input_ignore_language"></a>[ignore_language](#input_ignore_language) | string |  false   |         | Comma-separated list of languages for <br>CodeQL to ignore. See [CodeQL Languages](https://github.com/github/codeql-action/blob/main/src/languages.ts)  |
 
 <!-- AUTO-DOC-INPUT:END -->
@@ -46,7 +46,7 @@ jobs:
 
 |                                                    SECRET                                                     | REQUIRED |                                                            DESCRIPTION                                                            |
 |---------------------------------------------------------------------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------|
-|                <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                |  false   | Slack bot token is used <br>for notifications. Must be passed <br>explicitly, `secrets: inherit` is not <br>supported.  |
+|                <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                |  false   |        Slack bot token is used <br>for notifications. Must be passed <br>explicitly, `secrets: inherit` is not supported.         |
 | <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   | Token to access the external <br>repository mentioned in the codescan.yml <br>file. Must have read access <br>to the repository.  |
 
 <!-- AUTO-DOC-SECRETS:END -->
