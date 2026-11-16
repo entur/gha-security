@@ -45,6 +45,15 @@ flowchart TB
     end
 ```
 
+## Code scan lite and lite JVM support
+
+Simpler versions of Code scan with the same flow, where only CodeQL runs. Both fail if called with
+`secrets: inherit`, so only the secrets they declare are passed in.
+
+- **Lite** ignores Java and Kotlin, scans C# and C/C++ with `build-mode: none`, and needs no build secrets.
+- **Lite JVM support** scans the same languages as lite, plus Java/Kotlin. Java/Kotlin are built with autobuild and
+  Artifactory credentials in a separate analysis step, and the Gradle dependency graph is uploaded from the default branch.
+
 ## Docker scan
 
 ```mermaid

@@ -4,6 +4,8 @@ Welcome to Entur gha-security repository, where we host actions and reusable wor
 
 The reusable workflows we release are
 - [Code Scan](/.github/workflows/code-scan.yml)
+- [Code Scan Lite JVM Support](/.github/workflows/code-scan-lite-jvm-support.yml)
+- [Code Scan Lite](/.github/workflows/code-scan-lite.yml)
 - [Docker Scan](/.github/workflows/docker-scan.yml)
 
 ## Self-repository Syntax
