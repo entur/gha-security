@@ -1,0 +1,222 @@
+name: 'Entur/Security/Code Scan Lite JVM Support'
+
+on:
+  workflow_call:
+    inputs:
+      java_version:
+        description: 'Java version for "actions/setup-java" to use'
+        default: "25"
+        required: false
+        type: string
+      java_distribution:
+        description: 'Java distribution for "actions/setup-java" to use'
+        default: "temurin"
+        required: false
+        type: string
+      java_server_id_artifactory:
+        description: 'Java server id for "actions/setup-java" to use. This will setup maven server with artifactory credentials for CodeQL autobuild to use.'
+        default: ""
+        required: false
+        type: string
+      ignore_language:
+        description: 'Comma-separated list of languages for CodeQL to ignore. See [CodeQL Languages](https://github.com/github/codeql-action/blob/main/src/languages.ts)'
+        default: ""
+        required: false
+        type: string
+
+    secrets:
+      external_repository_token:
+        description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
+        required: false
+      ARTIFACTORY_AUTH_USER:
+        description: 'The username for the Artifactory repository. Must be passed explicitly, `secrets: inherit` is not supported.'
+        required: false
+      ARTIFACTORY_AUTH_TOKEN:
+        description: 'Token for the Artifactory repository. Must be passed explicitly, `secrets: inherit` is not supported.'
+        required: false
+      SLACK_BOT_TOKEN:
+        description: 'Slack bot token is used for notifications. Must be passed explicitly, `secrets: inherit` is not supported.'
+        required: false
+jobs:
+  validate-secrets:
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: "Deny inherited secrets"
+        uses: $/.github/actions/deny-inherited-secrets
+        with:
+          allowed-secrets: external_repository_token,ARTIFACTORY_AUTH_USER,ARTIFACTORY_AUTH_TOKEN,SLACK_BOT_TOKEN
+          secrets: ${{ toJSON(secrets) }}
+
+  get-repository-metadata:
+    runs-on: ubuntu-24.04
+    needs: validate-secrets
+    outputs:
+      codeql_languages: ${{ steps.get-repository-languages.outputs.codeql_languages }}
+      found_gradle: ${{ env.GHA_SECURITY_CODE_SCAN_FOUND_GRADLE }}
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: "Find Gradle Build"
+        run: |
+          # Search for the file(s) build.gradle or build.gradle.kt(s) in the repo, and report if any of those are found
+          if [ "$(find . -type f -iname build.gradle -o -iname build.gradle.kts -o -iname build.gradle.kt | wc -l)" -gt 0 ]; then
+            echo "GHA_SECURITY_CODE_SCAN_FOUND_GRADLE=True" >> "$GITHUB_ENV"
+          else
+            echo "GHA_SECURITY_CODE_SCAN_FOUND_GRADLE=False" >> "$GITHUB_ENV"
+          fi
+
+      - name: "Get repository languages"
+        id: get-repository-languages
+        uses: $/.github/actions/get-repository-languages
+        with:
+          ignore_language: ${{ inputs.ignore_language }}
+
+  codeql-analysis:
+    # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
+    # If we found a language, and the event is not a push made by dependabot on a PR
+    if: ${{ needs.get-repository-metadata.outputs.codeql_languages != '[]' && (github.event_name != 'push' || (github.event_name == 'push' && github.actor != 'dependabot[bot]')) }}
+    runs-on: ubuntu-24.04
+    needs: get-repository-metadata
+    env:
+      CODEQL_ACTION_FILE_COVERAGE_ON_PRS: 'true'
+      IS_JVM: ${{ matrix.language == 'java' || matrix.language == 'kotlin' }}
+      IS_GRADLE_JVM: ${{ needs.get-repository-metadata.outputs.found_gradle == 'True' && (matrix.language == 'java' || matrix.language == 'kotlin') }}
+    permissions:
+      # CodeQL - required for all workflows
+      security-events: write
+      # CodeQL - only required for workflows in private repositories
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ${{ fromJson(needs.get-repository-metadata.outputs.codeql_languages) }}
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      # Stops actions/unpinned-tag from flagging entur/* actions. See README-code-scan.md#trusted-actions-publishers.
+      - name: "Install Entur CodeQL Actions trusted-publishers model pack"
+        if: matrix.language == 'actions'
+        uses: $/.github/actions/install-codeql-model-pack
+
+      - name: "Setup Java for Java/Kotlin"
+        if: env.IS_JVM == 'true'
+        uses: $/.github/actions/setup-java-code-scan
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.java_distribution }}
+          server-id: ${{ inputs.java_server_id_artifactory }}
+
+      # setup-gradle overwrites toolchains.xml from setup-java, preserve it so we get the requested version and
+      # distribution instead of the autodetected version from gradle build files.
+      # See also https://github.com/github/codeql-action/issues/2752
+      - name: Backup Setup-Java toolchains.xml
+        if: env.IS_GRADLE_JVM == 'true'
+        run: cp ~/.m2/toolchains.xml ~/.m2/toolchains.xml.bak
+
+      - name: "Set up Gradle for Java/Kotlin"
+        if: env.IS_GRADLE_JVM == 'true'
+        uses: gradle/actions/setup-gradle@v6.4.1
+        with:
+          cache-disabled: true
+          add-job-summary: 'on-failure'
+          dependency-graph: 'generate-and-upload'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore Setup-Java toolchains.xml
+        if: env.IS_GRADLE_JVM == 'true'
+        run: mv ~/.m2/toolchains.xml.bak ~/.m2/toolchains.xml
+
+      - name: "Initialize CodeQL"
+        uses: github/codeql-action/init@v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ env.IS_JVM == 'true' && 'autobuild' || contains(fromJSON('["csharp", "cpp"]'), matrix.language) && 'none' || '' }}
+          queries: security-extended
+          # CWE-275 is generating a lot of spam on Action scanning despite teams following golden path. Ignore for now.
+          config: |
+            query-filters:
+              - exclude:
+                  id: actions/missing-workflow-permissions
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Perform CodeQL Analysis for Java/Kotlin"
+        id: codeql-analysis-jvm
+        if: env.IS_JVM == 'true'
+        uses: github/codeql-action/analyze@v4.39.3
+        with:
+          category: "/language:${{ matrix.language }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
+          ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
+          ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
+          IS_CODEQL_SCAN: true
+
+      - name: "Perform CodeQL Analysis"
+        if: env.IS_JVM != 'true'
+        uses: github/codeql-action/analyze@v4.39.3
+        with:
+          category: "/language:${{ matrix.language }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "CodeQL Kotlin Error Handler"
+        if: failure() && steps.codeql-analysis-jvm.outcome == 'failure' && matrix.language == 'kotlin'
+        uses: $/.github/actions/codeql-kotlin-error-handler
+
+  scanner-action:
+    needs: [codeql-analysis]
+    runs-on: ubuntu-24.04
+    permissions:
+      # required to read and update code scan alerts
+      security-events: write
+      # required to checkout the repository
+      contents: read
+      issues: write # required for creating issues, and/or adding issue comments
+      pull-requests: write # required for creating comments on pull requests
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scanner Action
+        id: scanner-action
+        uses: $/scanner-action
+        with:
+          scanner: 'codescan'
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          external_repository_token: ${{ secrets.external_repository_token }}
+          slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
+
+  # fallback if no dependency-graph artifactory exists from a pull request, and CodeQL analysis was running under default branch
+  upload-dependency-graph:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # required to upload dependency graph
+    needs: [get-repository-metadata, codeql-analysis]
+    if: >-
+      ${{
+        !failure() && !cancelled() &&
+        needs.codeql-analysis.result == 'success' &&
+        github.ref_name == github.event.repository.default_branch &&
+        needs.get-repository-metadata.outputs.found_gradle == 'True' &&
+        (
+          contains(needs.get-repository-metadata.outputs.codeql_languages, 'java') ||
+          contains(needs.get-repository-metadata.outputs.codeql_languages, 'kotlin')
+        )
+      }}
+    steps:
+      - name: "Upload dependency graph"
+        uses: gradle/actions/dependency-submission@v6.4.1
+        with:
+          cache-disabled: true
+          dependency-graph: download-and-submit # Download saved dependency-graph and submit

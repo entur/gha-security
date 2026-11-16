@@ -12,6 +12,17 @@ workflows:
     '.github/workflows/ci.yml':
         - 'actions/checkout@v7.0.1'
         - 'biomejs/setup-biome@v2.7.1'
+    '.github/workflows/code-scan-lite-jvm-support.yml':
+        - 'actions/cache@v6.1.0'
+        - 'actions/checkout@v7.0.1'
+        - 'actions/github-script@v9.0.0'
+        - 'actions/setup-java@v6.1.0'
+        - 'github/codeql-action@v4.39.3'
+        - 'gradle/actions@v6.4.1'
+    '.github/workflows/code-scan-lite.yml':
+        - 'actions/checkout@v7.0.1'
+        - 'actions/github-script@v9.0.0'
+        - 'github/codeql-action@v4.39.3'
     '.github/workflows/code-scan.yml':
         - 'actions/cache@v6.1.0'
         - 'actions/checkout@v7.0.1'
