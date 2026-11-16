@@ -30,12 +30,12 @@ Add `SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}` to get Slack notifications
 
 <!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
 
-|                                                      INPUT                                                      |  TYPE  | REQUIRED |   DEFAULT   |                                                                         DESCRIPTION                                                                          |
-|-----------------------------------------------------------------------------------------------------------------|--------|----------|-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|                  <a name="input_ignore_language"></a>[ignore_language](#input_ignore_language)                  | string |  false   |             | Comma-separated list of languages for <br>CodeQL to ignore. See [CodeQL Languages](https://github.com/github/codeql-action/blob/main/src/languages.ts)  |
-|               <a name="input_java_distribution"></a>[java_distribution](#input_java_distribution)               | string |  false   | `"temurin"` |                                                    Java distribution for "actions/setup-java" to <br>use                                                     |
-| <a name="input_java_server_id_artifactory"></a>[java_server_id_artifactory](#input_java_server_id_artifactory)  | string |  false   |             |     Java server id for "actions/setup-java" <br>to use. This will setup <br>maven server with artifactory credentials <br>for CodeQL autobuild to use.     |
-|                       <a name="input_java_version"></a>[java_version](#input_java_version)                      | string |  false   |   `"25"`    |                                                      Java version for "actions/setup-java" to <br>use                                                       |
+|                                                     INPUT                                                      |  TYPE  | REQUIRED |   DEFAULT   |                                                                       DESCRIPTION                                                                       |
+|----------------------------------------------------------------------------------------------------------------|--------|----------|-------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                 <a name="input_ignore_language"></a>[ignore_language](#input_ignore_language)                  | string |  false   |             | Comma-separated list of languages for <br>CodeQL to ignore. See [CodeQL Languages](https://github.com/github/codeql-action/blob/main/src/languages.ts)  |
+|              <a name="input_java_distribution"></a>[java_distribution](#input_java_distribution)               | string |  false   | `"temurin"` |                                                 Java distribution for "actions/setup-java" to <br>use                                                   |
+| <a name="input_java_server_id_artifactory"></a>[java_server_id_artifactory](#input_java_server_id_artifactory) | string |  false   |             |   Java server id for "actions/setup-java" <br>to use. This will setup <br>maven server with artifactory credentials <br>for CodeQL autobuild to use.    |
+|                      <a name="input_java_version"></a>[java_version](#input_java_version)                      | string |  false   |   `"25"`    |                                                    Java version for "actions/setup-java" to <br>use                                                     |
 
 <!-- AUTO-DOC-INPUT:END -->
 
@@ -43,12 +43,12 @@ Add `SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}` to get Slack notifications
 
 <!-- AUTO-DOC-SECRETS:START - Do not remove or modify this section -->
 
-|                                                    SECRET                                                     | REQUIRED |                                                             DESCRIPTION                                                              |
-|---------------------------------------------------------------------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------|
-|     <a name="secret_ARTIFACTORY_AUTH_TOKEN"></a>[ARTIFACTORY_AUTH_TOKEN](#secret_ARTIFACTORY_AUTH_TOKEN)      |  false   |    Token for the Artifactory repository. <br>Must be passed explicitly, <br>`secrets: inherit` is not supported.      |
-|       <a name="secret_ARTIFACTORY_AUTH_USER"></a>[ARTIFACTORY_AUTH_USER](#secret_ARTIFACTORY_AUTH_USER)       |  false   | The username for the Artifactory <br>repository. Must be passed <br>explicitly, `secrets: inherit` is not <br>supported.  |
-|                <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                |  false   |  Slack bot token is used <br>for notifications. Must be passed <br>explicitly, `secrets: inherit` is not <br>supported.   |
-| <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   |  Token to access the external <br>repository mentioned in the codescan.yml <br>file. Must have read access <br>to the repository.    |
+|                                                    SECRET                                                     | REQUIRED |                                                            DESCRIPTION                                                            |
+|---------------------------------------------------------------------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------|
+|     <a name="secret_ARTIFACTORY_AUTH_TOKEN"></a>[ARTIFACTORY_AUTH_TOKEN](#secret_ARTIFACTORY_AUTH_TOKEN)      |  false   |          Token for the Artifactory repository. <br>Must be passed explicitly, `secrets: inherit` <br>is not supported.            |
+|       <a name="secret_ARTIFACTORY_AUTH_USER"></a>[ARTIFACTORY_AUTH_USER](#secret_ARTIFACTORY_AUTH_USER)       |  false   |       The username for the Artifactory <br>repository. Must be passed explicitly, <br>`secrets: inherit` is not supported.        |
+|                <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                |  false   |        Slack bot token is used <br>for notifications. Must be passed <br>explicitly, `secrets: inherit` is not supported.         |
+| <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   | Token to access the external <br>repository mentioned in the codescan.yml <br>file. Must have read access <br>to the repository.  |
 
 <!-- AUTO-DOC-SECRETS:END -->
 
