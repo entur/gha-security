@@ -54,14 +54,14 @@ or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your 
 
 <!-- AUTO-DOC-SECRETS:START - Do not remove or modify this section -->
 
-|                                                    SECRET                                                     | REQUIRED |                                                             DESCRIPTION                                                              |
-|---------------------------------------------------------------------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------|
-|     <a name="secret_ARTIFACTORY_AUTH_TOKEN"></a>[ARTIFACTORY_AUTH_TOKEN](#secret_ARTIFACTORY_AUTH_TOKEN)      |  false   |    Token for the Artifactory repository. <br>Organization secret, pass it <br>explicitly (recommended) or with <br>`secrets: inherit`.      |
-|       <a name="secret_ARTIFACTORY_AUTH_USER"></a>[ARTIFACTORY_AUTH_USER](#secret_ARTIFACTORY_AUTH_USER)       |  false   | The username for the Artifactory <br>repository. Organization secret, pass it <br>explicitly (recommended) or with <br>`secrets: inherit`.  |
-|                <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                |  false   |  Slack bot token is used <br>for notifications. Organization secret, pass it <br>explicitly (recommended) or with <br>`secrets: inherit`.   |
-|     <a name="secret_SOFTPAY_NEXUS_PASSWORD"></a>[SOFTPAY_NEXUS_PASSWORD](#secret_SOFTPAY_NEXUS_PASSWORD)      |  false   |            The password for Softpay. Organization secret, pass it <br>explicitly (recommended) or with <br>`secrets: inherit`.              |
-|     <a name="secret_SOFTPAY_NEXUS_USERNAME"></a>[SOFTPAY_NEXUS_USERNAME](#secret_SOFTPAY_NEXUS_USERNAME)      |  false   |            The username for Softpay. Organization secret, pass it <br>explicitly (recommended) or with <br>`secrets: inherit`.              |
-| <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   |  Token to access the external <br>repository mentioned in the codescan.yml <br>file. Must have read access <br>to the repository.    |
+|                                                    SECRET                                                     | REQUIRED |                                                                DESCRIPTION                                                                |
+|---------------------------------------------------------------------------------------------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------|
+|     <a name="secret_ARTIFACTORY_AUTH_TOKEN"></a>[ARTIFACTORY_AUTH_TOKEN](#secret_ARTIFACTORY_AUTH_TOKEN)      |  false   |     Token for the Artifactory repository. <br>Organization secret, pass it explicitly <br>(recommended) or with `secrets: inherit`.       |
+|       <a name="secret_ARTIFACTORY_AUTH_USER"></a>[ARTIFACTORY_AUTH_USER](#secret_ARTIFACTORY_AUTH_USER)       |  false   |  The username for the Artifactory <br>repository. Organization secret, pass it <br>explicitly (recommended) or with `secrets: inherit`.   |
+|                <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                |  false   | Slack bot token is used <br>for notifications. Organization secret, pass <br>it explicitly (recommended) or with <br>`secrets: inherit`.  |
+|     <a name="secret_SOFTPAY_NEXUS_PASSWORD"></a>[SOFTPAY_NEXUS_PASSWORD](#secret_SOFTPAY_NEXUS_PASSWORD)      |  false   |           The password for Softpay. Organization <br>secret, pass it explicitly (recommended) <br>or with `secrets: inherit`.             |
+|     <a name="secret_SOFTPAY_NEXUS_USERNAME"></a>[SOFTPAY_NEXUS_USERNAME](#secret_SOFTPAY_NEXUS_USERNAME)      |  false   |           The username for Softpay. Organization <br>secret, pass it explicitly (recommended) <br>or with `secrets: inherit`.             |
+| <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   |     Token to access the external <br>repository mentioned in the codescan.yml <br>file. Must have read access <br>to the repository.      |
 
 <!-- AUTO-DOC-SECRETS:END -->
 
