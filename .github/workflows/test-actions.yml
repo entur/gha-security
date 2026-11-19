@@ -236,6 +236,43 @@ jobs:
               const assertClearSecret = require("./.github/test-scripts/assert-clear-secrets.js");
               assertClearSecret({ core });
 
+    test-deny-inherited-secrets:
+      runs-on: ubuntu-24.04
+      name: "[deny-inherited-secrets] ${{ matrix.test.title }}"
+      strategy:
+          matrix:
+              test:
+                - title: "Should pass when only allowed secrets are passed"
+                  secrets: '{"github_token": "x", "SLACK_BOT_TOKEN": "x"}'
+                  should-fail: false
+                - title: "Should pass when no secrets are passed"
+                  secrets: '{"github_token": "x"}'
+                  should-fail: false
+                - title: "Should fail when secrets are inherited"
+                  secrets: '{"github_token": "x", "SLACK_BOT_TOKEN": "x", "ARTIFACTORY_AUTH_TOKEN": "x"}'
+                  should-fail: true
+      steps:
+        - name: "Checkout repository"
+          uses: actions/checkout@v7.0.1
+          with:
+            persist-credentials: false
+        - name: "Deny inherited secrets"
+          id: deny-inherited-secrets
+          continue-on-error: true
+          uses: $/.github/actions/deny-inherited-secrets
+          with:
+            allowed-secrets: "SLACK_BOT_TOKEN,external_repository_token"
+            secrets: ${{ matrix.test.secrets }}
+        - name: "Assert outcome"
+          uses: actions/github-script@v9.0.0
+          env:
+            SHOULD_FAIL: ${{ matrix.test.should-fail }}
+            OUTCOME: ${{ steps.deny-inherited-secrets.outcome }}
+          with:
+            script: |
+              const assertDenyInheritedSecrets = require("./.github/test-scripts/assert-deny-inherited-secrets.js");
+              assertDenyInheritedSecrets({ core });
+
     test-install-codeql-model-pack:
       runs-on: ubuntu-24.04
       name: "[install-codeql-model-pack] ${{ matrix.test.title }}"

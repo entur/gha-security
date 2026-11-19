@@ -1,0 +1,123 @@
+name: 'Entur/Security/Code Scan Lite'
+
+on:
+  workflow_call:
+    inputs:
+      ignore_language:
+        description: 'Comma-separated list of languages for CodeQL to ignore. See [CodeQL Languages](https://github.com/github/codeql-action/blob/main/src/languages.ts)'
+        default: ""
+        required: false
+        type: string
+
+    secrets:
+      external_repository_token:
+        description: 'Token to access the external repository mentioned in the codescan.yml file. Must have read access to the repository.'
+        required: false
+      SLACK_BOT_TOKEN:
+        description: 'Slack bot token is used for notifications. Must be passed explicitly, `secrets: inherit` is not supported.'
+        required: false
+jobs:
+  validate-secrets:
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: "Deny inherited secrets"
+        uses: $/.github/actions/deny-inherited-secrets
+        with:
+          allowed-secrets: external_repository_token,SLACK_BOT_TOKEN
+          secrets: ${{ toJSON(secrets) }}
+
+  get-repository-metadata:
+    runs-on: ubuntu-24.04
+    needs: validate-secrets
+    outputs:
+      codeql_languages: ${{ steps.get-repository-languages.outputs.codeql_languages }}
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: "Warn if JVM code is found"
+        run: |
+          if [ "$(find . -type f \( -iname '*.java' -o -iname '*.kt' -o -iname '*.scala' \) | wc -l)" -gt 0 ]; then
+            echo "::warning ::Java, Kotlin or Scala files were found but are not scanned. Use code-scan-lite-jvm-support.yml to scan them."
+          fi
+
+      - name: "Get repository languages"
+        id: get-repository-languages
+        uses: $/.github/actions/get-repository-languages
+        with:
+          ignore_language: java,kotlin,${{ inputs.ignore_language }}
+
+  codeql-analysis:
+    # See https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#scanning-on-push
+    # If we found a language, and the event is not a push made by dependabot on a PR
+    if: ${{ needs.get-repository-metadata.outputs.codeql_languages != '[]' && (github.event_name != 'push' || (github.event_name == 'push' && github.actor != 'dependabot[bot]')) }}
+    runs-on: ubuntu-24.04
+    needs: get-repository-metadata
+    permissions:
+      # CodeQL - required for all workflows
+      security-events: write
+      # CodeQL - only required for workflows in private repositories
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ${{ fromJson(needs.get-repository-metadata.outputs.codeql_languages) }}
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      # Stops actions/unpinned-tag from flagging entur/* actions. See README-code-scan.md#trusted-actions-publishers.
+      - name: "Install Entur CodeQL Actions trusted-publishers model pack"
+        if: matrix.language == 'actions'
+        uses: $/.github/actions/install-codeql-model-pack
+
+      # C# and C/C++ are scanned without building the project
+      - name: "Initialize CodeQL"
+        uses: github/codeql-action/init@v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ contains(fromJSON('["csharp", "cpp"]'), matrix.language) && 'none' || '' }}
+          queries: security-extended
+          # CWE-275 is generating a lot of spam on Action scanning despite teams following golden path. Ignore for now.
+          config: |
+            query-filters:
+              - exclude:
+                  id: actions/missing-workflow-permissions
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Perform CodeQL Analysis"
+        uses: github/codeql-action/analyze@v4.39.3
+        with:
+          category: "/language:${{ matrix.language }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  scanner-action:
+    needs: [codeql-analysis]
+    runs-on: ubuntu-24.04
+    permissions:
+      # required to read and update code scan alerts
+      security-events: write
+      # required to checkout the repository
+      contents: read
+      issues: write # required for creating issues, and/or adding issue comments
+      pull-requests: write # required for creating comments on pull requests
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scanner Action
+        id: scanner-action
+        uses: $/scanner-action
+        with:
+          scanner: 'codescan'
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          external_repository_token: ${{ secrets.external_repository_token }}
+          slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}

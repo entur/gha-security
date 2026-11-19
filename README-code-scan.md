@@ -1,5 +1,10 @@
 # `gha-security/code-scan`
 
+> [!TIP]
+> If you don't use Scala, Softpay Nexus, GitHub Packages, `additional_build_secrets`, Maven cache, a custom runner, custom queries or custom Gradle options, use a lite version instead:
+> - [Code scan lite](README-code-scan-lite.md) for repositories without Java or Kotlin
+> - [Code scan lite JVM support](README-code-scan-lite-jvm-support.md) for Java and Kotlin repositories
+
 ## Usage
 
 Add the following step to your workflow configuration:
@@ -9,8 +14,18 @@ jobs:
   code-scan:
     name: Code Scan
     uses: entur/gha-security/.github/workflows/code-scan.yml@v2
-    secrets: inherit
+    secrets:
+      ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
+      ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
 ```
+
+Pass only the secrets you need instead of using `secrets: inherit`:
+- `ARTIFACTORY_AUTH_USER` and `ARTIFACTORY_AUTH_TOKEN` if the build downloads dependencies from Artifactory
+- `SLACK_BOT_TOKEN` for [Slack notifications](#notifications)
+- `SOFTPAY_NEXUS_USERNAME` and `SOFTPAY_NEXUS_PASSWORD` if the build uses Softpay Nexus
+
+`secrets: inherit` still works, and is required when using [`additional_build_secrets`](#codeqlsemgrep-is-missing-secrets-to-build-project).
+
 or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your repository, click on _New workflow_ and select the button _Configure_ on the _CodeQL Scan_ workflow.
 
 
@@ -39,14 +54,14 @@ or add the Entur Shared Workflow _CodeQL Scan_. Go to the _Actions_ tab in your 
 
 <!-- AUTO-DOC-SECRETS:START - Do not remove or modify this section -->
 
-|                                                    SECRET                                                     | REQUIRED |                                                             DESCRIPTION                                                              |
-|---------------------------------------------------------------------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------|
-|     <a name="secret_ARTIFACTORY_AUTH_TOKEN"></a>[ARTIFACTORY_AUTH_TOKEN](#secret_ARTIFACTORY_AUTH_TOKEN)      |  false   |    Token for the Artifactory repository. <br>Secret is fetched from Entur <br>GitHub organization if secrets are <br>inherited.      |
-|       <a name="secret_ARTIFACTORY_AUTH_USER"></a>[ARTIFACTORY_AUTH_USER](#secret_ARTIFACTORY_AUTH_USER)       |  false   | The username for the Artifactory <br>repository. Secret is fetched from <br>Entur GitHub organization if secrets <br>are inherited.  |
-|                <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                |  false   |  Slack bot token is used <br>for notifications. Secret is fetched <br>from Entur GitHub organization if <br>secrets are inherited.   |
-|     <a name="secret_SOFTPAY_NEXUS_PASSWORD"></a>[SOFTPAY_NEXUS_PASSWORD](#secret_SOFTPAY_NEXUS_PASSWORD)      |  false   |            The password for Softpay. Secret <br>is fetched from Entur GitHub <br>organization if secrets are inherited.              |
-|     <a name="secret_SOFTPAY_NEXUS_USERNAME"></a>[SOFTPAY_NEXUS_USERNAME](#secret_SOFTPAY_NEXUS_USERNAME)      |  false   |            The username for Softpay. Secret <br>is fetched from Entur GitHub <br>organization if secrets are inherited.              |
-| <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   |  Token to access the external <br>repository mentioned in the codescan.yml <br>file. Must have read access <br>to the repository.    |
+|                                                    SECRET                                                     | REQUIRED |                                                                DESCRIPTION                                                                |
+|---------------------------------------------------------------------------------------------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------|
+|     <a name="secret_ARTIFACTORY_AUTH_TOKEN"></a>[ARTIFACTORY_AUTH_TOKEN](#secret_ARTIFACTORY_AUTH_TOKEN)      |  false   |     Token for the Artifactory repository. <br>Organization secret, pass it explicitly <br>(recommended) or with `secrets: inherit`.       |
+|       <a name="secret_ARTIFACTORY_AUTH_USER"></a>[ARTIFACTORY_AUTH_USER](#secret_ARTIFACTORY_AUTH_USER)       |  false   |  The username for the Artifactory <br>repository. Organization secret, pass it <br>explicitly (recommended) or with `secrets: inherit`.   |
+|                <a name="secret_SLACK_BOT_TOKEN"></a>[SLACK_BOT_TOKEN](#secret_SLACK_BOT_TOKEN)                |  false   | Slack bot token is used <br>for notifications. Organization secret, pass <br>it explicitly (recommended) or with <br>`secrets: inherit`.  |
+|     <a name="secret_SOFTPAY_NEXUS_PASSWORD"></a>[SOFTPAY_NEXUS_PASSWORD](#secret_SOFTPAY_NEXUS_PASSWORD)      |  false   |           The password for Softpay. Organization <br>secret, pass it explicitly (recommended) <br>or with `secrets: inherit`.             |
+|     <a name="secret_SOFTPAY_NEXUS_USERNAME"></a>[SOFTPAY_NEXUS_USERNAME](#secret_SOFTPAY_NEXUS_USERNAME)      |  false   |           The username for Softpay. Organization <br>secret, pass it explicitly (recommended) <br>or with `secrets: inherit`.             |
+| <a name="secret_external_repository_token"></a>[external_repository_token](#secret_external_repository_token) |  false   |     Token to access the external <br>repository mentioned in the codescan.yml <br>file. Must have read access <br>to the repository.      |
 
 <!-- AUTO-DOC-SECRETS:END -->
 
@@ -76,7 +91,9 @@ jobs:
     code-scan:
         name: Code Scan
         uses: entur/gha-security/.github/workflows/code-scan.yml@v2
-        secrets: inherit
+        secrets:
+          ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
+          ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
 ```
 
 
@@ -95,7 +112,9 @@ jobs:
   code-scan:
     name: Code Scan
     uses: entur/gha-security/.github/workflows/code-scan.yml@v2
-    secrets: inherit
+    secrets:
+      ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
+      ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
     with:
       use_setup_java: true
       java_version: "21"
@@ -112,7 +131,9 @@ jobs:
   code-scan:
     name: Code Scan
     uses: entur/gha-security/.github/workflows/code-scan.yml@v2
-    secrets: inherit
+    secrets:
+      ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
+      ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
     with:
       use_maven_cache: true
 ```
@@ -156,7 +177,7 @@ The threshold can be set to one of the following values:
 
 Slack notifications are by default disabled, but can be enabled by creating a scanner config in repository or inheriting a shared config.
 
-**Note:** The slack channel used for notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot. Additionally, you MUST specify `secrets: inherit` when calling the code-scan reusable-workflow.
+**Note:** The slack channel used for notifications needs to have `Github Actions bot` in the channel, see [gha-slack prereqs](https://github.com/entur/gha-slack/blob/main/.github/README.md#prereqs) on how to invite the bot. Additionally, you MUST pass `SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}` under `secrets` when calling the code-scan reusable-workflow.
 
 The format and location of the config can be found [in the section below](#code-scan-config).
 
@@ -367,7 +388,9 @@ jobs:
     code-scan:
         name: Code Scan
         uses: entur/gha-security/.github/workflows/code-scan.yml@v2
-        secrets: inherit
+        secrets:
+          ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
+          ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
         with:
           use_setup_java: true
           java_version: "21"
@@ -409,7 +432,6 @@ jobs:
     code-scan:
         name: Code Scan
         uses: entur/gha-security/.github/workflows/code-scan.yml@v2
-        secrets: inherit
         with:
           ignore_language: "html"
 ```
@@ -453,7 +475,9 @@ jobs:
     code-scan:
         name: Code Scan
         uses: entur/gha-security/.github/workflows/code-scan.yml@v2
-        secrets: inherit
+        secrets:
+          ARTIFACTORY_AUTH_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
+          ARTIFACTORY_AUTH_TOKEN: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
         with:
           expose_github_token_and_actor: true
           ...

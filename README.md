@@ -8,6 +8,8 @@
 GitHub Actions for working with security tools.
 
 - [Code scan](README-code-scan.md)
+- [Code scan lite JVM support](README-code-scan-lite-jvm-support.md)
+- [Code scan lite](README-code-scan-lite.md)
 - [Docker scan](README-docker-scan.md)
 
 Github rulesets

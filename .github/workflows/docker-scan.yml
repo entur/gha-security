@@ -22,10 +22,10 @@ on:
         description: 'Token to access the external repository mentioned in the dockerscan.yml file. Must have read access to the repository.'
         required: false
       GHA_SECURITY_CENTRAL_ALLOWLIST:
-        description: 'SSH keys to checkout the central allowlist repository. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        description: 'SSH keys to checkout the central allowlist repository. Organization secret, pass it explicitly (recommended) or with `secrets: inherit`.'
         required: false
       SLACK_BOT_TOKEN:
-        description: 'Slack bot token is used for notifications. Secret is fetched from Entur GitHub organization if secrets are inherited.'
+        description: 'Slack bot token is used for notifications. Organization secret, pass it explicitly (recommended) or with `secrets: inherit`.'
         required: false
 
 env:
@@ -68,7 +68,7 @@ jobs:
         run: |
           echo "## ⚠️ Central Allowlist not used ⚠️
           The central allowlist is not being used in this workflow run.  
-          To use it, add 'secrets: inherit' to your workflow call.
+          To use it, pass the GHA_SECURITY_CENTRAL_ALLOWLIST secret to your workflow call.
           See the [Docker Scan documentation](https://github.com/entur/gha-security/blob/main/README-docker-scan.md) for more information." >> "$GITHUB_STEP_SUMMARY"
         env: 
           CENTRAL_ALLOWLIST_SSH_KEY: ${{ secrets.GHA_SECURITY_CENTRAL_ALLOWLIST }}

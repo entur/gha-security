@@ -21,6 +21,18 @@ jobs:
             workflow_file: .github/workflows/code-scan.yml
             readme_file: README-code-scan.md
 
+    update-code-scan-lite-jvm-support-doc:
+        uses: entur/gha-meta/.github/workflows/auto-doc.yml@v1.9.1
+        with: 
+            workflow_file: .github/workflows/code-scan-lite-jvm-support.yml
+            readme_file: README-code-scan-lite-jvm-support.md
+
+    update-code-scan-lite-doc:
+        uses: entur/gha-meta/.github/workflows/auto-doc.yml@v1.9.1
+        with: 
+            workflow_file: .github/workflows/code-scan-lite.yml
+            readme_file: README-code-scan-lite.md
+
     update-docker-scan-doc:
         uses: entur/gha-meta/.github/workflows/auto-doc.yml@v1.9.1
         with: 
