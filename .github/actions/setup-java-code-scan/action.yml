@@ -28,14 +28,14 @@ runs:
 
     - name: "Setup Java"
       if: ${{ inputs.server-id == '' }}
-      uses: actions/setup-java@v6.1.0
+      uses: actions/setup-java@v6.3.0
       with:
         java-version: ${{ inputs.java-version }}
         distribution: ${{ inputs.distribution }}
     
     - name: "Setup Java with server credentials"
       if: ${{ inputs.server-id != '' }}
-      uses: actions/setup-java@v6.1.0
+      uses: actions/setup-java@v6.3.0
       with:
         java-version: ${{ inputs.java-version }}
         distribution: ${{ inputs.distribution }}
